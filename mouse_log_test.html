@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>손전등 캡챠 마우스 로그 수집</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+
+      #captchaArea {
+        position: relative;
+        width: 800px;
+        height: 600px;
+        overflow: hidden;
+        border: 2px solid #333;
+        background-size: 800px 600px;
+        cursor: crosshair;
+      }
+
+      #darkLayer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          circle 180px at var(--x, 50%) var(--y, 50%),
+          rgba(255, 255, 255, 0) 0%,
+          rgba(0, 0, 0, 0.65) 35%,
+          rgba(0, 0, 0, 0.99) 100%
+        );
+      }
+
+      textarea {
+        margin-top: 15px;
+        width: 800px;
+        height: 260px;
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>손전등 캡챠 마우스 로그 수집 테스트</h2>
+    <p>마우스를 움직여 정답 객체를 찾고 클릭하세요.</p>
+
+    <div id="captchaArea">
+      <div id="darkLayer"></div>
+    </div>
+
+    <textarea
+      id="output"
+      placeholder="클릭하면 JSON 로그가 표시되고 자동 저장됩니다."
+    ></textarea>
+
+    <script>
+      const captchaArea = document.getElementById("captchaArea");
+      const darkLayer = document.getElementById("darkLayer");
+      const output = document.getElementById("output");
+
+      let currentCaptcha = null;
+      let logData = null;
+
+      let startTime = null;
+      let lastLogTime = 0;
+      const SAMPLE_INTERVAL = 50;
+
+      function resetLogData() {
+        logData = {
+          session_id: "sess_" + Date.now(),
+          image_id: currentCaptcha.image_id,
+          target_object: currentCaptcha.target_object,
+          result: "pending",
+          duration: null,
+          click: null,
+          bbox: currentCaptcha.bbox,
+          mouse_logs: [],
+        };
+
+        startTime = null;
+        lastLogTime = 0;
+        output.value = "";
+      }
+
+      async function loadCaptcha() {
+        const response = await fetch("/get-captcha");
+        currentCaptcha = await response.json();
+
+        captchaArea.style.backgroundImage = `url("${currentCaptcha.image_url}")`;
+
+        document.querySelector("p").innerText =
+          `마우스를 움직여 '${currentCaptcha.target_object}' 객체를 찾고 클릭하세요.`;
+
+        resetLogData();
+      }
+
+      function isCorrectClick(x, y, bbox) {
+        return (
+          x >= bbox.x &&
+          x <= bbox.x + bbox.width &&
+          y >= bbox.y &&
+          y <= bbox.y + bbox.height
+        );
+      }
+
+      captchaArea.addEventListener("mousemove", (e) => {
+        if (!logData) return;
+
+        const rect = captchaArea.getBoundingClientRect();
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+
+        darkLayer.style.setProperty("--x", `${x}px`);
+        darkLayer.style.setProperty("--y", `${y}px`);
+
+        if (startTime === null) {
+          startTime = performance.now();
+        }
+
+        const now = performance.now();
+        const t = Math.round(now - startTime);
+
+        if (t - lastLogTime >= SAMPLE_INTERVAL) {
+          logData.mouse_logs.push({ t, x, y });
+          lastLogTime = t;
+        }
+      });
+
+      captchaArea.addEventListener("click", async (e) => {
+        if (!logData) return;
+
+        const rect = captchaArea.getBoundingClientRect();
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+
+        if (startTime === null) {
+          startTime = performance.now();
+        }
+
+        const t = Math.round(performance.now() - startTime);
+
+        const isCorrect = isCorrectClick(x, y, currentCaptcha.bbox);
+
+        logData.duration = t;
+        logData.click = { x, y, t };
+        logData.result = isCorrect ? "success" : "fail";
+
+        output.value = JSON.stringify(logData, null, 2);
+
+        await fetch("/save-log", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(logData),
+        });
+
+        // 저장 후 바로 다음 캡챠로 이동
+        setTimeout(() => {
+          loadCaptcha();
+        }, 500);
+      });
+
+      loadCaptcha();
+    </script>
+  </body>
+</html>
