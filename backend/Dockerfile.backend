@@ -1,0 +1,18 @@
+# 1. 가벼운 파이썬 3.9 이미지 사용
+FROM python:3.9-slim
+
+# 2. 컨테이너 내 작업 디렉토리 설정
+WORKDIR /app
+
+# 3. 필요한 라이브러리 설치 (예시: Flask)
+# 만약 requirements.txt가 있다면 COPY requirements.txt . 후 RUN pip install -r requirements.txt 사용
+RUN pip install --no-cache-dir flask
+
+# 4. 소스 코드 복사
+COPY app.py .
+
+# 5. Flask 기본 포트인 5000번 노출
+EXPOSE 5000
+
+# 6. 앱 실행
+CMD ["python", "app.py"]
