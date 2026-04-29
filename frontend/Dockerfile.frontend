@@ -1,0 +1,15 @@
+# 1. 가벼운 Nginx 이미지 사용
+FROM nginx:alpine
+
+# 2. 기존 Nginx 기본 페이지 삭제 (선택사항)
+RUN rm /usr/share/nginx/html/index.html
+
+# 3. 레포지토리의 html 파일을 Nginx의 기본 웹 서비스 경로로 복사
+# 이때 이름을 index.html로 바꿔서 접속 시 바로 뜨게 합니다.
+COPY mouse_log_test.html /usr/share/nginx/html/index.html
+
+# 4. Nginx 기본 포트 80번 노출
+EXPOSE 80
+
+# 5. Nginx 실행 (기본 설정 사용)
+CMD ["nginx", "-g", "daemon off;"]
