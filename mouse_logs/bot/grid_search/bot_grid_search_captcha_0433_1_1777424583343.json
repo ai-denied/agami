@@ -1,0 +1,32 @@
+{
+  "session_id": "bot_grid_search_captcha_0433_1_1777424583343",
+  "image_id": "captcha_0433",
+  "target_object": "춘식이",
+  "result": "success",
+  "duration": 80,
+  "click": {
+    "x": 55,
+    "y": 59,
+    "t": 80
+  },
+  "bbox": {
+    "x": 0,
+    "y": 4,
+    "width": 110,
+    "height": 110
+  },
+  "bot_type": "grid_search",
+  "mouse_logs": [
+    {
+      "t": 0,
+      "x": 40,
+      "y": 40
+    },
+    {
+      "t": 80,
+      "x": 55,
+      "y": 59
+    }
+  ],
+  "saved_at": "2026-04-29T10:03:03.343607"
+}

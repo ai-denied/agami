@@ -1,0 +1,32 @@
+{
+  "session_id": "bot_grid_search_captcha_0281_1_1777424580410",
+  "image_id": "captcha_0281",
+  "target_object": "프로도",
+  "result": "success",
+  "duration": 80,
+  "click": {
+    "x": 93,
+    "y": 115,
+    "t": 80
+  },
+  "bbox": {
+    "x": 54,
+    "y": 72,
+    "width": 79,
+    "height": 87
+  },
+  "bot_type": "grid_search",
+  "mouse_logs": [
+    {
+      "t": 0,
+      "x": 40,
+      "y": 40
+    },
+    {
+      "t": 80,
+      "x": 93,
+      "y": 115
+    }
+  ],
+  "saved_at": "2026-04-29T10:03:00.410614"
+}

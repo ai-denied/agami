@@ -1,0 +1,37 @@
+{
+  "session_id": "bot_grid_search_captcha_0771_2_1777424589703",
+  "image_id": "captcha_0771",
+  "target_object": "무지",
+  "result": "success",
+  "duration": 160,
+  "click": {
+    "x": 183,
+    "y": 71,
+    "t": 160
+  },
+  "bbox": {
+    "x": 151,
+    "y": 39,
+    "width": 65,
+    "height": 65
+  },
+  "bot_type": "grid_search",
+  "mouse_logs": [
+    {
+      "t": 0,
+      "x": 40,
+      "y": 40
+    },
+    {
+      "t": 80,
+      "x": 120,
+      "y": 40
+    },
+    {
+      "t": 160,
+      "x": 183,
+      "y": 71
+    }
+  ],
+  "saved_at": "2026-04-29T10:03:09.703831"
+}

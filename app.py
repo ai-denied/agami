@@ -6,7 +6,7 @@ import random
 
 app = Flask(__name__)
 
-LOG_DIR = "mouse_logs"
+LOG_DIR = "mouse_logs\human"
 os.makedirs(LOG_DIR, exist_ok=True)
 
 LABEL_DIR = "dataset/labels"

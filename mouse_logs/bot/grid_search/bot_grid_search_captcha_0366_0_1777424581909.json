@@ -1,0 +1,52 @@
+{
+  "session_id": "bot_grid_search_captcha_0366_0_1777424581909",
+  "image_id": "captcha_0366",
+  "target_object": "key4",
+  "result": "success",
+  "duration": 400,
+  "click": {
+    "x": 412,
+    "y": 89,
+    "t": 400
+  },
+  "bbox": {
+    "x": 365,
+    "y": 42,
+    "width": 95,
+    "height": 95
+  },
+  "bot_type": "grid_search",
+  "mouse_logs": [
+    {
+      "t": 0,
+      "x": 40,
+      "y": 40
+    },
+    {
+      "t": 80,
+      "x": 120,
+      "y": 40
+    },
+    {
+      "t": 160,
+      "x": 200,
+      "y": 40
+    },
+    {
+      "t": 240,
+      "x": 280,
+      "y": 40
+    },
+    {
+      "t": 320,
+      "x": 360,
+      "y": 40
+    },
+    {
+      "t": 400,
+      "x": 412,
+      "y": 89
+    }
+  ],
+  "saved_at": "2026-04-29T10:03:01.909679"
+}

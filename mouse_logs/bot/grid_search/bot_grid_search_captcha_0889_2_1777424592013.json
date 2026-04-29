@@ -1,0 +1,32 @@
+{
+  "session_id": "bot_grid_search_captcha_0889_2_1777424592013",
+  "image_id": "captcha_0889",
+  "target_object": "key4",
+  "result": "success",
+  "duration": 80,
+  "click": {
+    "x": 105,
+    "y": 96,
+    "t": 80
+  },
+  "bbox": {
+    "x": 47,
+    "y": 38,
+    "width": 116,
+    "height": 116
+  },
+  "bot_type": "grid_search",
+  "mouse_logs": [
+    {
+      "t": 0,
+      "x": 40,
+      "y": 40
+    },
+    {
+      "t": 80,
+      "x": 105,
+      "y": 96
+    }
+  ],
+  "saved_at": "2026-04-29T10:03:12.013700"
+}

@@ -1,0 +1,37 @@
+{
+  "session_id": "bot_grid_search_captcha_0326_2_1777424581232",
+  "image_id": "captcha_0326",
+  "target_object": "라이언",
+  "result": "success",
+  "duration": 160,
+  "click": {
+    "x": 141,
+    "y": 104,
+    "t": 160
+  },
+  "bbox": {
+    "x": 76,
+    "y": 17,
+    "width": 131,
+    "height": 174
+  },
+  "bot_type": "grid_search",
+  "mouse_logs": [
+    {
+      "t": 0,
+      "x": 40,
+      "y": 40
+    },
+    {
+      "t": 80,
+      "x": 120,
+      "y": 40
+    },
+    {
+      "t": 160,
+      "x": 141,
+      "y": 104
+    }
+  ],
+  "saved_at": "2026-04-29T10:03:01.232911"
+}

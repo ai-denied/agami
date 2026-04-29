@@ -1,0 +1,32 @@
+{
+  "session_id": "bot_grid_search_captcha_0635_2_1777424586907",
+  "image_id": "captcha_0635",
+  "target_object": "key5",
+  "result": "success",
+  "duration": 80,
+  "click": {
+    "x": 114,
+    "y": 64,
+    "t": 80
+  },
+  "bbox": {
+    "x": 64,
+    "y": 14,
+    "width": 101,
+    "height": 101
+  },
+  "bot_type": "grid_search",
+  "mouse_logs": [
+    {
+      "t": 0,
+      "x": 40,
+      "y": 40
+    },
+    {
+      "t": 80,
+      "x": 114,
+      "y": 64
+    }
+  ],
+  "saved_at": "2026-04-29T10:03:06.907452"
+}

@@ -1,0 +1,42 @@
+{
+  "session_id": "bot_grid_search_captcha_0583_2_1777424586013",
+  "image_id": "captcha_0583",
+  "target_object": "shoes3",
+  "result": "success",
+  "duration": 240,
+  "click": {
+    "x": 230,
+    "y": 112,
+    "t": 240
+  },
+  "bbox": {
+    "x": 197,
+    "y": 91,
+    "width": 67,
+    "height": 42
+  },
+  "bot_type": "grid_search",
+  "mouse_logs": [
+    {
+      "t": 0,
+      "x": 40,
+      "y": 40
+    },
+    {
+      "t": 80,
+      "x": 120,
+      "y": 40
+    },
+    {
+      "t": 160,
+      "x": 200,
+      "y": 40
+    },
+    {
+      "t": 240,
+      "x": 230,
+      "y": 112
+    }
+  ],
+  "saved_at": "2026-04-29T10:03:06.013511"
+}
