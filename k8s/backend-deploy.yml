@@ -1,34 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mouse-back-deploy
+  name: mouse-front-deploy
 spec:
-  replicas: 2 # 워커 노드 2개에 각각 하나씩 배포
+  replicas: 2
   selector:
     matchLabels:
-      app: mouse-back
+      app: mouse-front
   template:
     metadata:
       labels:
-        app: mouse-back
+        app: mouse-front
     spec:
       containers:
-      - name: mouse-back
-        image: ${{ secrets.DOCKER_USER }}/mouse-back:latest
+      - name: mouse-front
+        # 변수 대신 실제 Docker Hub ID를 입력하거나 CI에서 치환해야 합니다.
+        image: <여러분의_DOCKER_HUB_ID>/mouse-front:latest
         ports:
-        - containerPort: 5000 # app.py가 사용하는 포트
-        env:
-        - name: DB_HOST
-          value: "10.0.x.x" # 여기에 DB VM의 Private IP를 넣으세요
+        - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mouse-back-service
+  name: mouse-front-service
 spec:
+  type: LoadBalancer
   selector:
-    app: mouse-back
+    app: mouse-front
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 5000
+    - protocol: TCP
+      port: 80
+      targetPort: 80
