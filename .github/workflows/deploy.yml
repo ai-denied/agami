@@ -1,28 +1,43 @@
-name: Deploy to Bastion Minikube
+name: Build and Deploy to Minikube
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 1. 도커 허브 로그인
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 2. 백엔드 이미지 빌드 및 푸시
+      - name: Build and Push Backend
+        run: |
+          docker build -t imbazzi/mouse-back:latest .
+          docker push imbazzi/mouse-back:latest
+
+      # 3. 쿠버네티스 컨텍스트 설정
       - name: Set up Kubernetes Context
         uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
 
-      - name: Deploy Backend to Minikube
+      # 4. 쿠버네티스 배포 (주문서 전달)
+      - name: Deploy to Minikube
         run: |
-          # 이미지 내 k8s 폴더의 경로를 참조합니다.
           kubectl apply -f k8s/backend-deploy.yml
+          kubectl apply -f k8s/frontend-deploy.yml
         
       - name: Verify Deployment
         run: |
-          kubectl get pods -n default
-          kubectl get svc -n default
+          kubectl get pods
+          kubectl get svc
