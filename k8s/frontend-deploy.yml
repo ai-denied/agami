@@ -1,33 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mouse-front-deploy
+  name: mouse-back-deploy
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: mouse-front
+      app: mouse-back
   template:
     metadata:
       labels:
-        app: mouse-front
+        app: mouse-back
     spec:
       containers:
-      - name: mouse-front
-        # 변수 대신 실제 Docker Hub ID를 입력하거나 CI에서 치환해야 합니다.
-        image: <여러분의_DOCKER_HUB_ID>/mouse-front:latest
+      - name: mouse-back
+        # <DOCKER_USER>를 실제 본인의 도커 허브 아이디로 수정하세요.
+        image: <DOCKER_USER>/mouse-back:latest
         ports:
-        - containerPort: 80
+        - containerPort: 5000
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mouse-front-service
+  name: mouse-back-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
-    app: mouse-front
+    app: mouse-back
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 5000
