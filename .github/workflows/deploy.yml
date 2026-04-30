@@ -41,3 +41,9 @@ jobs:
         run: |
           kubectl get pods
           kubectl get svc
+
+      - name: Build and Push Backend
+        run: |
+          # 파일명이 정확히 'Dockerfile'인지 다시 확인하세요 (대소문자 구분)
+          docker build -t imbazzi/mouse-back:latest .
+          docker push imbazzi/mouse-back:latest
