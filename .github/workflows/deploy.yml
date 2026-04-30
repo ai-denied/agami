@@ -26,3 +26,10 @@ jobs:
       run: |
         kubectl get pods -n default
         kubectl get svc -n default
+
+    - name: Deploy to Minikube
+    run: |
+      # 연결 테스트를 먼저 수행합니다.
+      kubectl cluster-info
+      # 에러 메시지를 상세히 보기 위해 설정을 적용합니다.
+      kubectl apply -f k8s/backend-deploy.yml --v=8
