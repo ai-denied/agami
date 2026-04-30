@@ -1,35 +1,28 @@
-name: Mouse Project CI/CD
+name: Deploy to Bastion Minikube
 
 on:
   push:
-    branches: [ "ImBazzi-patch-1" ]  # 현재 작업 중인 브랜치 이름
+    branches: [ "main" ] # 메인 브랜치에 푸시될 때 실행
 
 jobs:
-  build-and-deploy:
-    runs-on: self-hosted  # 마스터 노드에 설치한 러너를 사용한다는 뜻
+  deploy:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-      - name: Docker Login
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+    - name: Set up Kubernetes Context
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
 
-      - name: Build and Push Images
-        run: |
-          # 백엔드 이미지 빌드 및 푸시
-          docker build -f Dockerfile.backend -t ${{ secrets.DOCKER_USER }}/mouse-back:latest .
-          docker push ${{ secrets.DOCKER_USER }}/mouse-back:latest
-          
-          # 프론트엔드 이미지 빌드 및 푸시
-          docker build -f Dockerfile.frontend -t ${{ secrets.DOCKER_USER }}/mouse-front:latest .
-          docker push ${{ secrets.DOCKER_USER }}/mouse-front:latest
-
-      - name: K3s Deploy
-        run: |
-          # k8s 폴더 안에 있는 설정 파일들을 적용합니다.
-          kubectl apply -f k8s/backend-deploy.yaml
-          kubectl apply -f k8s/frontend-deploy.yaml
-          
-          # 이미 배포된 상태라면 새로운 이미지를 불러오도록 재시작합니다.
-          kubectl rollout restart deployment/mouse-back-deploy
-          kubectl rollout restart deployment/mouse-front-deploy
+    - name: Deploy Backend to Minikube
+      run: |
+        # 이미지에 명시된 k8s 경로의 설정 파일들을 적용합니다.
+        kubectl apply -f k8s/backend-deploy.yml
+        
+    - name: Verify Deployment
+      run: |
+        kubectl get pods -n default
+        kubectl get svc -n default
