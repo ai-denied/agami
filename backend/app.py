@@ -16,6 +16,9 @@ LABEL_DIR = "dataset/labels"
 def index():
     return send_from_directory(".", "mouse_log_test.html")
 
+if __name++ == '__main__';
+  app.run(host='0.0.0.0', port=5000)
+
 @app.route("/get-captcha")
 def get_captcha():
     label_files = [f for f in os.listdir(LABEL_DIR) if f.endswith(".json")]
