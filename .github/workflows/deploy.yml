@@ -2,34 +2,27 @@ name: Deploy to Bastion Minikube
 
 on:
   push:
-    branches: [ "main" ] # 메인 브랜치에 푸시될 때 실행
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Set up Kubernetes Context
-      uses: azure/k8s-set-context@v3
-      with:
-        method: kubeconfig
-        kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
+      - name: Set up Kubernetes Context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
 
-    - name: Deploy Backend to Minikube
-      run: |
-        # 이미지에 명시된 k8s 경로의 설정 파일들을 적용합니다.
-        kubectl apply -f k8s/backend-deploy.yml
+      - name: Deploy Backend to Minikube
+        run: |
+          # 이미지 내 k8s 폴더의 경로를 참조합니다.
+          kubectl apply -f k8s/backend-deploy.yml
         
-    - name: Verify Deployment
-      run: |
-        kubectl get pods -n default
-        kubectl get svc -n default
-
-    - name: Deploy to Minikube
-    run: |
-      # 연결 테스트를 먼저 수행합니다.
-      kubectl cluster-info
-      # 에러 메시지를 상세히 보기 위해 설정을 적용합니다.
-      kubectl apply -f k8s/backend-deploy.yml --v=8
+      - name: Verify Deployment
+        run: |
+          kubectl get pods -n default
+          kubectl get svc -n default
