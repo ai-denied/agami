@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
       - name: mouse-front
-        image: ${{ secrets.DOCKER_USER }}/mouse-front:latest
+        # 변수 대신 실제 Docker Hub ID를 입력하거나 CI에서 치환해야 합니다.
+        image: <여러분의_DOCKER_HUB_ID>/mouse-front:latest
         ports:
         - containerPort: 80
 ---
@@ -23,10 +24,10 @@ kind: Service
 metadata:
   name: mouse-front-service
 spec:
-  type: LoadBalancer # 외부에서 접속하기 위해 LoadBalancer 타입 사용
+  type: LoadBalancer
   selector:
     app: mouse-front
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
+    - protocol: TCP
+      port: 80
+      targetPort: 80
