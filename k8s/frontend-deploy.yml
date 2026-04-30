@@ -15,7 +15,7 @@ spec:
       containers:
       - name: mouse-front
         # <DOCKER_ID>를 실제 본인의 도커 허브 아이디로 직접 수정하세요.
-        image: <DOCKER_ID>/mouse-front:latest
+        image: imbazzi/mouse-front:latest
         ports:
         - containerPort: 80
 ---
