@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: mouse-back
-        # <DOCKER_USER>를 실제 본인의 도커 허브 아이디로 수정하세요.
-        image: <DOCKER_USER>/mouse-back:latest
+        # <DOCKER_ID>를 실제 본인의 도커 허브 아이디로 직접 수정하세요.
+        image: <DOCKER_ID>/mouse-back:latest
         ports:
         - containerPort: 5000
 ---
