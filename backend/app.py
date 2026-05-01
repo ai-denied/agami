@@ -14,7 +14,6 @@ LABEL_DIR = "dataset/labels"
 
 @app.route("/")
 def index():
-    # 특수 공백(U+00A0)이 제거된 깨끗한 코드입니다.
     return send_from_directory(".", "mouse_log_test.html")
 
 @app.route("/get-captcha")
