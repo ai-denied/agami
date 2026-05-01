@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS  # CORS 라이브러리 추가
 import os
 import json
 from datetime import datetime
 import random
 
 app = Flask(__name__)
+CORS(app)  # 모든 호스트에서의 접속을 허용합니다.
 
-# 리눅스 환경에 맞춰 경로 구분자를 /로 수정했습니다.
 LOG_DIR = "mouse_logs/human"
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -14,7 +15,7 @@ LABEL_DIR = "dataset/labels"
 
 @app.route("/")
 def index():
-    return send_from_directory(".", "mouse_log_test.html")
+    return "Backend is running. Use frontend for UI."
 
 @app.route("/get-captcha")
 def get_captcha():
@@ -62,6 +63,5 @@ def save_log():
         "file": filepath
     })
 
-# 오타(++ , ;)를 표준 문법으로 수정했습니다.
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
