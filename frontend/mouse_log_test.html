@@ -85,7 +85,7 @@
       }
 
       async function loadCaptcha() {
-        const response = await fetch("/get-captcha");
+        const response = await fetch("http://mouse-back-service/get-captcha");
         currentCaptcha = await response.json();
 
         captchaArea.style.backgroundImage = `url("${currentCaptcha.image_url}")`;
@@ -149,7 +149,7 @@
 
         output.value = JSON.stringify(logData, null, 2);
 
-        await fetch("/save-log", {
+        await fetch("http://mouse-back-service/save-log", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
