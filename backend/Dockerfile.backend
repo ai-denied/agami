@@ -2,6 +2,7 @@ FROM python:3.9-slim
 
 # PostgreSQL 접속을 위한 라이브러리 의존성 설치
 RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
+RUN pip install flask flask-cors
 
 WORKDIR /app
 RUN pip install flask psycopg2-binary
