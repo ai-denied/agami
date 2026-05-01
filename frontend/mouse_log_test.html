@@ -142,6 +142,15 @@
       });
     
       loadCaptcha();
+
+      function isCorrectClick(x, y, bbox) {
+        return (
+          x >= bbox.x &&
+          x <= bbox.x + bbox.width &&
+          y >= bbox.y &&
+          y <= bbox.y + bbox.height
+        );
+      }
     </script>
   </body>
 </html>
