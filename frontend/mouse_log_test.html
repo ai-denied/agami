@@ -59,14 +59,16 @@
       const captchaArea = document.getElementById("captchaArea");
       const darkLayer = document.getElementById("darkLayer");
       const output = document.getElementById("output");
-
+    
+      // [수정] 백엔드 접속 주소를 변수로 설정
+      const BACKEND_URL = "http://13.125.211.33:5000";
+    
       let currentCaptcha = null;
       let logData = null;
-
       let startTime = null;
       let lastLogTime = 0;
       const SAMPLE_INTERVAL = 50;
-
+    
       function resetLogData() {
         logData = {
           session_id: "sess_" + Date.now(),
@@ -78,91 +80,67 @@
           bbox: currentCaptcha.bbox,
           mouse_logs: [],
         };
-
         startTime = null;
         lastLogTime = 0;
         output.value = "";
       }
-
+    
       async function loadCaptcha() {
-        const response = await fetch("http://mouse-back-service/get-captcha");
-        currentCaptcha = await response.json();
-
-        captchaArea.style.backgroundImage = `url("${currentCaptcha.image_url}")`;
-
-        document.querySelector("p").innerText =
-          `마우스를 움직여 '${currentCaptcha.target_object}' 객체를 찾고 클릭하세요.`;
-
-        resetLogData();
-      }
-
-      function isCorrectClick(x, y, bbox) {
-        return (
-          x >= bbox.x &&
-          x <= bbox.x + bbox.width &&
-          y >= bbox.y &&
-          y <= bbox.y + bbox.height
-        );
-      }
-
-      captchaArea.addEventListener("mousemove", (e) => {
-        if (!logData) return;
-
-        const rect = captchaArea.getBoundingClientRect();
-        const x = Math.round(e.clientX - rect.left);
-        const y = Math.round(e.clientY - rect.top);
-
-        darkLayer.style.setProperty("--x", `${x}px`);
-        darkLayer.style.setProperty("--y", `${y}px`);
-
-        if (startTime === null) {
-          startTime = performance.now();
+        try {
+          // [수정] 외부 접속 주소(BACKEND_URL)로 API 호출
+          const response = await fetch(`${BACKEND_URL}/get-captcha`);
+          currentCaptcha = await response.json();
+    
+          // [수정] 이미지 경로에도 백엔드 주소를 붙여줌
+          const fullImageUrl = `${BACKEND_URL}${currentCaptcha.image_url}`;
+          captchaArea.style.backgroundImage = `url("${fullImageUrl}")`;
+    
+          document.querySelector("p").innerText =
+            `마우스를 움직여 '${currentCaptcha.target_object}' 객체를 찾고 클릭하세요.`;
+    
+          resetLogData();
+        } catch (error) {
+          console.error("캡챠 로드 실패:", error);
+          output.value = "백엔드 서버에 연결할 수 없습니다. 포트 포워딩을 확인하세요.";
         }
-
-        const now = performance.now();
-        const t = Math.round(now - startTime);
-
-        if (t - lastLogTime >= SAMPLE_INTERVAL) {
-          logData.mouse_logs.push({ t, x, y });
-          lastLogTime = t;
-        }
-      });
-
+      }
+    
+      // (중략: isCorrectClick 및 mousemove 이벤트 로직은 동일)
+    
       captchaArea.addEventListener("click", async (e) => {
         if (!logData) return;
-
+    
         const rect = captchaArea.getBoundingClientRect();
         const x = Math.round(e.clientX - rect.left);
         const y = Math.round(e.clientY - rect.top);
-
-        if (startTime === null) {
-          startTime = performance.now();
-        }
-
+    
+        if (startTime === null) startTime = performance.now();
         const t = Math.round(performance.now() - startTime);
-
+    
         const isCorrect = isCorrectClick(x, y, currentCaptcha.bbox);
-
+    
         logData.duration = t;
         logData.click = { x, y, t };
         logData.result = isCorrect ? "success" : "fail";
-
+    
         output.value = JSON.stringify(logData, null, 2);
-
-        await fetch("http://mouse-back-service/save-log", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(logData),
-        });
-
-        // 저장 후 바로 다음 캡챠로 이동
+    
+        try {
+          // [수정] 외부 접속 주소(BACKEND_URL)로 로그 저장 요청
+          await fetch(`${BACKEND_URL}/save-log`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(logData),
+          });
+        } catch (error) {
+          console.error("로그 저장 실패:", error);
+        }
+    
         setTimeout(() => {
           loadCaptcha();
         }, 500);
       });
-
+    
       loadCaptcha();
     </script>
   </body>
