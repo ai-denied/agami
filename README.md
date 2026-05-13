@@ -21,7 +21,7 @@ AGAMI는 단순 정답 검증이 아닌
 
 ## Main Features
 
-### Flashlight CAPTCHA
+### 손전등 CAPTCHA
 
 어두운 화면 속에서 손전등 형태의 시야를 움직이며 목표 객체를 탐색하는 CAPTCHA
 
@@ -31,7 +31,7 @@ AGAMI는 단순 정답 검증이 아닌
 
 ---
 
-### Context CAPTCHA
+### 상황 판단 CAPTCHA
 
 단순 표정이 아닌 상황과 맥락을 기반으로 감정을 추론하는 CAPTCHA
 
@@ -44,7 +44,7 @@ AGAMI는 단순 정답 검증이 아닌
 
 ---
 
-### Real-time Face Mission
+### 실시간 안면 인식 CAPTCHA
 
 사용자에게 랜덤 안면 미션을 부여하여 실시간 반응 검증
 
