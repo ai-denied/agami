@@ -5,6 +5,18 @@ import LiquidGlass from '../components/LiquidGlass';
 import './Login.css';
 
 const Login = () => {
+  // 카카오 로그인 핸들러
+  const handleKakaoLogin = () => {
+    const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
+    const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
+    
+    // 카카오 인가 코드 요청 URL
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+    
+    // 현재 창을 카카오 로그인 페이지로 전환
+    window.location.href = kakaoAuthUrl;
+  };
+
   return (
     <div className="login-wrapper">
       {/* 분리된 파도 배경 컴포넌트 */}
@@ -32,7 +44,7 @@ const Login = () => {
         </div>
 
         <div className="login-buttons">
-          <button className="login-btn kakao" onClick={() => console.log("Kakao Login")}>
+          <button className="login-btn kakao" onClick={handleKakaoLogin}>
             <img src="/kakao-icon.svg" alt="Kakao" className="btn-icon" />
             <span>카카오로 시작하기</span>
           </button>

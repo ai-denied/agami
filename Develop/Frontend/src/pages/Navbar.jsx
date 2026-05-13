@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = () => {
   const [isFirstVisit, setIsFirstVisit] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation(); // URL 파라미터를 읽기 위해 추가
+
+  // URL에서 닉네임과 프로필 정보를 가져옴
+  const params = new URLSearchParams(location.search);
+  const nickname = params.get('nickname');
+  const profile = params.get('profile');
 
   useEffect(() => {
     const hasVisited = sessionStorage.getItem('hasVisitedAgami');
@@ -53,7 +59,6 @@ const Navbar = () => {
         </div>
 
         <div className="nav-group right">
-          {/* 스위치 내부 구조 변경: 글자와 핸들이 겹치지 않게 배치 */}
           <div className={`theme-switch ${isDarkMode ? 'active' : ''}`} onClick={toggleTheme}>
             <div className="switch-content">
               <span className="label-light">LIGHT</span>
@@ -62,9 +67,17 @@ const Navbar = () => {
             </div>
           </div>
 
-          <button className="nav-item login-btn" onClick={() => navigate('/login')}>
-            로그인
-          </button>
+          {/* 로그인 여부에 따른 조건부 렌더링 */}
+          {nickname ? (
+            <div className="user-profile-info">
+              {profile && <img src={profile} alt="profile" className="nav-profile-img" />}
+              <span className="nav-nickname"><strong>{nickname}</strong> 님</span>
+            </div>
+          ) : (
+            <button className="nav-item login-btn" onClick={() => navigate('/login')}>
+              로그인
+            </button>
+          )}
         </div>
       </div>
     </motion.nav>
