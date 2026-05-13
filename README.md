@@ -7,7 +7,7 @@
 ## Overview
 
 기존 CAPTCHA는 이미지 클릭이나 문자 입력 중심의 정적인 방식에 의존하고 있으며
-최근 Vision-Language Model(VLM)과 생성형 AI의 발전으로 인해 우회 가능성이 증가하고 있다.
+최근 Vision-Language Model(VLM)과 생성형 AI의 발전으로 인해 우회 가능성이 증가하고 있습니다.
 
 AGAMI는 단순 정답 검증이 아닌
 
@@ -15,7 +15,7 @@ AGAMI는 단순 정답 검증이 아닌
 - 상황 맥락 이해
 - 실시간 반응
 
-을 기반으로 인간과 AI를 구별하는 차세대 CAPTCHA 시스템을 목표로 한다.
+을 기반으로 인간과 AI를 구별하는 차세대 CAPTCHA 시스템을 목표로 합니다.
 
 <br>
 
