@@ -101,8 +101,6 @@ agami/
 ├── frontend/
 ├── backend/
 ├── model/
-├── dataset/
-├── mouse_logs/
-├── k8s/
+├── infra/
 ├── docs/
 └── README.md
