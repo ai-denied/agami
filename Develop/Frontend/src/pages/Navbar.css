@@ -1,0 +1,159 @@
+:root {
+  --nav-bg: rgba(255, 255, 255, 0.5);
+  --nav-border: rgba(255, 255, 255, 0.3);
+  --text-color: #222;
+  --main-blue: #5da2ff;
+  --switch-bg: #5da2ff; 
+}
+
+body.dark-mode {
+  background-color: black;
+  --nav-bg: rgba(0, 0, 0, 0.5);
+  --nav-border: rgba(255, 255, 255, 0.1);
+  --text-color: #ffffff;
+  --switch-bg: #333;
+}
+
+/* 선택자를 더 구체적으로 작성 */
+.menu-bar .nav-container .nav-item {
+  font-size: 16px; 
+  font-weight: 500;
+}
+
+.menu-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 65px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid var(--nav-border);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 10px; 
+  box-sizing: border-box;
+  transition: background 0.3s ease;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.nav-group {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.nav-links {
+  display: flex;
+  height: 100%;
+  margin-left: 10px;
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  height: 100%; 
+  padding: 0 20px; 
+  color: var(--text-color);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  color: var(--main-blue);
+  background: rgba(93, 162, 255, 0.05);
+}
+
+.login-btn {
+  color: var(--main-blue);
+}
+
+/* 로고 버튼 스타일 (원본 유지) */
+.home-logo-btn {
+  background: none;
+  border: none;
+  height: 100%;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.home-logo-btn img {
+  width: 45px;
+  height: auto;
+  transition: transform 0.2s ease;
+}
+
+/* --- 스위치 텍스트 고정 버전 --- */
+.theme-switch {
+  width: 70px; 
+  height: 34px;
+  background: var(--switch-bg);
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative; 
+  transition: all 0.3s ease;
+  margin-right: 10px;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+.label-light, .label-dark {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  z-index: 1; 
+  user-select: none;
+  transition: opacity 0.2s ease;
+  width: 35px; 
+  text-align: center;
+}
+
+.label-light {
+  right: 4px;
+}
+
+.label-dark {
+  left: 4px;
+}
+
+.switch-handle {
+  width: 26px;
+  height: 26px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2; 
+}
+
+.theme-switch.active .switch-handle {
+  transform: translateX(36px);
+}
+
+.theme-switch.active .label-light { opacity: 0; }
+.theme-switch.active .label-dark { opacity: 1; }
+
+.theme-switch:not(.active) .label-light { opacity: 1; }
+.theme-switch:not(.active) .label-dark { opacity: 0; }

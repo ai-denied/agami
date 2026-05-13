@@ -1,0 +1,66 @@
+:root {
+  --login-bg: rgba(255, 255, 255, 0.5);
+  --login-subtitle: #777;
+  --login-footer: #000;
+  --google-btn-bg: #fff;
+  --google-btn-text: #000;
+  --google-btn-border: #eee;
+}
+
+/* 다크모드 대응 */
+body.dark-mode {
+  --login-bg: rgba(30, 30, 35, 0.7); /* 어두운 반투명 배경 */
+  --login-subtitle: #aaa; /* 보조 텍스트 밝게 */
+  --login-footer: #eee; /* 하단 텍스트 밝게 */
+  --google-btn-bg: #2d2d2d; /* 구글 버튼 다크 대응 */
+  --google-btn-text: #fff;
+  --google-btn-border: #444;
+}
+
+.login-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.login-logo { 
+  height: 60px; 
+  margin-bottom: 12px; 
+}
+
+.login-subtitle { 
+  color: var(--login-subtitle); 
+  font-size: 0.9rem; 
+  margin-bottom: 40px; 
+  transition: color 0.3s ease;
+}
+
+.login-buttons { display: flex; flex-direction: column; gap: 16px; }
+
+.login-btn { 
+  display: flex; align-items: center; justify-content: center; 
+  padding: 15px; border: none;
+  font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+  border-radius: 8px;
+}
+
+.login-btn.google { 
+  background-color: var(--google-btn-bg); 
+  color: var(--google-btn-text);
+  border: 1px solid var(--google-btn-border); 
+}
+
+.login-btn.kakao { background-color: #fee500; color: #3c1e1e; }
+
+.btn-icon { width: 20px; height: 20px; margin-right: 10px; }
+
+.login-footer { 
+  margin-top: 35px; 
+  font-size: 0.8rem; 
+  color: var(--login-footer); 
+  transition: color 0.3s ease;
+}

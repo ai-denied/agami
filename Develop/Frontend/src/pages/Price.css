@@ -1,0 +1,184 @@
+:root {
+  /* Layout & Main Color */
+  --nav-height: 65px;
+  --brand-color: #5da2ff;       /* 라이트모드 메인 블루 */
+  --brand-point: #5da2ff;       /* 다크모드용 고정 블루 */
+  
+  /* Backgrounds */
+  --pricing-bg: #5da2ff;        /* 페이지 전체 배경 */
+  
+  /* Typography */
+  --text-main: #111111;
+  --text-sub: #444444;
+  --text-inverse: #ffffff;
+}
+
+/* 다크모드 설정 */
+body.dark-mode {
+  --pricing-bg: #05122e;        /* 깊은 심해색 배경 */
+  --text-main: #ffffff;
+  --text-sub: rgba(255, 255, 255, 0.7);
+}
+
+.pricing-wrapper {
+  position: relative;
+  min-height: 100vh; 
+  background-color: var(--pricing-bg);
+  font-family: 'Pretendard', sans-serif;
+  display: flex;
+  align-items: center;      
+  justify-content: center;   
+  padding-top: var(--nav-height); 
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+.pricing-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1200px;
+  padding: 40px 20px; 
+}
+
+/* 
+  [핵심] 
+  LiquidGlass 파일에 있는 원래 모양을 그대로 쓰기 위해 
+  여기서는 배경 투명도와 테두리 변수만 수정합니다.
+*/
+.pricing-content .liquid-glass-box {
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+body.dark-mode .pricing-content .liquid-glass-box {
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+.pricing-header h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--brand-color);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.pricing-header p {
+  color: var(--text-main);
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.pricing-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: nowrap;
+}
+
+.price-card {
+  /* 카드 내부 질감은 별도 변수 없이 인라인으로 고정하셨던 기존 수치 유지 */
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 28px;
+  padding: 40px 25px;
+  flex: 1;
+  min-width: 250px; 
+  max-width: 320px; 
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+body.dark-mode .price-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-card:hover {
+  transform: translateY(-10px);
+}
+
+body:not(.dark-mode) .price-card:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+body.dark-mode .price-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.price-card:hover .cta-button-shared {
+  background-color: var(--brand-color) !important;
+  color: var(--text-inverse) !important;
+  box-shadow: 0 10px 20px rgba(93, 162, 255, 0.3);
+}
+
+.plan-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.plan-desc {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  height: 40px;
+  margin-bottom: 20px;
+}
+
+.plan-price .amount {
+  font-size: 2.4rem;
+  font-weight: 850;
+  color: var(--brand-color);
+}
+
+.plan-price .currency, .plan-price .period {
+  color: var(--text-main);
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 25px 0;
+  flex-grow: 1;
+}
+
+.feature-list li { 
+  padding: 8px 0; 
+  color: var(--text-sub);
+  font-size: 0.9rem; 
+  display: flex; 
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-list li::before {
+  content: '✓';
+  color: var(--brand-color);
+  margin-right: 8px;
+  font-weight: 900;
+}
+
+.btn-wrapper {
+  width: 100%;
+  margin-top: auto;
+}
+
+.cta-button-shared { 
+  width: 100% !important; 
+  background-color: transparent !important;
+  border: 1px solid var(--brand-color) !important;
+  color: var(--brand-color) !important;
+  transition: all 0.3s ease-in-out !important;
+}
+
+@media (max-width: 950px) {
+  .pricing-container { flex-wrap: wrap; }
+  .price-card { max-width: 400px; width: 100%; }
+}

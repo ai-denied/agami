@@ -1,0 +1,114 @@
+/* 공통 버튼 기반 스타일 */
+.bubble-btn-shared {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  z-index: 1;
+  border: none;
+  font-family: inherit;
+  background-color: transparent;
+  
+  /* 다크모드 대응을 위한 변수 활용 */
+  --btn-blue: var(--main-blue, #5da2ff);
+  --bubble-color: rgba(255, 255, 255, 0.8); /* 기본 버블 색상 */
+}
+
+/* 다크모드 시 버블 색상 변경 */
+body.dark-mode .bubble-btn-shared {
+  --bubble-color: rgba(255, 255, 255, 0.8);
+}
+
+.btn-text-content {
+  position: relative;
+  z-index: 10; /* 텍스트를 버블보다 위로 */
+  pointer-events: none;
+}
+
+/* --- 타입 1: primary (테두리형) --- */
+.bubble-btn-shared.primary {
+  margin-top: 50px;
+  padding: 18px 60px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--btn-blue);
+  border: 2px solid var(--btn-blue);
+  border-radius: 30px;
+}
+
+.bubble-btn-shared.primary::before {
+  content: "";
+  position: absolute;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--btn-blue);
+  transition: bottom 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+}
+
+.bubble-btn-shared.primary:hover {
+  color: white;
+}
+
+.bubble-btn-shared.primary:hover::before {
+  bottom: 0;
+}
+
+/* --- 타입 2: fill (채우기형) --- */
+.bubble-btn-shared.fill {
+  width: 100%;
+  padding: 16px 0;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--btn-blue);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(93, 162, 255, 0.3);
+}
+
+.bubble-btn-shared.fill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(93, 162, 255, 0.4);
+}
+
+/* --- 버블 애니메이션 스타일 --- */
+.bubble-wrapper {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -20px; 
+  background: var(--bubble-color); /* 변수 적용 */
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.bubble-btn-shared:hover .bubble {
+  animation: rise 1.5s infinite ease-in;
+}
+
+/* 버블 개별 설정 (원본 유지) */
+.bubble-0 { width: 8px;  height: 8px;  left: 15%; animation-delay: 0.1s !important; }
+.bubble-1 { width: 14px; height: 14px; left: 32%; animation-delay: 0.5s !important; }
+.bubble-2 { width: 10px; height: 10px; left: 50%; animation-delay: 1.2s !important; }
+.bubble-3 { width: 18px; height: 18px; left: 75%; animation-delay: 0.8s !important; }
+.bubble-4 { width: 7px;  height: 7px;  left: 22%; animation-delay: 1.5s !important; }
+.bubble-5 { width: 12px; height: 12px; left: 42%; animation-delay: 0.3s !important; }
+.bubble-6 { width: 16px; height: 16px; left: 62%; animation-delay: 1.8s !important; }
+.bubble-7 { width: 9px;  height: 9px;  left: 88%; animation-delay: 1.0s !important; }
+
+@keyframes rise {
+  0% { bottom: -10px; transform: translateX(0); opacity: 0; }
+  20% { opacity: 1; }
+  50% { transform: translateX(10px); }
+  100% { bottom: 120%; transform: translateX(-10px); opacity: 0; }
+}

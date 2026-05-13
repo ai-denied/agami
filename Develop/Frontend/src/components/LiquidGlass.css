@@ -1,0 +1,32 @@
+.liquid-glass-box {
+  /* 다크모드 대응을 위한 변수 설정 */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.4);
+
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  padding: 30px 30px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(4px) saturate(120%);
+  -webkit-backdrop-filter: blur(4px) saturate(120%);
+  border-radius: 40px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  overflow: hidden;
+
+  /* 애니메이션 최적화 및 튀는 현상 방지 */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity, backdrop-filter;
+  
+  /* 테마 전환 효과 */
+  transition: background 0.3s ease, border 0.3s ease;
+}
+
+/* 다크모드 활성화 시 박스 색상 변경 */
+body.dark-mode .liquid-glass-box {
+  --glass-bg: rgba(0, 0, 0, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
