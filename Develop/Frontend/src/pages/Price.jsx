@@ -1,8 +1,8 @@
-import React from 'react';
-import './price.css';
-import BubbleBtn from '../components/BubbleBtn';
-import WaveBg from '../components/WaveBg';
-import LiquidGlass from '../components/LiquidGlass';
+import React from "react";
+import "./price.css";
+import BubbleBtn from "../components/BubbleBtn";
+import WaveBg from "../components/WaveBg";
+import LiquidGlass from "../components/LiquidGlass";
 
 const PricePage = () => {
   const plans = [
@@ -10,21 +10,36 @@ const PricePage = () => {
       name: "Basic",
       price: "0",
       description: "개인 개발자 및 테스트용",
-      features: ["월 5,000회 무료 호출", "표준 캡챠 유형 제공", "커뮤니티 지원", "기본 분석 데이터"],
+      features: [
+        "월 1,000회 무료 호출",
+        "표준 캡챠 유형 제공",
+        "기본 분석 데이터",
+      ],
       buttonText: "무료로 시작하기",
     },
     {
       name: "Pro",
       price: "49,000",
       description: "성장하는 비즈니스를 위한 최적의 선택",
-      features: ["월 100,000회 호출", "모든 캡챠 유형 제공", "우선 순위 기술 지원", "상세 분석 대시보드", "도메인 화이트리스트"],
+      features: [
+        "월 100,000회 호출",
+        "모든 캡챠 유형 제공",
+        "상세 분석 대시보드",
+        "도메인 화이트리스트",
+      ],
       buttonText: "Pro 시작하기",
     },
     {
       name: "Enterprise",
       price: "문의",
       description: "대규모 트래픽 및 커스텀 보안",
-      features: ["호출 횟수 무제한", "99.9% SLA 보장", "전담 매니저 배정", "커스텀 보안 정책", "온프레미스 구축 지원"],
+      features: [
+        "호출 횟수 무제한",
+        "커스텀 CAPTCHA 생성",
+        "관리자 대시보드 제공",
+        "실시간 공격 모니터링",
+        "온프레미스 구축 지원",
+      ],
       buttonText: "영업팀 문의",
     },
   ];
@@ -47,9 +62,13 @@ const PricePage = () => {
                   <h2 className="plan-name">{plan.name}</h2>
                   <p className="plan-desc">{plan.description}</p>
                   <div className="plan-price">
-                    {plan.price !== "문의" && <span className="currency">₩</span>}
+                    {plan.price !== "문의" && (
+                      <span className="currency">₩</span>
+                    )}
                     <span className="amount">{plan.price}</span>
-                    {plan.price !== "문의" && <span className="period">/월</span>}
+                    {plan.price !== "문의" && (
+                      <span className="period">/월</span>
+                    )}
                   </div>
                 </div>
                 <ul className="feature-list">
