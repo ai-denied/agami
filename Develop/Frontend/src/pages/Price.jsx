@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import React from "react";
 import "./price.css";
 import BubbleBtn from "../components/BubbleBtn";
@@ -5,6 +6,24 @@ import WaveBg from "../components/WaveBg";
 import LiquidGlass from "../components/LiquidGlass";
 
 const PricePage = () => {
+  const navigate = useNavigate();
+
+  const handlePlanClick = (plan) => {
+    const planName = plan.name.toLowerCase();
+
+    // JWT 존재 여부 확인
+    const token = localStorage.getItem("accessToken");
+
+    // 로그인 안 된 경우
+    if (!token) {
+      navigate(`/login?redirect=/checkout&plan=${planName}`);
+      return;
+    }
+
+    // 로그인 된 경우
+    navigate(`/checkout?plan=${planName}`);
+  };
+
   const plans = [
     {
       name: "Basic",
@@ -80,7 +99,7 @@ const PricePage = () => {
                   <BubbleBtn
                     className="cta-button-shared"
                     variant="primary"
-                    onClick={() => console.log(`${plan.name} 선택`)}
+                    onClick={() => handlePlanClick(plan)}
                   >
                     {plan.buttonText}
                   </BubbleBtn>

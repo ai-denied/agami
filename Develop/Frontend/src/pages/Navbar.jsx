@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
-import './Navbar.css';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate, useLocation } from "react-router-dom";
+import "./Navbar.css";
 
 const Navbar = () => {
   const [isFirstVisit, setIsFirstVisit] = useState(null);
@@ -9,19 +9,17 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation(); // URL 파라미터를 읽기 위해 추가
 
-  // URL에서 닉네임과 프로필 정보를 가져옴
-  const params = new URLSearchParams(location.search);
-  const nickname = params.get('nickname');
-  const profile = params.get('profile');
+  const nickname = localStorage.getItem("nickname");
+  const profile = localStorage.getItem("profile");
 
   useEffect(() => {
-    const hasVisited = sessionStorage.getItem('hasVisitedAgami');
+    const hasVisited = sessionStorage.getItem("hasVisitedAgami");
     setIsFirstVisit(!hasVisited);
 
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
       setIsDarkMode(true);
-      document.body.classList.add('dark-mode');
+      document.body.classList.add("dark-mode");
     }
   }, []);
 
@@ -29,18 +27,18 @@ const Navbar = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
     if (newTheme) {
-      document.body.classList.add('dark-mode');
-      localStorage.setItem('theme', 'dark');
+      document.body.classList.add("dark-mode");
+      localStorage.setItem("theme", "dark");
     } else {
-      document.body.classList.remove('dark-mode');
-      localStorage.setItem('theme', 'light');
+      document.body.classList.remove("dark-mode");
+      localStorage.setItem("theme", "light");
     }
   };
 
   if (isFirstVisit === null) return null;
 
   return (
-    <motion.nav 
+    <motion.nav
       className="menu-bar"
       initial={isFirstVisit ? { opacity: 0, y: -100 } : { opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
@@ -48,18 +46,23 @@ const Navbar = () => {
     >
       <div className="nav-container">
         <div className="nav-group left">
-          <button className="home-logo-btn" onClick={() => navigate('/')}>
+          <button className="home-logo-btn" onClick={() => navigate("/")}>
             <img src="/agami-home.svg" alt="Home" />
           </button>
           <div className="nav-links">
             <button className="nav-item">플랫폼</button>
-            <button className="nav-item" onClick={() => navigate('/price')}>가격</button>
+            <button className="nav-item" onClick={() => navigate("/price")}>
+              가격
+            </button>
             <button className="nav-item">소개</button>
           </div>
         </div>
 
         <div className="nav-group right">
-          <div className={`theme-switch ${isDarkMode ? 'active' : ''}`} onClick={toggleTheme}>
+          <div
+            className={`theme-switch ${isDarkMode ? "active" : ""}`}
+            onClick={toggleTheme}
+          >
             <div className="switch-content">
               <span className="label-light">LIGHT</span>
               <div className="switch-handle"></div>
@@ -70,11 +73,18 @@ const Navbar = () => {
           {/* 로그인 여부에 따른 조건부 렌더링 */}
           {nickname ? (
             <div className="user-profile-info">
-              {profile && <img src={profile} alt="profile" className="nav-profile-img" />}
-              <span className="nav-nickname"><strong>{nickname}</strong> 님</span>
+              {profile && (
+                <img src={profile} alt="profile" className="nav-profile-img" />
+              )}
+              <span className="nav-nickname">
+                <strong>{nickname}</strong> 님
+              </span>
             </div>
           ) : (
-            <button className="nav-item login-btn" onClick={() => navigate('/login')}>
+            <button
+              className="nav-item login-btn"
+              onClick={() => navigate("/login")}
+            >
               로그인
             </button>
           )}
