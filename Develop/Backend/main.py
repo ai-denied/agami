@@ -6,6 +6,8 @@ from database import SessionLocal
 import models
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime, timedelta
+from jose import jwt
 
 load_dotenv()
 
@@ -19,6 +21,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", 60))
+
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def get_db():
     db = SessionLocal()
@@ -71,8 +84,20 @@ async def kakao_callback(code: str, db: Session = Depends(get_db)):
     db.refresh(user)
 
     # 4. 결과 JSON 반환 (리액트가 이 정보를 받아갈 것입니다)
+    access_token = create_access_token(
+        {
+            "sub": str(user.id),
+            "kakao_id": user.kakao_id,
+            "nickname": user.nickname,
+        }
+    )
+    
     return {
         "status": "success",
-        "nickname": user.nickname,
-        "profile": user.profile_image
+        "accessToken": access_token,
+        "user": {
+            "id": user.id,
+            "nickname": user.nickname,
+            "profile": user.profile_image,
+        },
     }
