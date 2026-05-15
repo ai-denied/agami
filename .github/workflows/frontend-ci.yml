@@ -14,13 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker to allow HTTP (Insecure Registry)
+      - name: Login to Harbor (Direct Command)
         run: |
-          # daemon.json이 없을 경우를 대비해 기본 객체 생성 후 jq 실행
-          if [ ! -f /etc/docker/daemon.json ]; then echo "{}" | sudo tee /etc/docker/daemon.json; fi
-          sudo jq '. + {"insecure-registries": ["${{ secrets.HARBOR_URL }}"]}' /etc/docker/daemon.json > /tmp/daemon.json
-          sudo mv /tmp/daemon.json /etc/docker/daemon.json
-          sudo systemctl restart docker
+          echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_URL }} -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
 
       - name: Login to Harbor
         uses: docker/login-action@v3
