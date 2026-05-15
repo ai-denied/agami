@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Docker 데몬이 HTTP(8080)를 허용하도록 설정 (가장 중요)
+      # 1. HTTP 허용 설정 (Insecure Registry)
       - name: Set up Docker to allow HTTP
         run: |
           if [ ! -f /etc/docker/daemon.json ]; then echo "{}" | sudo tee /etc/docker/daemon.json; fi
@@ -22,8 +22,8 @@ jobs:
           sudo mv /tmp/daemon.json /etc/docker/daemon.json
           sudo systemctl restart docker
 
-      # 2. 직접 명령어로 로그인 (Action 대신 이 방식이 확실합니다)
-      - name: Login to Harbor
+      # 2. 직접 쉘 명령어로 로그인 (Error: http: server... 에러 방지)
+      - name: Shell Login to Harbor
         run: |
           echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_URL }} -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
 
@@ -34,4 +34,5 @@ jobs:
           context: ./Develop/Frontend
           file: ./Develop/Frontend/Dockerfile
           push: true
+          # library를 agami로 수정 완료
           tags: ${{ secrets.HARBOR_URL }}/agami/frontend:latest
