@@ -10,11 +10,17 @@ RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. 의존성 파일 복사 및 설치
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 4. 의존성 패키지 직접 일괄 설치 (requirements.txt 대용)
+RUN pip install --no-cache-dir \
+    uvicorn \
+    fastapi \
+    requests \
+    sqlalchemy \
+    python-dotenv \
+    psycopg2-binary \
+    "python-jose[cryptography]"
 
-# 5. 소스 코드 복사
+# 5. 소스 코드 복사 (CI가 생성해준 .env 파일 포함 통째로 복사됨)
 COPY . .
 
 # 6. 실행 명령 (FastAPI 기준)
