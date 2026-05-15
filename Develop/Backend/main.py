@@ -40,7 +40,7 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/auth/kakao/callback")
+@app.get("/api/auth/kakao/callback")
 async def kakao_callback(code: str, db: Session = Depends(get_db)):
     # 1. 인가 코드로 카카오 토큰 요청
     token_url = "https://kauth.kakao.com/oauth/token"
