@@ -22,15 +22,17 @@ jobs:
           sudo mv /tmp/daemon.json /etc/docker/daemon.json
           sudo systemctl restart docker
 
-      # 2. 직접 쉘 명령어로 로그인
+      # 2. 직접 쉘 명령어로 로그인 (기존 내용 유지)
       - name: Shell Login to Harbor
         run: |
           echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_URL }} -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
 
-      # [추가] Secrets 내용을 기반으로 .env 파일 생성
+      # [수정] 경로를 확실하게 지정합니다.
       - name: Create .env file for Frontend
         run: |
           echo "${{ secrets.FRONTEND_ENV }}" > ./Develop/Frontend/.env
+          # 파일이 제대로 생성되었는지 로그에서 확인하기 위한 디버깅용 명령어
+          ls -al ./Develop/Frontend/.env
 
       # 3. 이미지 빌드 및 푸시
       - name: Build and Push
