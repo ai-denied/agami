@@ -34,4 +34,4 @@ jobs:
           context: ./Develop/Frontend
           file: ./Develop/Frontend/Dockerfile
           push: true
-          tags: ${{ secrets.HARBOR_URL }}/library/frontend:latest
+          tags: ${{ secrets.HARBOR_URL }}/agami/frontend:latest
