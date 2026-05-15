@@ -14,7 +14,7 @@ const KakaoCallback = () => {
     if (!code || hasCalled.current) return;
     hasCalled.current = true;
 
-    fetch(`http://localhost:8000/auth/kakao/callback?code=${code}`)
+    fetch(`/api/auth/kakao/callback?code=${code}`)
       .then((res) => {
         if (!res.ok) throw new Error("서버 응답 에러");
         return res.json();
