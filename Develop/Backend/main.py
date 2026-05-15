@@ -16,7 +16,7 @@ app = FastAPI()
 # CORS 설정: 리액트(5173)에서 오는 요청을 허용합니다.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://agami-captcha.cloud"], 
+    allow_origins=["https://agami-captcha.cloud"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -48,7 +48,7 @@ async def kakao_callback(code: str, db: Session = Depends(get_db)):
         "grant_type": "authorization_code",
         "client_id": os.getenv("KAKAO_CLIENT_ID"),
         # 중요: .env에서 읽어오는 대신 리액트 콜백 주소를 직접 입력하세요.
-        "redirect_uri": "http://agami-captcha.cloud/auth/kakao/callback", 
+        "redirect_uri": "https://agami-captcha.cloud/auth/kakao/callback", 
         "code": code
     }
     
