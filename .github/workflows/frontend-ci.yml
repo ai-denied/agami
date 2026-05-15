@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'Develop/Frontend/**'
-  workflow_dispatch: # 수동 실행 버튼 추가 (테스트용)
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -14,22 +14,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Login to Harbor (Direct Command)
+      # 1. Docker 데몬이 HTTP(8080)를 허용하도록 설정 (가장 중요)
+      - name: Set up Docker to allow HTTP
+        run: |
+          if [ ! -f /etc/docker/daemon.json ]; then echo "{}" | sudo tee /etc/docker/daemon.json; fi
+          sudo jq '. + {"insecure-registries": ["${{ secrets.HARBOR_URL }}"]}' /etc/docker/daemon.json > /tmp/daemon.json
+          sudo mv /tmp/daemon.json /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+      # 2. 직접 명령어로 로그인 (Action 대신 이 방식이 확실합니다)
+      - name: Login to Harbor
         run: |
           echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_URL }} -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
 
-      - name: Login to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.HARBOR_URL }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
+      # 3. 이미지 빌드 및 푸시
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: ./Develop/Frontend
           file: ./Develop/Frontend/Dockerfile
           push: true
-          # 포트가 포함된 URL이므로 자동으로 http로 찌르려고 할 겁니다.
           tags: ${{ secrets.HARBOR_URL }}/library/frontend:latest
