@@ -44,9 +44,13 @@ const Login = () => {
         </div>
 
         <div className="login-buttons">
-          <button className="login-btn kakao" onClick={handleKakaoLogin}>
-            <img src="/kakao-icon.svg" alt="Kakao" className="btn-icon kakao-symbol" />
-            <span className="kakao-text">카카오 로그인</span>
+          {/* 카카오 공식 버튼 이미지 적용 */}
+          <button className="kakao-btn-wrapper" onClick={handleKakaoLogin}>
+            <img 
+              src="/kakao_login_large_wide.png" 
+              alt="카카오 로그인" 
+              className="kakao-login-img"
+            />
           </button>
           
           <button className="login-btn google" onClick={() => console.log("Google Login")}>
