@@ -19,8 +19,9 @@ spec:
         zone: backend
       containers:
       - name: backend
-        image: agami-captcha.cloud:8443/agami/backend:latest
+        image: agami-captcha.cloud:8443/agami/backend:v1
         imagePullPolicy: Always
+        # [교정] Dockerfile의 CMD를 신뢰하기 위해 command/args 삭제
         ports:
         - containerPort: 8000
         env:
@@ -117,4 +118,4 @@ spec:
             port:
               number: 80
 
-# Last Deploy:
+# Last Deploy: (GitHub Actions가 자동으로 업데이트하는 영역)

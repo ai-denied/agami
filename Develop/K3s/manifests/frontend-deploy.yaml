@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: agami-frontend
-  namespace: agami          # ArgoCD 화면에 표시된 네임스페이스 반영
+  namespace: agami
 spec:
   replicas: 1
   selector:
@@ -20,7 +20,7 @@ spec:
         zone: frontend
       containers:
       - name: frontend
-        image: agami-captcha.cloud:8443/agami/frontend:latest  # <--- :v1 에서 :latest 로 수정
+        image: agami-captcha.cloud:8443/agami/frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -35,6 +35,7 @@ spec:
     app: agami-frontend
   ports:
     - port: 80
+      targetPort: 80
 ---
 # ==========================================
 # 2. 통합 인그레스 (Ingress)
