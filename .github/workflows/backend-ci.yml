@@ -13,12 +13,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # [수정] 1. HTTPS 인증서를 사용하는 하버를 위해 최신 빌더(Buildx) 세팅 (insecure 제거)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # [수정] 2. 공식 Action을 사용하여 안전하게 하버 로그인
       - name: Login to Harbor
         uses: docker/login-action@v3
         with:
@@ -26,12 +26,9 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
-      # 3. Secrets 내용을 기반으로 .env 파일 생성
-      - name: Create .env file for Backend
-        run: |
-          echo "${{ secrets.BACKEND_ENV }}" > ./Develop/Backend/.env
+      - name: Create .env file
+        run: echo "${{ secrets.BACKEND_ENV }}" > ./Develop/Backend/.env
 
-      # 4. 이미지 빌드 및 푸시
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
@@ -39,6 +36,15 @@ jobs:
           file: ./Develop/Backend/Dockerfile
           push: true
           tags: ${{ secrets.HARBOR_URL }}/agami/backend:v1
-          # Buildx를 사용할 때 캐시를 태워 빌드 속도를 높이는 옵션 (선택)
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Update manifest to trigger ArgoCD
+        run: |
+          sed -i "/# Last Deploy:/d" ./Develop/K3s/manifests/total-deploy.yml
+          echo "# Last Deploy: $(date +'%Y-%m-%d %H:%M:%S')" >> ./Develop/K3s/manifests/total-deploy.yml
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add ./Develop/K3s/manifests/total-deploy.yml
+          git commit -m "chore: trigger deployment by updating manifest [skip ci]"
+          git push
