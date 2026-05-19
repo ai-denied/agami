@@ -39,6 +39,6 @@ jobs:
           context: ./Develop/Frontend
           file: ./Develop/Frontend/Dockerfile
           push: true
-          tags: ${{ secrets.HARBOR_URL }}/agami/frontend:latest
+          tags: ${{ secrets.HARBOR_URL }}/agami/frontend:v1
           cache-from: type=gha
           cache-to: type=gha,mode=max

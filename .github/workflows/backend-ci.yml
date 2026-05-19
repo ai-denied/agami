@@ -38,7 +38,7 @@ jobs:
           context: ./Develop/Backend
           file: ./Develop/Backend/Dockerfile
           push: true
-          tags: ${{ secrets.HARBOR_URL }}/agami/backend:latest
+          tags: ${{ secrets.HARBOR_URL }}/agami/backend:v1
           # Buildx를 사용할 때 캐시를 태워 빌드 속도를 높이는 옵션 (선택)
           cache-from: type=gha
           cache-to: type=gha,mode=max
