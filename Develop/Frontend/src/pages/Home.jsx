@@ -50,8 +50,11 @@ const ScaredFish = memo(({
     const centerRatioX = 0.75; 
     const centerRatioY = 0.55;  
 
-    const initialX = (centerRatioX + Math.cos(angle) * radius * 0.6) * window.innerWidth;
-    const initialY = (centerRatioY + Math.sin(angle) * radius) * window.innerHeight;
+    const currentW = Math.max(window.innerWidth, 1200);
+    const currentH = Math.max(window.innerHeight, 720);
+
+    const initialX = (centerRatioX + Math.cos(angle) * radius * 0.6) * currentW;
+    const initialY = (centerRatioY + Math.sin(angle) * radius) * currentH;
 
     const margin = 400;
     const side = index % 4; 
@@ -60,21 +63,21 @@ const ScaredFish = memo(({
     const spreadOffset = (index * 137.5) % 1;
 
     if (side === 0) {
-      startX = window.innerWidth + margin;
-      startY = spreadOffset * window.innerHeight;
+      startX = currentW + margin;
+      startY = spreadOffset * currentH;
     } else if (side === 1) {
       startX = -margin;
-      startY = spreadOffset * window.innerHeight;
+      startY = spreadOffset * currentH;
     } else if (side === 2) {
-      startX = spreadOffset * window.innerWidth;
+      startX = spreadOffset * currentW;
       startY = -margin;
     } else {
-      startX = spreadOffset * window.innerWidth;
-      startY = window.innerHeight + margin;
+      startX = spreadOffset * currentW;
+      startY = currentH + margin;
     }
 
     return {
-      scale: 0.35 + (index % 5) * 0.1,
+      scale: 0.45 + (index % 5) * 0.1, // 물고기 기본 크기 스케일 복원
       startX,
       startY,
       initialX,
@@ -109,9 +112,12 @@ const ScaredFish = memo(({
     const delayTime = isFirstVisit ? 5000 : 0;
     let frameCount = 0;
     
-    const centerX = window.innerWidth * fishProps.centerRatioX;
-    const centerY = window.innerHeight * fishProps.centerRatioY;
-    const limitRadius = window.innerWidth * 0.5;
+    const currentW = Math.max(window.innerWidth, 1200);
+    const currentH = Math.max(window.innerHeight, 720);
+
+    const centerX = currentW * fishProps.centerRatioX;
+    const centerY = currentH * fishProps.centerRatioY;
+    const limitRadius = currentW * 0.5;
     const limitRadiusSq = (limitRadius - 50) * (limitRadius - 50);
 
     let sepX = 0;
@@ -219,7 +225,7 @@ const ScaredFish = memo(({
         src="/agami-fish.svg"
         alt="fish"
         style={{ 
-          width: "6vw", 
+          width: "100px", /* 고정 한계 내에서 확실한 시인성을 보장하도록 크기 조정 */
           transform: "scaleX(-1)", 
           display: "block",
           backfaceVisibility: "hidden",
@@ -253,12 +259,15 @@ const ParticleNetwork = memo(() => {
     let bgParticles = [];
     let animationFrameId;
 
-    const getSphereRadius = () =>
-      Math.min(window.innerWidth, window.innerHeight) * 0.38;
+    const getSphereRadius = () => {
+      const currentW = Math.max(window.innerWidth, 1200);
+      const currentH = Math.max(window.innerHeight, 720);
+      return Math.min(currentW, currentH) * 0.38;
+    };
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      canvas.width = Math.max(window.innerWidth, 1200);
+      canvas.height = Math.max(window.innerHeight, 720);
       init();
     };
 
@@ -434,7 +443,7 @@ const ParticleNetwork = memo(() => {
 
     const animate = (time) => {
       ctx.globalAlpha = 1.0;
-      ctx.fillStyle = "#050a14";
+      ctx.fillStyle = "#010c1b"; 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       for (let i = 0; i < bgParticles.length; i++) {
@@ -560,7 +569,8 @@ const Home = () => {
     mousePos.current.x = relX;
     mousePos.current.y = relY;
 
-    const threshold = window.innerWidth * 0.5;
+    const currentW = Math.max(window.innerWidth, 1200);
+    const threshold = currentW * 0.5;
     if (isFeeding && e.clientX < threshold) {
       setIsFeeding(false);
     }
@@ -589,7 +599,8 @@ const Home = () => {
     const handleScroll = () => {
       if (wrapperRef.current) {
         const scrollY = wrapperRef.current.scrollTop;
-        if (isFeeding && scrollY > window.innerHeight * 0.5) {
+        const currentH = Math.max(window.innerHeight, 720);
+        if (isFeeding && scrollY > currentH * 0.5) {
           setIsFeeding(false);
         }
       }
@@ -611,16 +622,18 @@ const Home = () => {
   };
   const scrollToSecond = () => {
     if (wrapperRef.current) {
+      const currentH = Math.max(window.innerHeight, 720);
       wrapperRef.current.scrollTo({
-        top: window.innerHeight,
+        top: currentH,
         behavior: "smooth",
       });
     }
   };
   const scrollToThird = () => {
     if (wrapperRef.current) {
+      const currentH = Math.max(window.innerHeight, 720);
       wrapperRef.current.scrollTo({
-        top: window.innerHeight * 2,
+        top: currentH * 2,
         behavior: "smooth",
       });
     }
@@ -657,12 +670,6 @@ const Home = () => {
           <div className="wave-layer-internal" />
         </motion.div>
 
-        {/* 
-          [중요 고정 내용]
-          maskImage와 WebkitMaskImage 속성의 수치와 단위를 '90% 55%'로 완전히 동기화했습니다.
-          배경 원형 영역의 마스크가 확실하게 오른쪽으로 이동하도록 처리되었으며, 
-          이제 수치를 조절하는 대로 브라우저 화면에 즉각 100% 반영됩니다.
-        */}
         <div 
           className="fish-scene-layer" 
           style={{ 
@@ -670,11 +677,6 @@ const Home = () => {
             inset: 0, 
             pointerEvents: "none",
             zIndex: 25,
-            /* 1. circle의 크기가 100vmax이므로 반지름은 50vmax입니다.
-              2. right: 0에 translate 50%이므로 중심점은 가로 100% 지점입니다.
-              3. top: 50%에 translate -50%이므로 중심점은 세로 50% 지점입니다.
-              4. 흐릿함을 없애기 위해 100% 지점에서 칼같이 끊습니다.
-            */
             maskImage: `radial-gradient(circle 50vmax at 100% 50%, black 100%, transparent 100%)`,
             WebkitMaskImage: `radial-gradient(circle 50vmax at 100% 50%, black 100%, transparent 100%)`,
             maskRepeat: "no-repeat",
@@ -844,6 +846,7 @@ const Home = () => {
       <div className="third-container">
         <ParticleNetwork />
 
+        {/* 정중앙 배치를 위해 구조를 유지하되 스타일만 분리 확보 */}
         <div className="third-logo-wrapper">
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
