@@ -37,14 +37,3 @@ jobs:
           tags: ${{ secrets.HARBOR_URL }}/agami/frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      # 매니페스트 주석 갱신 (ArgoCD 트리거)
-      - name: Update manifest to trigger ArgoCD
-        run: |
-          sed -i "/# Last Deploy:/d" ./Develop/K3s/manifests/total-deploy.yml
-          echo "# Last Deploy: $(date +'%Y-%m-%d %H:%M:%S')" >> ./Develop/K3s/manifests/total-deploy.yml
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add ./Develop/K3s/manifests/total-deploy.yml
-          git commit -m "chore: deploy latest frontend [skip ci]"
-          git push
