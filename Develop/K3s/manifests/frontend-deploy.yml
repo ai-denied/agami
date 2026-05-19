@@ -5,6 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: agami-frontend
+  namespace: agami          # ArgoCD 화면에 표시된 네임스페이스 반영
 spec:
   replicas: 1
   selector:
@@ -19,7 +20,7 @@ spec:
         zone: frontend
       containers:
       - name: frontend
-        image: agami-captcha.cloud:8443/agami/frontend:latest
+        image: agami-captcha.cloud:8443/agami/frontend:latest  # <--- :v1 에서 :latest 로 수정
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -28,6 +29,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: agami-frontend-svc
+  namespace: agami
 spec:
   selector:
     app: agami-frontend
@@ -41,6 +43,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: agami-ingress
+  namespace: agami
   annotations:
     kubernetes.io/ingress.class: traefik
 spec:
