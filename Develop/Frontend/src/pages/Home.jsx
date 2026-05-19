@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, memo } from "react";
 import {
   motion,
   useSpring,
@@ -12,11 +12,11 @@ import BubbleBtn from "../components/BubbleBtn";
 import "./Home.css";
 
 // --- 먹이 로봇 컴포넌트 ---
-const FoodBot = ({ x, y, color }) => (
+const FoodBot = memo(({ x, y, color }) => (
   <motion.img
     src="/bot.svg"
     className="food-bot"
-    initial={{ opacity: 1, y: y, x: x - 40, scale: 0.5 }}
+    initial={{ opacity: 1, top: y, left: x, x: "-50%", y: "-50%", scale: 0.5 }}
     animate={{ y: y + 500, opacity: 0, rotate: 180 }}
     transition={{ duration: 2.5, ease: "linear" }}
     style={{
@@ -24,13 +24,15 @@ const FoodBot = ({ x, y, color }) => (
       position: "absolute",
       zIndex: 15,
       width: "80px",
+      pointerEvents: "none",
       willChange: "transform, opacity",
     }}
   />
-);
+));
+FoodBot.displayName = "FoodBot";
 
 // --- 반응형 물고기 컴포넌트 ---
-const ScaredFish = ({
+const ScaredFish = memo(({
   index,
   isFeeding,
   mousePos,
@@ -38,125 +40,130 @@ const ScaredFish = ({
   isFirstVisit,
 }) => {
   const fishProps = useMemo(() => {
-    const scale = 0.35 + Math.random() * 0.45;
-    let startX, startY;
+    const totalFish = 25;
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    
+    const t = index / totalFish;
+    const radius = Math.pow(t, 0.6) * 0.5;
+    const angle = index * goldenAngle;
+
+    const centerRatioX = 0.75; 
+    const centerRatioY = 0.55;  
+
+    const initialX = (centerRatioX + Math.cos(angle) * radius * 0.6) * window.innerWidth;
+    const initialY = (centerRatioY + Math.sin(angle) * radius) * window.innerHeight;
+
     const margin = 400;
-    const side = Math.floor(Math.random() * 4);
+    const side = index % 4; 
+    let startX, startY;
+
+    const spreadOffset = (index * 137.5) % 1;
 
     if (side === 0) {
       startX = window.innerWidth + margin;
-      startY = Math.random() * window.innerHeight;
+      startY = spreadOffset * window.innerHeight;
     } else if (side === 1) {
       startX = -margin;
-      startY = Math.random() * window.innerHeight;
+      startY = spreadOffset * window.innerHeight;
     } else if (side === 2) {
-      startX = Math.random() * window.innerWidth;
+      startX = spreadOffset * window.innerWidth;
       startY = -margin;
     } else {
-      startX = Math.random() * window.innerWidth;
+      startX = spreadOffset * window.innerWidth;
       startY = window.innerHeight + margin;
     }
 
     return {
-      scale,
+      scale: 0.35 + (index % 5) * 0.1,
       startX,
       startY,
-      initialX: (Math.random() * 0.45 + 0.5) * window.innerWidth,
-      initialY: (Math.random() * 0.75 + 0.15) * window.innerHeight,
-      stiffness: 100 + Math.random() * 50,
-      damping: 28,
-      scareRadius: 200,
-      followRadius: 400,
-      personalSpace: 60 + scale * 40,
-      floatSpeed: 0.0005 + Math.random() * 0.0007,
-      floatIntensity: 20,
+      initialX,
+      initialY,
+      centerRatioX,
+      centerRatioY,
+      stiffness: 70 + (index % 5) * 10,
+      damping: 38,
+      scareRadius: 180,
+      followRadius: 350,
+      personalSpace: 80,
+      floatSpeed: 0.0005 + (index % 7) * 0.0001,
+      floatIntensity: 12 + (index % 4) * 2,
+      phase: index * 0.5
     };
-  }, [isFirstVisit]);
+  }, [index]);
 
-  const mX = useMotionValue(
-    isFirstVisit ? fishProps.startX : fishProps.initialX,
-  );
-  const mY = useMotionValue(
-    isFirstVisit ? fishProps.startY : fishProps.initialY,
-  );
+  const mX = useMotionValue(isFirstVisit ? fishProps.startX : fishProps.initialX);
+  const mY = useMotionValue(isFirstVisit ? fishProps.startY : fishProps.initialY);
   const mRotate = useMotionValue(0);
 
-  const springX = useSpring(mX, {
-    stiffness: fishProps.stiffness,
-    damping: fishProps.damping,
-  });
-  const springY = useSpring(mY, {
-    stiffness: fishProps.stiffness,
-    damping: fishProps.damping,
-  });
-  const springRotate = useSpring(mRotate, { stiffness: 150, damping: 20 });
+  const springX = useSpring(mX, { stiffness: fishProps.stiffness, damping: fishProps.damping });
+  const springY = useSpring(mY, { stiffness: fishProps.stiffness, damping: fishProps.damping });
+  const springRotate = useSpring(mRotate, { stiffness: 120, damping: 25 });
 
   const isFeedingRef = useRef(isFeeding);
-  useEffect(() => {
-    isFeedingRef.current = isFeeding;
-  }, [isFeeding]);
+  useEffect(() => { isFeedingRef.current = isFeeding; }, [isFeeding]);
 
   useEffect(() => {
     allFishRefs.current[index] = { x: mX, y: mY };
     let requestRef;
     const delayTime = isFirstVisit ? 5000 : 0;
     let frameCount = 0;
+    
+    const centerX = window.innerWidth * fishProps.centerRatioX;
+    const centerY = window.innerHeight * fishProps.centerRatioY;
+    const limitRadius = window.innerWidth * 0.5;
+    const limitRadiusSq = (limitRadius - 50) * (limitRadius - 50);
+
+    let sepX = 0;
+    let sepY = 0;
 
     const animate = (time) => {
       const curX = mX.get();
       const curY = mY.get();
-      const centerX = window.innerWidth * 0.9;
-      const centerY = window.innerHeight * 0.5;
-      const limitRadius = window.innerWidth * 0.5;
 
-      let targetX =
-        fishProps.initialX +
-        Math.sin(time * fishProps.floatSpeed) * fishProps.floatIntensity;
-      let targetY =
-        fishProps.initialY +
-        Math.cos(time * fishProps.floatSpeed * 0.8) * fishProps.floatIntensity;
+      let targetX = fishProps.initialX + Math.sin(time * fishProps.floatSpeed + fishProps.phase) * fishProps.floatIntensity;
+      let targetY = fishProps.initialY + Math.cos(time * fishProps.floatSpeed * 0.8 + fishProps.phase) * fishProps.floatIntensity;
 
-      const dx = mousePos.current.x - curX;
-      const dy = mousePos.current.y - curY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const mouseX = mousePos.current.x;
+      const mouseY = mousePos.current.y;
+      const dx = mouseX - curX;
+      const dy = mouseY - curY;
+      const distSq = dx * dx + dy * dy;
 
-      const mDx = mousePos.current.x - centerX;
-      const mDy = mousePos.current.y - centerY;
-      const mDistFromCenter = Math.sqrt(mDx * mDx + mDy * mDy);
-      const isMouseInCircle = mDistFromCenter < limitRadius;
-
+      const mDistSq = (mouseX - centerX) * (mouseX - centerX) + (mouseY - centerY) * (mouseY - centerY);
       let speedFactor = 0.02;
 
-      if (isFeedingRef.current && isMouseInCircle) {
-        if (dist < fishProps.followRadius) {
+      if (mDistSq < limitRadius * limitRadius) {
+        if (isFeedingRef.current && distSq < fishProps.followRadius * fishProps.followRadius) {
           speedFactor = 0.07;
-          targetX = mousePos.current.x - (dx / (dist || 1)) * 70;
-          targetY = mousePos.current.y - (dy / (dist || 1)) * 70;
+          targetX = mouseX;
+          targetY = mouseY;
+        } else if (distSq < fishProps.scareRadius * fishProps.scareRadius) {
+          speedFactor = 0.15;
+          const dist = Math.sqrt(distSq);
+          if (dist > 0) {
+            targetX = curX - (dx / dist) * (fishProps.scareRadius - dist) * 3;
+            targetY = curY - (dy / dist) * (fishProps.scareRadius - dist) * 3;
+          }
         }
-      } else if (dist < fishProps.scareRadius && isMouseInCircle) {
-        speedFactor = 0.15;
-        const angle = Math.atan2(dy, dx);
-        targetX = curX - Math.cos(angle) * (fishProps.scareRadius - dist) * 3;
-        targetY = curY - Math.sin(angle) * (fishProps.scareRadius - dist) * 3;
       }
 
-      let sepX = 0,
+      if (frameCount % 6 === 0) {
+        sepX = 0;
         sepY = 0;
-      if (frameCount % 2 === 0) {
-        allFishRefs.current.forEach((other, i) => {
-          if (i === index || !other) return;
-          const ox = curX - other.x.get();
-          const oy = curY - other.y.get();
+        const fishRefs = allFishRefs.current;
+        for (let i = 0; i < fishRefs.length; i++) {
+          if (i === index || !fishRefs[i]) continue;
+          const ox = curX - fishRefs[i].x.get();
+          const oy = curY - fishRefs[i].y.get();
           const dSq = ox * ox + oy * oy;
-          const pSpaceSq = fishProps.personalSpace * fishProps.personalSpace;
-          if (dSq < pSpaceSq && dSq > 0) {
+          if (dSq < 6400 && dSq > 0) {
             const d = Math.sqrt(dSq);
-            const force =
-              (fishProps.personalSpace - d) / fishProps.personalSpace;
-            sepX += (ox / d) * force * 15;
-            sepY += (oy / d) * force * 15;
+            const factor = (80 - d) * 0.5 / d;
+            sepX += ox * factor;
+            sepY += oy * factor;
           }
-        });
+        }
       }
 
       let nextX = curX + (targetX + sepX - curX) * speedFactor;
@@ -164,17 +171,15 @@ const ScaredFish = ({
 
       const nDx = nextX - centerX;
       const nDy = nextY - centerY;
-      const nDist = Math.sqrt(nDx * nDx + nDy * nDy);
-      if (nDist > limitRadius - 50) {
-        const angle = Math.atan2(nDy, nDx);
-        nextX = centerX + Math.cos(angle) * (limitRadius - 50);
-        nextY = centerY + Math.sin(angle) * (limitRadius - 50);
+      const nDistSq = nDx * nDx + nDy * nDy;
+      if (nDistSq > limitRadiusSq) {
+        const nDist = Math.sqrt(nDistSq);
+        nextX = centerX + (nDx / nDist) * (limitRadius - 50);
+        nextY = centerY + (nDy / nDist) * (limitRadius - 50);
       }
 
-      const rotateAngle =
-        (Math.atan2(nextY - curY, nextX - curX) * 180) / Math.PI;
-      if (Math.abs(nextX - curX) > 0.1) {
-        mRotate.set(rotateAngle);
+      if (Math.abs(nextX - curX) > 0.05) {
+        mRotate.set((Math.atan2(nextY - curY, nextX - curX) * 180) / Math.PI);
       }
 
       mX.set(nextX);
@@ -186,6 +191,7 @@ const ScaredFish = ({
     const timer = setTimeout(() => {
       requestRef = requestAnimationFrame(animate);
     }, delayTime);
+
     return () => {
       clearTimeout(timer);
       cancelAnimationFrame(requestRef);
@@ -196,31 +202,44 @@ const ScaredFish = ({
     <motion.div
       className="fish-wrapper"
       style={{
+        position: "absolute",
+        left: 0, top: 0,
         x: springX,
         y: springY,
+        translateX: "-50%",
+        translateY: "-50%",
         rotate: springRotate,
         scale: fishProps.scale,
+        pointerEvents: "none",
         willChange: "transform",
+        zIndex: 25,
       }}
     >
       <img
         src="/agami-fish.svg"
         alt="fish"
-        style={{ width: "6vw", transform: "scaleX(-1)", display: "block" }}
+        style={{ 
+          width: "6vw", 
+          transform: "scaleX(-1)", 
+          display: "block",
+          backfaceVisibility: "hidden",
+          transformStyle: "preserve-3d"
+        }}
       />
     </motion.div>
   );
-};
+});
+ScaredFish.displayName = "ScaredFish";
 
 // --- 지오데식 구 + 배경 네트워크 그래픽 ---
-const ParticleNetwork = () => {
+const ParticleNetwork = memo(() => {
   const canvasRef = useRef(null);
   const fishImgRef = useRef(null);
   const botImgRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d", { alpha: false });
+    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
 
     const fishImg = new Image();
     fishImg.src = "/agami-fish-right.svg";
@@ -254,17 +273,18 @@ const ParticleNetwork = () => {
 
       initPosition() {
         const radius = getSphereRadius() + 50;
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
+        const centerX = canvas.width >> 1;
+        const centerY = canvas.height >> 1;
 
-        let x, y, dist;
+        let x, y, distSq;
+        const radiusSq = radius * radius;
         do {
           x = Math.random() * canvas.width;
           y = Math.random() * canvas.height;
           const dx = x - centerX;
           const dy = y - centerY;
-          dist = Math.sqrt(dx * dx + dy * dy);
-        } while (dist < radius);
+          distSq = dx * dx + dy * dy;
+        } while (distSq < radiusSq);
 
         this.x = x;
         this.y = y;
@@ -278,14 +298,16 @@ const ParticleNetwork = () => {
         if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
 
         const radius = getSphereRadius() + 50;
-        const dx = this.x - canvas.width / 2;
-        const dy = this.y - canvas.height / 2;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const centerX = canvas.width >> 1;
+        const centerY = canvas.height >> 1;
+        const dx = this.x - centerX;
+        const dy = this.y - centerY;
+        const distSq = dx * dx + dy * dy;
 
-        if (dist < radius) {
+        if (distSq < radius * radius) {
           const angle = Math.atan2(dy, dx);
-          this.x = canvas.width / 2 + Math.cos(angle) * radius;
-          this.y = canvas.height / 2 + Math.sin(angle) * radius;
+          this.x = centerX + Math.cos(angle) * radius;
+          this.y = centerY + Math.sin(angle) * radius;
           this.speedX *= -1;
           this.speedY *= -1;
         }
@@ -293,16 +315,14 @@ const ParticleNetwork = () => {
 
       draw() {
         if (!botImgRef.current.complete) return;
-        ctx.save();
         ctx.globalAlpha = this.opacity;
         ctx.drawImage(
           botImgRef.current,
-          this.x - this.size / 2,
-          this.y - this.size / 2,
+          this.x - (this.size >> 1),
+          this.y - (this.size >> 1),
           this.size,
           this.size,
         );
-        ctx.restore();
       }
     }
 
@@ -321,24 +341,27 @@ const ParticleNetwork = () => {
       update(time) {
         const rotationSpeed = time * 0.0004;
         const currentTheta = this.theta + rotationSpeed;
-        this.x = this.radius * Math.sin(this.phi) * Math.cos(currentTheta);
+        const sinPhi = Math.sin(this.phi);
+        this.x = this.radius * sinPhi * Math.cos(currentTheta);
         this.y = this.radius * Math.cos(this.phi);
-        this.z =
-          this.radius * Math.sin(this.phi) * Math.sin(currentTheta) +
-          this.radius;
+        this.z = this.radius * sinPhi * Math.sin(currentTheta) + this.radius;
+        
         const perspective = 1000 / (1000 + this.z);
-        this.projectedX = canvas.width / 2 + this.x * perspective;
-        this.projectedY = canvas.height / 2 + this.y * perspective;
+        this.projectedX = (canvas.width >> 1) + this.x * perspective;
+        this.projectedY = (canvas.height >> 1) + this.y * perspective;
         this.alpha = perspective;
       }
       draw() {
         if (!fishImgRef.current.complete) return;
-        ctx.save();
         ctx.globalAlpha = this.alpha;
-        ctx.translate(this.projectedX, this.projectedY);
         const size = this.baseSize * this.alpha;
-        ctx.drawImage(fishImgRef.current, -size / 2, -size / 2, size, size);
-        ctx.restore();
+        ctx.drawImage(
+          fishImgRef.current, 
+          this.projectedX - (size / 2), 
+          this.projectedY - (size / 2), 
+          size, 
+          size
+        );
       }
     }
 
@@ -365,9 +388,13 @@ const ParticleNetwork = () => {
     const drawSphereLines = () => {
       ctx.lineWidth = 1.0;
       const connectionDistSq = 180 * 180;
-      for (let i = 0; i < sphereParticles.length; i++) {
+      const len = sphereParticles.length;
+      
+      ctx.beginPath();
+      for (let i = 0; i < len; i++) {
         const p1 = sphereParticles[i];
-        for (let j = i + 1; j < Math.min(i + 20, sphereParticles.length); j++) {
+        const maxCheck = Math.min(i + 15, len);
+        for (let j = i + 1; j < maxCheck; j++) {
           const p2 = sphereParticles[j];
           const dx = p1.x - p2.x;
           const dy = p1.y - p2.y;
@@ -375,53 +402,60 @@ const ParticleNetwork = () => {
           const dSq = dx * dx + dy * dy + dz * dz;
 
           if (dSq < connectionDistSq) {
-            const opacity = Math.min(p1.alpha, p2.alpha) * 0.2;
+            const opacity = Math.min(p1.alpha, p2.alpha) * 0.15;
             ctx.strokeStyle = `rgba(93, 162, 255, ${opacity})`;
-            ctx.beginPath();
             ctx.moveTo(p1.projectedX, p1.projectedY);
             ctx.lineTo(p2.projectedX, p2.projectedY);
-            ctx.stroke();
           }
         }
       }
+      ctx.stroke();
     };
 
     const drawBGNetwork = () => {
       ctx.lineWidth = 0.8;
       const bgConnDistSq = 250 * 250;
-      bgParticles.forEach((p1, i) => {
+      
+      ctx.strokeStyle = `rgba(93, 162, 255, 0.18)`;
+      ctx.beginPath();
+      for (let i = 0; i < bgParticles.length; i++) {
+        const p1 = bgParticles[i];
         for (let j = i + 1; j < bgParticles.length; j++) {
           const p2 = bgParticles[j];
-          const dSq = (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
+          const dSq = (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
           if (dSq < bgConnDistSq) {
-            ctx.strokeStyle = `rgba(93, 162, 255, 0.25)`;
-            ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
           }
         }
-      });
+      }
+      ctx.stroke();
     };
 
     const animate = (time) => {
+      ctx.globalAlpha = 1.0;
       ctx.fillStyle = "#050a14";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      bgParticles.forEach((p) => {
-        p.update();
-        p.draw();
-      });
+      for (let i = 0; i < bgParticles.length; i++) {
+        bgParticles[i].update();
+        bgParticles[i].draw();
+      }
       drawBGNetwork();
 
-      sphereParticles.forEach((p) => p.update(time));
+      for (let i = 0; i < sphereParticles.length; i++) {
+        sphereParticles[i].update(time);
+      }
       drawSphereLines();
-      sphereParticles.forEach((p) => p.draw());
+      
+      for (let i = 0; i < sphereParticles.length; i++) {
+        sphereParticles[i].draw();
+      }
 
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", resize, { passive: true });
     resize();
     animate(0);
     return () => {
@@ -434,10 +468,11 @@ const ParticleNetwork = () => {
     <canvas
       ref={canvasRef}
       className="particle-canvas"
-      style={{ opacity: 0.8, willChange: "transform" }}
+      style={{ opacity: 0.8, willChange: "transform", pointerEvents: "none" }}
     />
   );
-};
+});
+ParticleNetwork.displayName = "ParticleNetwork";
 
 const MotionLiquidGlass = motion.create(LiquidGlass);
 
@@ -518,14 +553,25 @@ const Home = () => {
   }, [isFeeding]);
 
   const handleMouseMove = (e) => {
-    mousePos.current = { x: e.clientX, y: e.clientY };
+    const rect = e.currentTarget.getBoundingClientRect();
+    const relX = e.clientX - rect.left;
+    const relY = e.clientY - rect.top;
+    mousePos.current.get = () => ({ x: relX, y: relY });
+    mousePos.current.x = relX;
+    mousePos.current.y = relY;
+
     const threshold = window.innerWidth * 0.5;
     if (isFeeding && e.clientX < threshold) {
       setIsFeeding(false);
     }
   };
 
+  const lastSecondMv = useRef(0);
   const handleSecondMouseMove = (e) => {
+    const now = performance.now();
+    if (now - lastSecondMv.current < 16) return;
+    lastSecondMv.current = now;
+    
     const rect = e.currentTarget.getBoundingClientRect();
     setSpotlightPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
@@ -549,7 +595,7 @@ const Home = () => {
       }
     };
     const currentWrapper = wrapperRef.current;
-    if (currentWrapper) currentWrapper.addEventListener("scroll", handleScroll);
+    if (currentWrapper) currentWrapper.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       if (currentWrapper)
         currentWrapper.removeEventListener("scroll", handleScroll);
@@ -599,8 +645,7 @@ const Home = () => {
     : { duration: 0 };
 
   return (
-    <div className="main-wrapper" ref={wrapperRef}>
-      {/* 1번 페이지 */}
+    <div className="main-wrapper" ref={wrapperRef} style={{ contentVisibility: "auto" }}>
       <div className="home-container" onMouseMove={handleMouseMove}>
         <motion.div
           className="circle"
@@ -610,35 +655,46 @@ const Home = () => {
           style={{ x: "50%", y: "-50%", willChange: "transform" }}
         >
           <div className="wave-layer-internal" />
-
-          {/* 물고기 씬 레이어를 Circle 내부로 이동시키되, 
-              Circle의 중심을 기준으로 전체 화면 좌표를 상쇄하도록 스타일 수정 */}
-          <div
-            className="fish-scene-layer"
-            style={{
-              position: "absolute",
-              left: "-50vw", // Circle이 부모의 50% 위치에 있으므로 화면 왼쪽으로 보정
-              top: "50vh", // y: -50%를 상쇄하기 위해 보정
-              width: "100vw",
-              height: "100vh",
-              pointerEvents: "none",
-            }}
-          >
-            {foods.map((f) => (
-              <FoodBot key={f.id} x={f.x} y={f.y} color={f.color} />
-            ))}
-            {Array.from({ length: 18 }).map((_, i) => (
-              <ScaredFish
-                key={i}
-                index={i}
-                isFeeding={isFeeding}
-                mousePos={mousePos}
-                allFishRefs={allFishRefs}
-                isFirstVisit={isFirstVisit}
-              />
-            ))}
-          </div>
         </motion.div>
+
+        {/* 
+          [중요 고정 내용]
+          maskImage와 WebkitMaskImage 속성의 수치와 단위를 '90% 55%'로 완전히 동기화했습니다.
+          배경 원형 영역의 마스크가 확실하게 오른쪽으로 이동하도록 처리되었으며, 
+          이제 수치를 조절하는 대로 브라우저 화면에 즉각 100% 반영됩니다.
+        */}
+        <div 
+          className="fish-scene-layer" 
+          style={{ 
+            position: "absolute", 
+            inset: 0, 
+            pointerEvents: "none",
+            zIndex: 25,
+            /* 1. circle의 크기가 100vmax이므로 반지름은 50vmax입니다.
+              2. right: 0에 translate 50%이므로 중심점은 가로 100% 지점입니다.
+              3. top: 50%에 translate -50%이므로 중심점은 세로 50% 지점입니다.
+              4. 흐릿함을 없애기 위해 100% 지점에서 칼같이 끊습니다.
+            */
+            maskImage: `radial-gradient(circle 50vmax at 100% 50%, black 100%, transparent 100%)`,
+            WebkitMaskImage: `radial-gradient(circle 50vmax at 100% 50%, black 100%, transparent 100%)`,
+            maskRepeat: "no-repeat",
+            WebkitMaskRepeat: "no-repeat"
+          }}
+        >
+          {foods.map((f) => (
+            <FoodBot key={f.id} x={f.x} y={f.y} color={f.color} />
+          ))}
+          {Array.from({ length: 18 }).map((_, i) => (
+            <ScaredFish
+              key={i}
+              index={i}
+              isFeeding={isFeeding}
+              mousePos={mousePos}
+              allFishRefs={allFishRefs}
+              isFirstVisit={isFirstVisit}
+            />
+          ))}
+        </div>
 
         {isFirstVisit && (
           <>
@@ -655,13 +711,14 @@ const Home = () => {
                 times: [0, 0.3, 0.45, 1],
                 ease: "easeInOut",
               }}
+              style={{ willChange: "transform, left" }}
             />
             {introFishData.map((fish) => (
               <motion.img
                 key={fish.id}
                 src="agami-fish-right.svg"
                 className="actor fish"
-                style={{ top: fish.top, width: `${fish.size}px` }}
+                style={{ top: fish.top, width: `${fish.size}px`, willChange: "left" }}
                 initial={{ left: "-250px", y: "-50%" }}
                 animate={{ left: "130vw" }}
                 transition={{
@@ -681,6 +738,7 @@ const Home = () => {
           }
           animate={{ x: 0, opacity: 1 }}
           transition={mainTransition}
+          style={{ buyPass: true, willChange: "transform, opacity" }}
         >
           <img src="/agami-text.png" alt="Agami Logo" className="main-logo" />
           <p className="logo-text">
@@ -720,7 +778,6 @@ const Home = () => {
         </motion.div>
       </div>
 
-      {/* 2번 페이지 */}
       <div className="second-container" onMouseMove={handleSecondMouseMove}>
         <div className="dark-sea-layer" />
         <div
@@ -728,6 +785,7 @@ const Home = () => {
           style={{
             maskImage: `radial-gradient(circle 160px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
             WebkitMaskImage: `radial-gradient(circle 160px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
+            willChange: "mask-image"
           }}
         >
           <motion.div
@@ -783,7 +841,6 @@ const Home = () => {
         </motion.button>
       </div>
 
-      {/* 3번 페이지 */}
       <div className="third-container">
         <ParticleNetwork />
 
@@ -810,7 +867,7 @@ const Home = () => {
                 ease: "easeInOut",
                 delay: 1.5,
               }}
-              style={{ position: "relative" }}
+              style={{ position: "relative", willChange: "transform" }}
             />
           </motion.div>
         </div>
@@ -821,7 +878,7 @@ const Home = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 2, duration: 1, ease: "easeOut" }}
-            style={{ width: "100%", maxWidth: "800px", height: "300px" }}
+            style={{ width: "100%", maxWidth: "800px", height: "300px", willChange: "transform, opacity" }}
           >
             <h2 className="box-title">보안을 넘어선 새로운 연결</h2>
             <p className="box-desc">
@@ -846,4 +903,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default memo(Home);
