@@ -13,9 +13,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          # 자동 배포 트리거(git push)를 위해 쓰기 권한이 필요합니다.
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -27,10 +24,8 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
-      - name: Create .env file for Frontend
-        run: |
-          echo "${{ secrets.FRONTEND_ENV }}" > ./Develop/Frontend/.env
-          ls -al ./Develop/Frontend/.env
+      - name: Create .env file
+        run: echo "${{ secrets.FRONTEND_ENV }}" > ./Develop/Frontend/.env
 
       - name: Build and Push
         uses: docker/build-push-action@v5
@@ -38,18 +33,5 @@ jobs:
           context: ./Develop/Frontend
           file: ./Develop/Frontend/Dockerfile
           push: true
-          tags: ${{ secrets.HARBOR_URL }}/agami/frontend:v1
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # 매니페스트 파일(YAML)을 갱신하여 ArgoCD가 배포를 시작하게 만듭니다.
-      - name: Update manifest to trigger ArgoCD
-        run: |
-          # 파일 끝에 배포 시각 주석을 추가하여 파일 변경을 발생시킴
-          echo "# Last Deploy: $(date +'%Y-%m-%d %H:%M:%S')" >> ./Develop/K3s/manifests/total-deploy.yml
-          
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add ./Develop/K3s/manifests/total-deploy.yml
-          git commit -m "chore: auto-trigger deployment [skip ci]"
-          git push
+          # [핵심] 태그에 실행 번호를 붙여 매번 고유한 이미지를 만듭니다.
+          tags: ${{ secrets.HARBOR_URL }}/agami/frontend:build-${{ github.run_number }}
