@@ -60,9 +60,7 @@ body.dark-mode {
 
 .nav-item {
   background: none;
-  /* height: 100%; 대신 적절한 높이와 여백을 부여합니다 */
-  height: 40px; 
-  margin: auto 5px; /* 메뉴바 내부에서 세로 중앙 정렬 및 좌우 간격 */
+  height: 100%; 
   padding: 0 20px; 
   color: var(--text-color);
   cursor: pointer;
@@ -73,9 +71,6 @@ body.dark-mode {
   justify-content: center;
   transition: all 0.2s ease;
   white-space: nowrap;
-  
-  /* 호버 시 나타날 배경을 위해 미리 둥근 모서리 정의 (알약 모양) */
-  border-radius: 20px; 
 }
 
 .nav-item:hover {
@@ -90,7 +85,6 @@ body.dark-mode {
 .logout-btn {
   color: var(--text-color);
   opacity: 0.7;
-  border-radius: 20px; 
 }
 
 .logout-btn:hover {
