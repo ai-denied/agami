@@ -14,6 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          # ArgoCD 자동 트리거 커밋을 push하기 위해 권한 토큰 바인딩
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
@@ -39,6 +40,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy to K3s Layer
+      # [변경] 문제 많던 kubectl 대신, ArgoCD가 변경을 감지하도록 매니페스트 파일에 테그 주입 후 자동 Git Push
+      - name: Update Deployment Manifest for ArgoCD Dynamic Sync
         run: |
-          kubectl rollout restart deployment agami-frontend -n agami
+          TARGET_FILE="./Develop/K3s/manifests/frontend-deployment.yaml"
+          
+          # 매니페스트의 어노테이션 영역에 빌드 번호를 주입하여 파일에 변화를 줍니다.
+          # (Deployment spec.template.metadata.annotations 하위에 기록하여 Pod 재구동 유도)
+          sed -i '/image:/a \          # Build Trigger ID: '${{ github.run_id }}'' $TARGET_FILE
+          
+          # 변경된 매니페스트를 Git 저장소에 반영하여 ArgoCD Sync를 유도합니다.
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action Bot"
+          git add $TARGET_FILE
+          git commit -m "image: auto-trigger rollout deployment for agami-frontend [skip ci]"
+          git push origin main
