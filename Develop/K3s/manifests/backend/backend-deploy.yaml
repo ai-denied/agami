@@ -1,6 +1,3 @@
-# ==========================================
-# 1. 백엔드 배포 (10.3.5.10 노드)
-# ==========================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,8 +18,6 @@ spec:
       containers:
       - name: backend
         image: agami-captcha.cloud:8443/agami/backend:latest
-          # Build Trigger ID: 26215384865
-          # Build Trigger ID: 26214727507
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -39,7 +34,22 @@ spec:
           value: "agamidb"
         - name: KAKAO_REDIRECT_URI
           value: "https://agami-captcha.cloud/auth/kakao/callback"
+        # --- 추가된 부분 시작 ---
+        - name: REQUESTS_CA_BUNDLE
+          value: "/etc/letsencrypt/live/agami-captcha.cloud/fullchain.pem"
+        - name: SSL_CERT_FILE
+          value: "/etc/letsencrypt/live/agami-captcha.cloud/fullchain.pem"
+        volumeMounts:
+        - name: tls-certs
+          mountPath: /etc/letsencrypt/live/agami-captcha.cloud
+          readOnly: true
+        # --- 추가된 부분 끝 ---
+      volumes:
+      - name: tls-certs
+        secret:
+          secretName: agami-tls-secret
 ---
+# Service 부분은 수정할 필요 없습니다.
 apiVersion: v1
 kind: Service
 metadata:
