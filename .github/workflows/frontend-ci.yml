@@ -1,4 +1,17 @@
-steps:
+name: Frontend CI
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      # 이미지 구조에 맞춰 트리거 경로 정밀 교정
+      - 'Develop/Frontend/**'
+      - 'Develop/K3s/manifests/frontend/frontend-deploy.yaml'
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
