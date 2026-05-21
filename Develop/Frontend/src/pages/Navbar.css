@@ -62,7 +62,7 @@ body.dark-mode {
   border: none;
   height: 100%; 
   padding: 0 20px; 
-  color: var(--text-color);
+  color: #000000; /* 폰트 색상을 검은색으로 고정 */
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -71,12 +71,13 @@ body.dark-mode {
   justify-content: center;
   transition: all 0.2s ease;
   white-space: nowrap;
+  border-radius: 0; /* 둥근 모서리를 완벽히 제거하여 각진 사각형 유지 */
 }
 
 /* 롤백 완료: 호버 시 글자 색상만 깔끔하게 변경되도록 수정 */
 .nav-item:hover {
   color: var(--main-blue);
-  background: none;
+  background: rgba(93, 162, 255, 0.08); /* 영역을 가득 채우는 사각형 배경 추가 */
 }
 
 .login-btn {

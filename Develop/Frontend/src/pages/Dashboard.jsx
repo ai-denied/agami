@@ -32,15 +32,12 @@ const attackTypeData = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(false);
   const [userName, setUserName] = useState('사용자');
-  const [userImage, setUserImage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     const storedName = localStorage.getItem('userName');
-    const storedImage = localStorage.getItem('userImage');
 
     if (!token || !storedName) {
       localStorage.removeItem('accessToken');
@@ -54,12 +51,6 @@ export default function Dashboard() {
     }
 
     setUserName(storedName);
-
-    if (storedImage) {
-      const secureImageUrl = storedImage.replace(/^http:\/\//i, 'https://');
-      setUserImage(secureImageUrl);
-    }
-
     setIsLoading(false);
   }, [navigate]);
 
@@ -67,64 +58,11 @@ export default function Dashboard() {
     return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   }
 
-  const avatarInitial = userName ? userName.charAt(0) : '유';
-
   return (
-    <div className={`dashboard-container ${darkMode ? 'dark-mode' : ''}`}>
-      {/* 1. 사이드바 */}
-      <aside className="sidebar">
-        {/* [교정] 상단 네비바와 중복되는 logo-area 엘리먼트 완전히 제거 */}
-        
-        {/* 미니 사용자 프로필 정보 영역 */}
-        <div className="sidebar-profile">
-          <div className="profile-avatar-wrapper">
-            {userImage ? (
-              <img src={userImage} alt="User Profile" className="profile-img-element" />
-            ) : (
-              <span className="profile-text-avatar">{avatarInitial}</span>
-            )}
-          </div>
-          <div className="profile-info-text">
-            <span className="profile-name">{userName} 님</span>
-            <span className="profile-role">Administrator</span>
-          </div>
-        </div>
-        
-        <nav className="nav-menu">
-          <div className="menu-group">모니터링</div>
-          <a href="#active" className="nav-item active">실시간 현황</a>
-          <a href="#stats" className="nav-item">인증 통계</a>
-          
-          <div className="menu-group">보안 분석</div>
-          <a href="#captcha" className="nav-item">캡챠 분석</a>
-          <a href="#behavior" className="nav-item">행동 분석</a>
-          <a href="#attack" className="nav-item">공격 분석 <span className="badge">14</span></a>
-          
-          <div className="menu-group">관리</div>
-          <a href="#manage" className="nav-item">캡챠 관리</a>
-          <a href="#log" className="nav-item">로그 조회</a>
-        </nav>
-
-        <div className="sidebar-theme-toggle" onClick={() => setDarkMode(!darkMode)}>
-          <span>{darkMode ? '🌙 다크모드' : '☀️ 라이트모드'}</span>
-        </div>
-
-        <div className="sidebar-footer">
-          <div className="plan-info">
-            <div className="plan-header">
-              <span>API 사용량 - Pro</span>
-            </div>
-            <div className="plan-progress">
-              <div className="progress-bar" style={{ width: '36.8%' }}></div>
-            </div>
-            <div className="plan-text">184,392 / 500,000</div>
-          </div>
-        </div>
-      </aside>
-
-      {/* 메인 콘텐츠 영역 */}
+    <div className="dashboard-container">
       <div className="main-wrapper">
         <main className="content-body">
+          {/* 상단 웰컴 섹션 */}
           <section className="welcome-section">
             <h2>안녕하세요, {userName}님 👋</h2>
             <p>오늘 <strong>1,247건</strong>의 AI 공격을 차단했어요. 시스템은 모두 안정적입니다.</p>
