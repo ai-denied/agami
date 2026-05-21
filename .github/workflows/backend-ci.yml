@@ -3,8 +3,9 @@ on:
   push:
     branches: [ "main" ]
     paths:
+      # 실제 파일 구조에 맞춰 트리거 경로 정밀 교정
       - 'Develop/Backend/**'
-      - 'Develop/K3s/manifests/backend-deployment.yaml'
+      - 'Develop/K3s/manifests/backend/backend-deploy.yaml'
   workflow_dispatch: 
 
 jobs:
@@ -14,7 +15,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # [교정] 쓰기 권한 우회를 위해 발급한 PAT 토큰 바인딩
+          token: ${{ secrets.GH_PAT }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -39,6 +41,24 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy to K3s Layer
+      # [변경] 문제 많던 kubectl 및 권한 에러를 우회하고, 실제 backend-deploy.yaml 파일을 수정하여 ArgoCD Sync 유도
+      - name: Update Deployment Manifest for ArgoCD Dynamic Sync
         run: |
-          kubectl rollout restart deployment agami-backend -n agami
+          TARGET_FILE="./Develop/K3s/manifests/backend/backend-deploy.yaml"
+          
+          if [ ! -f "$TARGET_FILE" ]; then
+            echo "❌ 에러: 해당 경로에 backend-deploy.yaml 파일이 존재하지 않습니다."
+            exit 1
+          fi
+          
+          echo "🎯 대상 매니페스트 파일 발견: $TARGET_FILE"
+          
+          # 파일 내의 image: 속성 아랫줄에 빌드 ID 주석을 주입하여 파일 변경 유도
+          sed -i '/image:/a \          # Build Trigger ID: '${{ github.run_id }}'' $TARGET_FILE
+          
+          # 변경본을 Git 저장소에 반영하여 ArgoCD Sync 유도
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action Bot"
+          git add $TARGET_FILE
+          git commit -m "image: auto-trigger rollout deployment for agami-backend [skip ci]"
+          git push origin main
