@@ -60,6 +60,7 @@ body.dark-mode {
 
 .nav-item {
   background: none;
+  border: none;
   height: 100%; 
   padding: 0 20px; 
   color: var(--text-color);
@@ -75,6 +76,7 @@ body.dark-mode {
 
 .nav-item:hover {
   color: var(--main-blue);
+  background: rgba(93, 162, 255, 0.05);
 }
 
 .login-btn {
@@ -89,6 +91,7 @@ body.dark-mode {
 
 .logout-btn:hover {
   color: var(--logout-color);
+  background: rgba(255, 93, 93, 0.05);
   opacity: 1;
 }
 
