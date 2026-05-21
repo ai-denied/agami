@@ -6,33 +6,83 @@ import {
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 
-// 시뮬레이션 데이터 (브랜드 컬러 톤앤매너 매칭)
-const trafficData = [
-  { time: '14:00', total: 15000, success: 14200, attack: 800 },
-  { time: '17:00', total: 18000, success: 17100, attack: 900 },
-  { time: '20:00', total: 22000, success: 21500, attack: 500 },
-  { time: '23:00', total: 24392, success: 23800, attack: 592 },
-  { time: '02:00', total: 12000, success: 11000, attack: 1000 },
-  { time: '05:00', total: 8000, success: 7200, attack: 800 },
-  { time: '08:00', total: 14000, success: 13500, attack: 500 },
-];
-
-const captchaPieData = [
-  { name: '인간 통과', value: 94.2, color: '#5da2ff' },
-  { name: 'AI 차단', value: '#ff7675' } // 부드러운 파스텔 레드 계열
-];
+// 캡챠 모델별 데이터 세트 구성
+const modelData = {
+  all: {
+    summary: { total: '184,392', rate: '97.8%', attack: '1,247' },
+    traffic: [
+      { time: '14:00', success: 14200, attack: 800 },
+      { time: '17:00', success: 17100, attack: 900 },
+      { time: '20:00', success: 21500, attack: 500 },
+      { time: '23:00', success: 23800, attack: 592 },
+      { time: '02:00', success: 11000, attack: 1000 },
+      { time: '05:00', success: 7200, attack: 800 },
+      { time: '08:00', success: 13500, attack: 500 },
+    ],
+    pie: [{ name: '정상 탐지', value: 94.2 }, { name: '보안 차단', value: 5.8 }],
+    behavior: { safe: 88.4, suspicious: 9.2, critical: 2.4 }
+  },
+  wave: {
+    summary: { total: '92,410', rate: '98.1%', attack: '412' },
+    traffic: [
+      { time: '14:00', success: 7100, attack: 210 },
+      { time: '17:00', success: 8500, attack: 190 },
+      { time: '20:00', success: 10800, attack: 80 },
+      { time: '23:00', success: 11900, attack: 112 },
+      { time: '02:00', success: 5400, attack: 310 },
+      { time: '05:00', success: 3500, attack: 140 },
+      { time: '08:00', success: 6800, attack: 90 },
+    ],
+    pie: [{ name: '정상 탐지', value: 96.5 }, { name: '보안 차단', value: 3.5 }],
+    behavior: { safe: 92.1, suspicious: 6.4, critical: 1.5 }
+  },
+  puzzle: {
+    summary: { total: '58,122', rate: '97.2%', attack: '520' },
+    traffic: [
+      { time: '14:00', success: 4500, attack: 320 },
+      { time: '17:00', success: 5300, attack: 410 },
+      { time: '20:00', success: 6700, attack: 220 },
+      { time: '23:00', success: 7400, attack: 280 },
+      { time: '02:00', success: 3200, attack: 420 },
+      { time: '05:00', success: 2100, attack: 390 },
+      { time: '08:00', success: 4100, attack: 210 },
+    ],
+    pie: [{ name: '정상 탐지', value: 91.8 }, { name: '보안 차단', value: 8.2 }],
+    behavior: { safe: 84.3, suspicious: 12.2, critical: 3.5 }
+  }
+};
 
 const attackTypeData = [
   { name: 'GPT-Vision API', value: 412 },
   { name: 'Selenium/자동화', value: 287 },
   { name: 'Headless Chrome', value: 198 },
-  { name: '인간 위장 봇', value: 156 },
-  { name: 'Tor / VPN', value: 89 },
+  { name: '인간 위장형 봇', value: 156 },
+  { name: 'Tor / VPN 우회', value: 89 },
 ];
+
+// 커스텀 툴팁 컴포넌트 (Recharts 고유의 어색한 박스 및 튕김 현상 제거)
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="custom-chart-tooltip">
+        <p className="tooltip-title">{payload[0].payload.time || payload[0].name}</p>
+        {payload.map((item, idx) => (
+          <div key={idx} className="tooltip-item">
+            <span className="tooltip-dot" style={{ backgroundColor: item.stroke || item.fill }} />
+            <span className="tooltip-label">{item.name}:</span>
+            <span className="tooltip-value">{item.value.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState('사용자');
+  const [activeModel, setActiveModel] = useState('all'); 
+  const [userName, setUserName] = useState('관리자');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -43,10 +93,6 @@ export default function Dashboard() {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('userName');
       localStorage.removeItem('userImage');
-      localStorage.removeItem('nickname');
-      localStorage.removeItem('profile');
-      
-      navigate('/login', { replace: true });
       return;
     }
 
@@ -58,37 +104,43 @@ export default function Dashboard() {
     return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   }
 
+  const current = modelData[activeModel] || modelData.all;
+
   return (
     <div className="dashboard-container">
       <div className="main-wrapper">
         <main className="content-body">
-          {/* 상단 웰컴 섹션 */}
-          <section className="welcome-section">
-            <h2>안녕하세요, {userName}님 👋</h2>
-            <p>오늘 <strong>1,247건</strong>의 AI 공격을 차단했어요. 시스템은 모두 안정적입니다.</p>
+          
+          {/* 최상단 타이틀 & 캡챠 모델 선택 탭 */}
+          <section className="dashboard-header-block">
+            <div className="welcome-section">
+              <h2>안전한 서비스 환경을 유지 중입니다</h2>
+              <p>Agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
+            </div>
+            
+            <div className="model-tab-container">
+              <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
+              <button className={`tab-btn ${activeModel === 'wave' ? 'active' : ''}`} onClick={() => setActiveModel('wave')}>Wave 캡챠</button>
+              <button className={`tab-btn ${activeModel === 'puzzle' ? 'active' : ''}`} onClick={() => setActiveModel('puzzle')}>Puzzle 캡챠</button>
+            </div>
           </section>
 
-          {/* 주요 지표 요약 카드 행 */}
+          {/* 주요 지표 요약 카드 行 */}
           <section className="summary-grid">
             <div className="summary-card">
-              <span className="card-label">오늘 인증 수</span>
-              <div className="card-value">184,392</div>
+              <span className="card-label">오늘 총 요청 수</span>
+              <div className="card-value">{current.summary.total}</div>
               <span className="card-sub up">+12.4% vs 어제</span>
             </div>
             <div className="summary-card">
-              <span className="card-label">인증 성공률</span>
-              <div className="card-value">97.8%</div>
+              <span className="card-label">평균 정상 통과율</span>
+              <div className="card-value">{current.summary.rate}</div>
               <span className="card-sub up">0.3%p 상승</span>
             </div>
             <div className="summary-card">
-              <span className="card-label">평균 인증 시간</span>
-              <div className="card-value">1.42초</div>
-              <span className="card-sub stable">목표 2.0초 미만</span>
-            </div>
-            <div className="summary-card">
-              <span className="card-label">재시도 비율</span>
-              <div className="card-value">2.1%</div>
-              <span className="card-sub down">낮을수록 좋음</span>
+              <span className="card-label">금일 공격 차단 건수</span>
+              <div className="card-value danger-text">{current.summary.attack}</div>
+              <span className="card-sub stable">안정적인 차단 상태</span>
             </div>
           </section>
 
@@ -99,12 +151,12 @@ export default function Dashboard() {
                 <h3>실시간 인증/차단 트래픽 추이</h3>
                 <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trafficData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
-                      <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px' }} />
-                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={3} dot={false} name="정상 인증" />
+                    <LineChart data={current.traffic} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
+                      <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)', strokeWidth: 1 }} />
+                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={3} dot={false} name="정상 요청" />
                       <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={3} dot={false} name="차단된 공격" />
                     </LineChart>
                   </ResponsiveContainer>
@@ -113,30 +165,49 @@ export default function Dashboard() {
 
               <div className="two-column-grid">
                 <div className="sub-card">
-                  <h3>캡챠 통과율 분석</h3>
-                  <div className="pie-wrapper">
-                    <ResponsiveContainer width="100%" height={160}>
-                      <PieChart>
-                        <Pie data={captchaPieData} innerRadius={52} outerRadius={68} paddingAngle={4} dataKey="value">
-                          <Cell fill="var(--brand-color)" />
-                          <Cell fill="var(--danger-color)" />
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="pie-center-label">
-                      <h4>94.2%</h4>
-                      <p>인간 통과</p>
+                  <h3>인입 트래픽 검증 분석</h3>
+                  <div className="pie-container-layout">
+                    <div className="pie-wrapper">
+                      <ResponsiveContainer width="100%" height={140}>
+                        <PieChart>
+                          <Pie data={current.pie} innerRadius={48} outerRadius={62} paddingAngle={5} dataKey="value" startAngle={90} endAngle={-270}>
+                            <Cell fill="var(--brand-color)" />
+                            <Cell fill="var(--danger-color)" />
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="pie-center-label">
+                        <h4>{current.pie[0].value}%</h4>
+                      </div>
+                    </div>
+                    <div className="pie-legend-list">
+                      <div className="legend-item">
+                        <span className="dot brand" />
+                        <span className="lbl">정상 사용자 ({current.pie[0].value}%)</span>
+                      </div>
+                      <div className="legend-item">
+                        <span className="dot danger" />
+                        <span className="lbl">보안 차단 ({current.pie[1].value}%)</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="sub-card">
-                  <h3>사용자 행동 패턴</h3>
+                  <h3>종합 행동 신뢰도 분포</h3>
                   <div className="behavior-stats">
-                    <div className="b-item"><span>클릭 반응 속도</span><strong>312ms</strong></div>
-                    <div className="b-item"><span>이동 거리</span><strong>1,847px</strong></div>
-                    <div className="b-item"><span>방향 전환 횟수</span><strong>14회</strong></div>
+                    <div className="metric-bar-group">
+                      <div className="metric-bar-label"><span>안전 요인 (Safe)</span><strong>{current.behavior.safe}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill safe" style={{ width: `${current.behavior.safe}%` }} /></div>
+                    </div>
+                    <div className="metric-bar-group">
+                      <div className="metric-bar-label"><span>의심 탐지 (Suspicious)</span><strong>{current.behavior.suspicious}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill suspicious" style={{ width: `${current.behavior.suspicious}%` }} /></div>
+                    </div>
+                    <div className="metric-bar-group">
+                      <div className="metric-bar-label"><span>위험 수위 (Critical)</span><strong>{current.behavior.critical}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill critical" style={{ width: `${current.behavior.critical}%` }} /></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -144,21 +215,21 @@ export default function Dashboard() {
 
             <div className="right-analytics">
               <div className="chart-card">
-                <h3>AI 공격 유형 Top 5</h3>
+                <h3>주요 우회 공격 유형 Top 5</h3>
                 <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={attackTypeData} margin={{ left: 10, right: 10 }}>
+                    <BarChart layout="vertical" data={attackTypeData} margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
                       <XAxis type="number" hide />
-                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '13px' }} width={110} />
-                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px' }} />
-                      <Bar dataKey="value" fill="var(--danger-color)" radius={[0, 6, 6, 0]} barSize={10} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '13px' }} width={115} />
+                      <Tooltip content={<CustomTooltip />} cursor={false} />
+                      <Bar dataKey="value" fill="var(--danger-color)" radius={[0, 6, 6, 0]} barSize={10} name="감지 건수" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               <div className="log-card">
-                <h3>실시간 의심 IP 탐지 로그</h3>
+                <h3>실시간 이상 징후 탐지 로그</h3>
                 <div className="log-list">
                   <div className="log-item danger-log">
                     <span className="log-ip">203.0.113.42</span>
@@ -167,12 +238,12 @@ export default function Dashboard() {
                   </div>
                   <div className="log-item danger-log">
                     <span className="log-ip">198.51.100.7</span>
-                    <span className="log-reason">Datacenter ASN + Clicks</span>
+                    <span className="log-reason">Datacenter ASN 패턴 유입</span>
                     <span className="risk-score">0.88</span>
                   </div>
                   <div className="log-item warning-log">
                     <span className="log-ip">192.0.2.55</span>
-                    <span className="log-reason">Suspicious mouse pattern</span>
+                    <span className="log-reason">비정상 마우스 가속도 탐지</span>
                     <span className="risk-score">0.76</span>
                   </div>
                 </div>
