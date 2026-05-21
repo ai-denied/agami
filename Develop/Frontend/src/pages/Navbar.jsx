@@ -61,7 +61,7 @@ const Navbar = () => {
             <img src="/agami-home.svg" alt="Home" />
           </button>
           <div className="nav-links">
-            <button className="nav-item">플랫폼</button>
+            <button className="nav-item"  onClick={() => navigate("/platform")}>플랫폼</button>
             <button className="nav-item" onClick={() => navigate("/price")}>
               가격
             </button>
