@@ -1,5 +1,5 @@
 # ==========================================
-# 1. 백엔드 배포 (보안 CA 인증서 체인 반영본)
+# 1. 백엔드 배포 (10.3.5.10 노드)
 # ==========================================
 apiVersion: apps/v1
 kind: Deployment
@@ -37,22 +37,6 @@ spec:
           value: "agamidb"
         - name: KAKAO_REDIRECT_URI
           value: "https://agami-captcha.cloud/auth/kakao/callback"
-        # 💡 정식 배포 보안 규격: 파이썬 requests 모듈이 사내 프록시 사설 CA 체인을 신뢰하도록 경로 지정
-        - name: REQUESTS_CA_BUNDLE
-          value: /etc/ssl/certs/internal-ca.crt
-        # 💡 동일하게 httpx나 기본 시스템 라이브러리가 참조할 수 있도록 전역 CA 경로 동기화
-        - name: CURL_CA_BUNDLE
-          value: /etc/ssl/certs/internal-ca.crt
-        volumeMounts:
-        - name: ca-volume
-          mountPath: /etc/ssl/certs/internal-ca.crt
-          subPath: internal-ca.crt
-          readOnly: true
-      volumes:
-      - name: ca-volume
-        secret:
-          # 💡 앞서 생성한 공개 키 인증서 파일 스펙 주입
-          secretName: internal-ca-secret
 ---
 apiVersion: v1
 kind: Service
