@@ -38,3 +38,7 @@ jobs:
           tags: ${{ secrets.HARBOR_URL }}/agami/backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Deploy to K3s Layer
+        run: |
+          kubectl rollout restart deployment agami-backend -n agami
