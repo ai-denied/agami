@@ -52,7 +52,7 @@ async def kakao_callback(code: str, db: Session = Depends(get_db)):
         "code": code
     }
     
-    token_res = requests.post(token_url, data=payload, verify=False)
+    token_res = requests.post(token_url, data=payload)
     
     # 에러 발생 시 로그를 찍어서 상세 내용을 확인합니다.
     if token_res.status_code != 200:
