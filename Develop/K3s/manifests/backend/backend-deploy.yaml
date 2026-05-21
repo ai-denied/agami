@@ -21,6 +21,7 @@ spec:
       containers:
       - name: backend
         image: agami-captcha.cloud:8443/agami/backend:latest
+          # Build Trigger ID: 26214727507
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
