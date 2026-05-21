@@ -21,14 +21,23 @@ const KakaoCallback = () => {
       })
       .then((data) => {
         if (data.status === "success") {
-          // JWT 저장
+          // 1. JWT 토큰 저장
           localStorage.setItem("accessToken", data.accessToken);
 
-          // 유저 정보 저장
+          // 2. 유저 이름 저장 (Dashboard.jsx의 'userName' 키와 매칭)
           localStorage.setItem("nickname", data.user.nickname);
-          localStorage.setItem("profile", data.user.profile);
+          localStorage.setItem("userName", data.user.nickname); 
 
-          // 홈으로 이동
+          // 3. 프로필 이미지 가공 및 저장 (Mixed Content 원천 차단)
+          const rawProfile = data.user.profile;
+          if (rawProfile) {
+            // 정규식을 이용해 http:// 시작 구간을 https://로 강제 치환합니다.
+            const secureProfile = rawProfile.replace(/^http:\/\//i, "https://");
+            localStorage.setItem("profile", secureProfile);
+            localStorage.setItem("userImage", secureProfile); // Dashboard.jsx 매칭용
+          }
+
+          // 4. 홈 또는 플랫폼 대시보드로 이동
           navigate("/", { replace: true });
         } else {
           navigate("/login");
