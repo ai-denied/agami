@@ -1,21 +1,17 @@
-name: Frontend CI
-on:
-  push:
-    branches: [ "main" ]
-    paths:
-      # 이미지 구조에 맞춰 트리거 경로 정밀 교정
-      - 'Develop/Frontend/**'
-      - 'Develop/K3s/manifests/frontend/frontend-deploy.yaml'
-  workflow_dispatch: 
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
+steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
+
+      # 1. 현재 한국 시간(KST)을 추출하여 환경 변수에 저장 (포맷: YYYYMMDD-HHMMSS)
+      - name: Get Current Timestamp (KST)
+        id: timestamp
+        run: |
+          # UTC 시간에 9시간을 더해 KST 시간 생성
+          KST_TIME=$(date -d "+9 hours" +'%Y%m%d-%H%M%S')
+          echo "B_TIME=$KST_TIME" >> $GITHUB_ENV
+          echo "🎯 생성된 빌드 버전: $KST_TIME"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -30,17 +26,20 @@ jobs:
       - name: Create .env
         run: echo "${{ secrets.FRONTEND_ENV }}" > ./Develop/Frontend/.env
 
+      # 2. 빌드 및 푸시 단계에서 생성된 타임스탬프를 태그로 사용
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: ./Develop/Frontend
           file: ./Develop/Frontend/Dockerfile
           push: true
-          tags: ${{ secrets.HARBOR_URL }}/agami/frontend:latest
+          tags: |
+            ${{ secrets.HARBOR_URL }}/agami/frontend:latest
+            ${{ secrets.HARBOR_URL }}/agami/frontend:${{ env.B_TIME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # [교정 완료] 실제 파일 구조인 frontend/frontend-deploy.yaml 경로를 명시적으로 제어합니다.
+      # 3. 매니페스트 파일의 image 태그를 타임스탬프 버전으로 교체
       - name: Update Deployment Manifest for ArgoCD Dynamic Sync
         run: |
           TARGET_FILE="./Develop/K3s/manifests/frontend/frontend-deploy.yaml"
@@ -52,12 +51,12 @@ jobs:
           
           echo "🎯 대상 매니페스트 파일 발견: $TARGET_FILE"
           
-          # 파일 내의 image: 속성 아랫줄에 빌드 ID 주석을 주입하여 파일 변경 유도
-          sed -i '/image:/a \          # Build Trigger ID: '${{ github.run_id }}'' $TARGET_FILE
+          # 기존 image 라인을 새로 생성된 타임스탬프 태그로 치환
+          sed -i "s|image: .*|image: ${{ secrets.HARBOR_URL }}/agami/frontend:${{ env.B_TIME }}|g" $TARGET_FILE
           
           # 변경본을 Git 저장소에 반영하여 ArgoCD Sync 유도
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action Bot"
           git add $TARGET_FILE
-          git commit -m "image: auto-trigger rollout deployment for agami-frontend [skip ci]"
+          git commit -m "image: auto-trigger rollout deployment to version v${{ env.B_TIME }} [skip ci]"
           git push origin main
