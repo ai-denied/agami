@@ -1,6 +1,6 @@
 .liquid-glass-box {
-  /* 다크모드 대응을 위한 변수 설정 */
-  --glass-bg: rgba(255, 255, 255, 0.1);
+  /* 다크모드 대응을 위한 변수 설정 (불투명도 상향 조정) */
+  --glass-bg: rgba(255, 255, 255, 0.35);
   --glass-border: rgba(255, 255, 255, 0.4);
 
   position: relative;
@@ -25,8 +25,8 @@
   transition: background 0.3s ease, border 0.3s ease;
 }
 
-/* 다크모드 활성화 시 박스 색상 변경 */
+/* 다크모드 활성화 시 박스 색상 변경 (불투명도 상향 조정) */
 body.dark-mode .liquid-glass-box {
-  --glass-bg: rgba(0, 0, 0, 0.2);
+  --glass-bg: rgba(0, 0, 0, 0.45);
   --glass-border: rgba(255, 255, 255, 0.1);
 }
