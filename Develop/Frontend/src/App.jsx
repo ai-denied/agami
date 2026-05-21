@@ -5,7 +5,8 @@ import Navbar from './pages/Navbar';
 import Home from './pages/Home'; 
 import Login from './pages/Login'; 
 import Price from './pages/Price';
-import KakaoCallback from './contexts/KakaoCallback'; // 추가됨
+import Dashboard from './pages/Dashboard';
+import KakaoCallback from './contexts/KakaoCallback';
 
 function App() {
   useEffect(() => {
@@ -27,6 +28,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/price" element={<Price />} />
+          <Route path="/platform" element={<Dashboard />} />
           {/* 카카오 콜백 경로 추가 */}
           <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
         </Routes>

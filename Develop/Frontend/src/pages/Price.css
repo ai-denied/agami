@@ -22,13 +22,13 @@ body.dark-mode {
 
 .pricing-wrapper {
   position: relative;
-  min-height: 100vh; 
+  /* 핵심 수정: 높이를 100vh로 고정하고 padding 대신 정렬로 제어 */
+  height: 100vh; 
   background-color: var(--pricing-bg);
   font-family: 'Pretendard', sans-serif;
   display: flex;
   align-items: center;      
   justify-content: center;   
-  padding-top: var(--nav-height); 
   box-sizing: border-box;
   overflow: hidden;
   transition: background-color 0.3s ease;
@@ -39,7 +39,9 @@ body.dark-mode {
   z-index: 10;
   width: 100%;
   max-width: 1200px;
-  padding: 40px 20px; 
+  padding: 0 20px; 
+  /* 핵심 수정: 투명 네비바 공간만큼 콘텐츠 영역을 아래로 밀어줌 */
+  margin-top: var(--nav-height); 
 }
 
 /* 
@@ -68,7 +70,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
 .pricing-header p {
   color: var(--text-main);
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 40px; /* 여백 미세 조정 */
 }
 
 .pricing-container {
@@ -178,7 +180,27 @@ body.dark-mode .price-card:hover {
   transition: all 0.3s ease-in-out !important;
 }
 
+/* 태블릿 및 모바일 대응 수정 */
 @media (max-width: 950px) {
-  .pricing-container { flex-wrap: wrap; }
-  .price-card { max-width: 400px; width: 100%; }
+  .pricing-wrapper {
+    /* 모바일에서는 카드가 아래로 쌓이므로 스크롤이 필연적으로 발생해야 합니다 */
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    padding-top: var(--nav-height);
+  }
+  
+  .pricing-content {
+    margin-top: 0;
+    padding: 40px 20px;
+  }
+
+  .pricing-container { 
+    flex-wrap: wrap; 
+  }
+  
+  .price-card { 
+    max-width: 400px; 
+    width: 100%; 
+  }
 }

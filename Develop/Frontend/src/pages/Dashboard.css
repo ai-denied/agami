@@ -1,0 +1,321 @@
+:root {
+  --nav-height: 65px;
+  --bg-main: #f4f7fc;
+  --bg-card: #ffffff;
+  --sidebar-bg: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  
+  --brand-color: #5da2ff;
+  --danger-color: #ff5c5c;
+  --danger-bg: #fff5f5;
+  --warning-color: #ff9f43;
+  --warning-bg: #fff9f3;
+  --success-color: #2ed573;
+}
+
+.dashboard-container.dark-mode {
+  --bg-main: #0b1329;
+  --bg-card: #151f38;
+  --sidebar-bg: #0e172c;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: #1e293b;
+  
+  --danger-bg: rgba(255, 92, 92, 0.1);
+  --warning-bg: rgba(255, 159, 67, 0.1);
+}
+
+/* 세션 로딩 인디케이터 컨테이너 추가 */
+.dashboard-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: calc(100vh - var(--nav-height));
+  padding-top: var(--nav-height);
+  background-color: var(--bg-main);
+  color: var(--text-secondary);
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 600;
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: calc(100vh - var(--nav-height));
+  padding-top: var(--nav-height); 
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: 'Pretendard', sans-serif;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* 사이드바 */
+.sidebar {
+  width: 260px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  height: calc(100vh - var(--nav-height));
+  position: sticky;
+  top: var(--nav-height);
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.logo-icon { font-size: 1.5rem; }
+.logo-text {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--brand-color);
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-grow: 1;
+}
+
+.menu-group {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin: 16px 0 8px 8px;
+  letter-spacing: 0.5px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nav-item:hover, .nav-item.active {
+  background-color: rgba(93, 162, 255, 0.1);
+  color: var(--brand-color);
+  font-weight: 600;
+}
+
+.badge {
+  background-color: var(--danger-color);
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.sidebar-theme-toggle {
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background-color: var(--bg-main);
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid var(--border-color);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.plan-info {
+  background-color: rgba(93, 162, 255, 0.05);
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.plan-header {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.plan-progress {
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--brand-color);
+}
+
+.plan-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* 메인 래퍼 */
+.main-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 본문 스타일링 */
+.content-body {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.welcome-section h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+.welcome-section p { color: var(--text-secondary); }
+
+/* 상단 메트릭 그리드 */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.summary-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-label { font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
+.card-value { font-size: 2rem; font-weight: 850; color: var(--text-primary); }
+.card-sub { font-size: 0.85rem; font-weight: 600; }
+.card-sub.up { color: var(--success-color); }
+.card-sub.down { color: var(--brand-color); }
+.card-sub.stable { color: var(--text-secondary); }
+
+/* 분석 레이아웃 그리드 */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1.2fr;
+  gap: 20px;
+}
+
+.left-analytics, .right-analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chart-card, .sub-card, .log-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  border-radius: 24px;
+}
+
+.chart-card h3, .sub-card h3, .log-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.chart-wrapper { height: 240px; }
+
+.two-column-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* 원형 차트 커스텀 레이아웃 */
+.pie-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pie-center-label {
+  position: absolute;
+  text-align: center;
+}
+.pie-center-label h4 { font-size: 1.5rem; font-weight: 800; }
+.pie-center-label p { font-size: 0.8rem; color: var(--text-secondary); }
+
+/* 행동 분석 통계 리스트 */
+.behavior-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.b-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: var(--bg-main);
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+.b-item span { color: var(--text-secondary); }
+.b-item strong { font-weight: 700; }
+
+/* 로그 카드 디자인 */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.log-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 0.85rem;
+}
+
+.danger-log { background-color: var(--danger-bg); color: var(--danger-color); }
+.warning-log { background-color: var(--warning-bg); color: var(--warning-color); }
+
+.log-ip { font-family: monospace; font-weight: 700; }
+.log-reason { flex-grow: 1; margin-left: 16px; color: var(--text-primary); }
+.risk-score { font-weight: 800; }
+
+@media (max-width: 1200px) {
+  .analytics-grid { grid-template-columns: 1fr; }
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 950px) {
+  .dashboard-container {
+    padding-top: var(--nav-height);
+  }
+  .sidebar {
+    position: fixed;
+    top: var(--nav-height);
+    left: 0;
+    height: calc(100vh - var(--nav-height));
+    z-index: 90;
+  }
+}
