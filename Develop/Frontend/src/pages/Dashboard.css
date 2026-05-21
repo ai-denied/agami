@@ -1,29 +1,34 @@
 :root {
   --nav-height: 65px;
-  --bg-main: #f4f7fc;
-  --bg-card: #ffffff;
+  --bg-main: #eef3fb; /* 로그인 페이지의 푸른 색감 피드백 반영 */
+  --bg-card: rgba(255, 255, 255, 0.85);
   --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --border-color: #e2e8f0;
+  --text-secondary: #708099;
+  --border-color: rgba(93, 162, 255, 0.15);
+  --chart-grid: #e2e8f0;
   
   --brand-color: #5da2ff;
-  --danger-color: #ff5c5c;
-  --danger-bg: #fff5f5;
-  --warning-color: #ff9f43;
-  --warning-bg: #fff9f3;
-  --success-color: #2ed573;
+  --danger-color: #ff7675;
+  --danger-bg: rgba(255, 118, 117, 0.08);
+  --warning-color: #ffa801;
+  --warning-bg: rgba(255, 168, 1, 0.08);
+  --success-color: #05c46b;
+  
+  --card-shadow: 0 10px 30px rgba(93, 162, 255, 0.05);
 }
 
-/* 네비바 다크모드 토글 시 body 또는 상위 컨테이너에 .dark-mode가 붙을 때 연동 */
+/* 글로벌 네비바 토글 연동 체계 */
 body.dark-mode, .dark-mode {
-  --bg-main: #0b1329;
-  --bg-card: #151f38;
-  --text-primary: #f8fafc;
+  --bg-main: #1a1a1b; /* 요청하신 기본 배경 색상 지정 */
+  --bg-card: rgba(38, 38, 41, 0.75); /* 글래스모피즘 톤앤매너 매칭 */
+  --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --border-color: #1e293b;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --chart-grid: #2d2d30;
   
-  --danger-bg: rgba(255, 92, 92, 0.1);
-  --warning-bg: rgba(255, 159, 67, 0.1);
+  --danger-bg: rgba(255, 118, 117, 0.12);
+  --warning-bg: rgba(255, 168, 1, 0.12);
+  --card-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
 
 .dashboard-loading {
@@ -46,12 +51,11 @@ body.dark-mode, .dark-mode {
   background-color: var(--bg-main);
   color: var(--text-primary);
   font-family: 'Pretendard', sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.4s ease, color 0.4s ease;
   box-sizing: border-box;
   width: 100%;
 }
 
-/* 메인 래퍼: 사이드바가 없으므로 화면 전체 가로폭 사용 */
 .main-wrapper {
   flex-grow: 1;
   width: 100%;
@@ -59,80 +63,97 @@ body.dark-mode, .dark-mode {
   flex-direction: column;
 }
 
-/* 본문 스타일링 */
 .content-body {
-  padding: 32px;
+  padding: 40px; /* 여백을 조금 더 넓혀 유연한 구조 형성 */
   display: flex;
   flex-direction: column;
   gap: 32px;
   width: 100%;
+  max-width: 1400px; /* 대화면에서 무한히 늘어지지 않도록 제어 */
+  margin: 0 auto;
   box-sizing: border-box;
 }
 
-.welcome-section h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
-.welcome-section p { color: var(--text-secondary); }
+/* 타이포그래피 정돈 */
+.welcome-section h2 { 
+  font-size: 2rem; 
+  font-weight: 800; 
+  letter-spacing: -0.5px;
+  margin-bottom: 8px; 
+}
+.welcome-section p { 
+  color: var(--text-secondary); 
+  font-size: 1.05rem;
+}
 
-/* 상단 메트릭 그리드 */
+/* 메트릭 카드: 둥근 모서리 곡률 조정 */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 24px;
 }
 
 .summary-card {
   background-color: var(--bg-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
-  padding: 24px;
-  border-radius: 20px;
+  padding: 28px 24px;
+  border-radius: 28px; /* 곡률 증가 */
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  gap: 10px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card-label { font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
-.card-value { font-size: 2rem; font-weight: 850; color: var(--text-primary); }
+.card-label { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; }
+.card-value { font-size: 2.2rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
 .card-sub { font-size: 0.85rem; font-weight: 600; }
 .card-sub.up { color: var(--success-color); }
 .card-sub.down { color: var(--brand-color); }
 .card-sub.stable { color: var(--text-secondary); }
 
-/* 분석 레이아웃 그리드 */
+/* 메인 대시보드 차트 영역 컴포넌트화 */
 .analytics-grid {
   display: grid;
-  grid-template-columns: 1.6fr 1.2fr;
-  gap: 20px;
+  grid-template-columns: 1.5fr 1.1fr;
+  gap: 24px;
 }
 
 .left-analytics, .right-analytics {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .chart-card, .sub-card, .log-card {
   background-color: var(--bg-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
-  padding: 24px;
-  border-radius: 24px;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  padding: 28px;
+  border-radius: 32px; /* 디자인 시안의 유연한 곡률 반영 */
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
 }
 
 .chart-card h3, .sub-card h3, .log-card h3 {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  margin-bottom: 20px;
+  color: var(--text-primary);
+  margin-bottom: 24px;
 }
 
-.chart-wrapper { height: 240px; }
+.chart-wrapper { height: 260px; }
 
 .two-column-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 24px;
 }
 
-/* 원형 차트 커스텀 레이아웃 */
+/* 원형 분석 디자인 내부 레이아웃 */
 .pie-wrapper {
   position: relative;
   display: flex;
@@ -143,60 +164,76 @@ body.dark-mode, .dark-mode {
 .pie-center-label {
   position: absolute;
   text-align: center;
+  bottom: 42%;
 }
-.pie-center-label h4 { font-size: 1.5rem; font-weight: 800; }
-.pie-center-label p { font-size: 0.8rem; color: var(--text-secondary); }
+.pie-center-label h4 { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
+.pie-center-label p { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; margin-top: 2px; }
 
-/* 행동 분석 통계 리스트 */
+/* 리스트 및 데이터 열 */
 .behavior-stats {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .b-item {
   display: flex;
   justify-content: space-between;
-  padding: 12px;
-  background-color: var(--bg-main);
-  border-radius: 12px;
+  padding: 14px 18px;
+  background-color: rgba(93, 162, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
   font-size: 0.9rem;
-  transition: background-color 0.3s ease;
 }
-.b-item span { color: var(--text-secondary); }
-.b-item strong { font-weight: 700; }
+body.dark-mode .b-item, .dark-mode .b-item {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+.b-item span { color: var(--text-secondary); font-weight: 500; }
+.b-item strong { font-weight: 700; color: var(--text-primary); }
 
-/* 로그 카드 디자인 */
+/* 로그 컴포넌트 */
 .log-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .log-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  border-radius: 14px;
-  font-size: 0.85rem;
-  transition: background-color 0.3s ease;
+  padding: 16px 20px;
+  border-radius: 18px;
+  font-size: 0.9rem;
+  border: 1px solid transparent;
 }
 
-.danger-log { background-color: var(--danger-bg); color: var(--danger-color); }
-.warning-log { background-color: var(--warning-bg); color: var(--warning-color); }
+.danger-log { 
+  background-color: var(--danger-bg); 
+  color: var(--danger-color);
+  border-color: rgba(255, 118, 117, 0.15);
+}
+.warning-log { 
+  background-color: var(--warning-bg); 
+  color: var(--warning-color); 
+  border-color: rgba(255, 168, 1, 0.15);
+}
 
 .log-ip { font-family: monospace; font-weight: 700; }
-.log-reason { flex-grow: 1; margin-left: 16px; color: var(--text-primary); }
-.risk-score { font-weight: 800; }
+.log-reason { flex-grow: 1; margin-left: 20px; color: var(--text-primary); font-weight: 500; }
+.risk-score { font-weight: 800; font-family: monospace; }
 
-/* 반응형 중단점 수정 (사이드바가 제거되었으므로 더 여유롭게 배치됨) */
-@media (max-width: 1024px) {
+/* 반응형 모바일 브레이크포인트 보정 */
+@media (max-width: 1200px) {
   .analytics-grid { grid-template-columns: 1fr; }
-  .summary-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 900px) {
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .content-body { padding: 24px; }
+}
+
+@media (max-width: 550px) {
   .summary-grid { grid-template-columns: 1fr; }
   .two-column-grid { grid-template-columns: 1fr; }
 }

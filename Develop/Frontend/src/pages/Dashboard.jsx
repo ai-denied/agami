@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 
-// 시뮬레이션 데이터
+// 시뮬레이션 데이터 (브랜드 컬러 톤앤매너 매칭)
 const trafficData = [
   { time: '14:00', total: 15000, success: 14200, attack: 800 },
   { time: '17:00', total: 18000, success: 17100, attack: 900 },
@@ -19,7 +19,7 @@ const trafficData = [
 
 const captchaPieData = [
   { name: '인간 통과', value: 94.2, color: '#5da2ff' },
-  { name: 'AI 차단', value: 5.8, color: '#ff5c5c' }
+  { name: 'AI 차단', value: '#ff7675' } // 부드러운 파스텔 레드 계열
 ];
 
 const attackTypeData = [
@@ -100,12 +100,12 @@ export default function Dashboard() {
                 <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trafficData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="time" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={2} name="정상 인증" />
-                      <Line type="monotone" dataKey="attack" stroke="#ff5c5c" strokeWidth={2} name="차단된 공격" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
+                      <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px' }} />
+                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={3} dot={false} name="정상 인증" />
+                      <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={3} dot={false} name="차단된 공격" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -117,10 +117,9 @@ export default function Dashboard() {
                   <div className="pie-wrapper">
                     <ResponsiveContainer width="100%" height={160}>
                       <PieChart>
-                        <Pie data={captchaPieData} innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
-                          {captchaPieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
+                        <Pie data={captchaPieData} innerRadius={52} outerRadius={68} paddingAngle={4} dataKey="value">
+                          <Cell fill="var(--brand-color)" />
+                          <Cell fill="var(--danger-color)" />
                         </Pie>
                         <Tooltip />
                       </PieChart>
@@ -133,7 +132,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="sub-card">
-                  <h3>사용자 행동 패턴 (마우스 트랙)</h3>
+                  <h3>사용자 행동 패턴</h3>
                   <div className="behavior-stats">
                     <div className="b-item"><span>클릭 반응 속도</span><strong>312ms</strong></div>
                     <div className="b-item"><span>이동 거리</span><strong>1,847px</strong></div>
@@ -148,11 +147,11 @@ export default function Dashboard() {
                 <h3>AI 공격 유형 Top 5</h3>
                 <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={attackTypeData} margin={{ left: 20, right: 20 }}>
+                    <BarChart layout="vertical" data={attackTypeData} margin={{ left: 10, right: 10 }}>
                       <XAxis type="number" hide />
-                      <YAxis dataKey="name" type="category" tickLine={false} />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#ff5c5c" radius={[0, 4, 4, 0]} barSize={12} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '13px' }} width={110} />
+                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px' }} />
+                      <Bar dataKey="value" fill="var(--danger-color)" radius={[0, 6, 6, 0]} barSize={10} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
