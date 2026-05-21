@@ -40,5 +40,5 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Deploy to K3s Layer
-              run: |
-                kubectl rollout restart deployment agami-frontend -n agami
+        run: |
+          kubectl rollout restart deployment agami-frontend -n agami
