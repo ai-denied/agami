@@ -1,10 +1,9 @@
 :root {
   --nav-bg: rgba(255, 255, 255, 0.5);
   --nav-border: rgba(255, 255, 255, 0.3);
-  --text-color: #000000;
+  --text-color: #222;
   --main-blue: #5da2ff;
   --switch-bg: #5da2ff; 
-  --logout-color: #ff5d5d; /* 로그아웃 버튼 색상 정의 */
 }
 
 body.dark-mode {
@@ -74,25 +73,24 @@ body.dark-mode {
   white-space: nowrap;
 }
 
+/* 롤백 완료: 호버 시 글자 색상만 깔끔하게 변경되도록 수정 */
 .nav-item:hover {
   color: var(--main-blue);
-  background: rgba(93, 162, 255, 0.05);
+  background: none;
 }
 
 .login-btn {
   color: var(--main-blue);
 }
 
-/* 로그아웃 버튼 스타일 호버 시 붉은 계열로 변경 */
+/* JSX 구조에 따른 로그아웃 버튼 및 호버 롤백 */
 .logout-btn {
   color: var(--text-color);
-  opacity: 0.7;
 }
 
 .logout-btn:hover {
-  color: var(--logout-color);
-  background: rgba(255, 93, 93, 0.05);
-  opacity: 1;
+  color: var(--main-blue);
+  background: none;
 }
 
 .home-logo-btn {
@@ -178,7 +176,7 @@ body.dark-mode {
 .user-profile-info {
   display: flex;
   align-items: center;
-  padding: 0 10px 0 20px;
+  padding: 0 20px;
   height: 100%;
 }
 
