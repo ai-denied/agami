@@ -3,9 +3,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      # 💡 실제 파일 구조인 Modeling 대역으로 트리거 경로 정밀 교정
       - 'Modeling/**'
-      - 'Modeling/K3s/captcha-deploy.yml'
   workflow_dispatch: 
 
 jobs:
@@ -28,37 +26,14 @@ jobs:
           password: ${{ secrets.HARBOR_PASSWORD }}
 
       - name: Create .env
-        # 💡 Modeling 루트 기준 환경 변수 파일 생성
         run: echo "${{ secrets.CAPTCHA_ENV }}" > ./Modeling/.env
 
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
-          # 💡 Docker Build Context를 Modeling 디렉토리로 고정
           context: ./Modeling
           file: ./Modeling/Dockerfile
           push: true
           tags: ${{ secrets.HARBOR_URL }}/captcha/engine:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Update Deployment Manifest for ArgoCD Dynamic Sync
-        run: |
-          # 💡 이미지에 매핑된 K3s 폴더 내부의 배포 파일 조준
-          TARGET_FILE="./Modeling/K3s/captcha-deploy.yml"
-          
-          if [ ! -f "$TARGET_FILE" ]; then
-            echo "❌ 에러: captcha-deploy.yml 파일이 존재하지 않습니다."
-            exit 1
-          fi
-          
-          echo "🎯 대상 매니페스트 파일 발견: $TARGET_FILE"
-          
-          # 백엔드와 겹치지 않도록 캡챠 전용 주석 트리거 주입
-          sed -i '/image:/a \          # Captcha Build Trigger ID: '${{ github.run_id }}'' $TARGET_FILE
-          
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action Bot"
-          git add $TARGET_FILE
-          git commit -m "image: auto-trigger rollout deployment for captcha-engine [skip ci]"
-          git push origin main
