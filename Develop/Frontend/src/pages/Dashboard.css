@@ -27,7 +27,6 @@
   --warning-bg: rgba(255, 159, 67, 0.1);
 }
 
-/* 세션 로딩 인디케이터 컨테이너 추가 */
 .dashboard-loading {
   display: flex;
   justify-content: center;
@@ -65,18 +64,66 @@
   top: var(--nav-height);
 }
 
-.logo-area {
+/* [교정 완료] 사이드바 미니 유저 정보 컴포넌트 정밀 스타일 최적화 */
+.sidebar-profile {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 32px;
+  gap: 12px;
+  padding: 14px;
+  background-color: var(--bg-main);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
 }
 
-.logo-icon { font-size: 1.5rem; }
-.logo-text {
-  font-size: 1.3rem;
-  font-weight: 800;
+/* 프로필 박스: 찌그러짐 원천 차단 (종횡비 1:1 고정) */
+.profile-avatar-wrapper {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 실제 이미지: 원본 비율 유지하며 꽉 차게 원형 클리핑 */
+.profile-img-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-text-avatar {
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--brand-color);
+}
+
+.profile-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.profile-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.profile-role {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .nav-menu {

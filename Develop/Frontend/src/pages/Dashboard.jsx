@@ -42,9 +42,7 @@ export default function Dashboard() {
     const storedName = localStorage.getItem('userName');
     const storedImage = localStorage.getItem('userImage');
 
-    // [보안 취약점 보정] 토큰이 없거나, 토큰은 있는데 유저 네임 정보 등이 완전히 비어있는 비정상 세션 거부
     if (!token || !storedName) {
-      // 찌꺼기 세션 데이터가 남아있을 가능성을 대비해 스토리지 완전 초기화
       localStorage.removeItem('accessToken');
       localStorage.removeItem('userName');
       localStorage.removeItem('userImage');
@@ -75,10 +73,7 @@ export default function Dashboard() {
     <div className={`dashboard-container ${darkMode ? 'dark-mode' : ''}`}>
       {/* 1. 사이드바 */}
       <aside className="sidebar">
-        <div className="logo-area">
-          <span className="logo-icon">🐟</span>
-          <span className="logo-text">agami</span>
-        </div>
+        {/* [교정] 상단 네비바와 중복되는 logo-area 엘리먼트 완전히 제거 */}
         
         {/* 미니 사용자 프로필 정보 영역 */}
         <div className="sidebar-profile">
