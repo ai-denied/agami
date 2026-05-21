@@ -34,28 +34,42 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
   const [userName, setUserName] = useState('사용자');
+  const [userImage, setUserImage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     const storedName = localStorage.getItem('userName');
+    const storedImage = localStorage.getItem('userImage');
 
-    // [수정] alert 창을 제거하고 세션이 없으면 즉시 로그인 화면으로 리다이렉트
-    if (!token) {
+    // [보안 취약점 보정] 토큰이 없거나, 토큰은 있는데 유저 네임 정보 등이 완전히 비어있는 비정상 세션 거부
+    if (!token || !storedName) {
+      // 찌꺼기 세션 데이터가 남아있을 가능성을 대비해 스토리지 완전 초기화
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userImage');
+      localStorage.removeItem('nickname');
+      localStorage.removeItem('profile');
+      
       navigate('/login', { replace: true });
       return;
     }
 
-    if (storedName) {
-      setUserName(storedName);
+    setUserName(storedName);
+
+    if (storedImage) {
+      const secureImageUrl = storedImage.replace(/^http:\/\//i, 'https://');
+      setUserImage(secureImageUrl);
     }
+
     setIsLoading(false);
   }, [navigate]);
 
-  // 세션 검증이 완료되기 전 불필요한 레이아웃 노출 방지
   if (isLoading) {
     return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   }
+
+  const avatarInitial = userName ? userName.charAt(0) : '유';
 
   return (
     <div className={`dashboard-container ${darkMode ? 'dark-mode' : ''}`}>
@@ -64,6 +78,21 @@ export default function Dashboard() {
         <div className="logo-area">
           <span className="logo-icon">🐟</span>
           <span className="logo-text">agami</span>
+        </div>
+        
+        {/* 미니 사용자 프로필 정보 영역 */}
+        <div className="sidebar-profile">
+          <div className="profile-avatar-wrapper">
+            {userImage ? (
+              <img src={userImage} alt="User Profile" className="profile-img-element" />
+            ) : (
+              <span className="profile-text-avatar">{avatarInitial}</span>
+            )}
+          </div>
+          <div className="profile-info-text">
+            <span className="profile-name">{userName} 님</span>
+            <span className="profile-role">Administrator</span>
+          </div>
         </div>
         
         <nav className="nav-menu">
@@ -81,7 +110,6 @@ export default function Dashboard() {
           <a href="#log" className="nav-item">로그 조회</a>
         </nav>
 
-        {/* 하단 데모용 다크모드 토글 버튼 배치 */}
         <div className="sidebar-theme-toggle" onClick={() => setDarkMode(!darkMode)}>
           <span>{darkMode ? '🌙 다크모드' : '☀️ 라이트모드'}</span>
         </div>
@@ -133,7 +161,6 @@ export default function Dashboard() {
 
           {/* 메인 차트 및 분석 섹션 */}
           <section className="analytics-grid">
-            {/* 좌측: 실시간 트래픽 추이 및 캡챠 분석 */}
             <div className="left-analytics">
               <div className="chart-card">
                 <h3>실시간 인증/차단 트래픽 추이</h3>
@@ -152,7 +179,6 @@ export default function Dashboard() {
               </div>
 
               <div className="two-column-grid">
-                {/* 캡챠 종류별 분석 */}
                 <div className="sub-card">
                   <h3>캡챠 통과율 분석</h3>
                   <div className="pie-wrapper">
@@ -173,7 +199,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* 사용 패턴 분석 */}
                 <div className="sub-card">
                   <h3>사용자 행동 패턴 (마우스 트랙)</h3>
                   <div className="behavior-stats">
@@ -185,7 +210,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* 우측: 위험 분석 및 실시간 탐지 로그 */}
             <div className="right-analytics">
               <div className="chart-card">
                 <h3>AI 공격 유형 Top 5</h3>

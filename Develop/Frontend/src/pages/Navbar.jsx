@@ -7,10 +7,12 @@ const Navbar = () => {
   const [isFirstVisit, setIsFirstVisit] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation(); // URL 파라미터를 읽기 위해 추가
+  const location = useLocation();
 
-  const nickname = localStorage.getItem("nickname");
-  const profile = localStorage.getItem("profile");
+  // [교정] 인증 상태의 신뢰성을 위해 닉네임과 함께 실제 토큰(accessToken)의 유무를 같이 교차 검증합니다.
+  const token = localStorage.getItem("accessToken");
+  const nickname = localStorage.getItem("userName") || localStorage.getItem("nickname");
+  const profile = localStorage.getItem("userImage") || localStorage.getItem("profile");
 
   useEffect(() => {
     const hasVisited = sessionStorage.getItem("hasVisitedAgami");
@@ -35,18 +37,24 @@ const Navbar = () => {
     }
   };
 
-  // 로그아웃 처리 함수
+  // [교정 완료] 대시보드 무단 인입을 차단하기 위해 모든 인증 파편 데이터를 일괄 소멸시킵니다.
   const handleLogout = () => {
+    // 테마 설정(theme)과 방문 기록을 제외한 모든 로그인 인프라 데이터 청소
+    localStorage.removeItem("accessToken");
     localStorage.removeItem("nickname");
     localStorage.removeItem("profile");
-    // 필요한 경우 추가적인 인증 토큰 등을 이곳에서 제거합니다.
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userImage");
     
-    // 로그아웃 후 메인 페이지로 이동하며 페이지를 새로고침하여 상태를 반영합니다.
-    navigate("/");
+    // 로그아웃 후 안전하게 홈으로 튕겨내고 화면 갱신
+    navigate("/", { replace: true });
     window.location.reload();
   };
 
   if (isFirstVisit === null) return null;
+
+  // [교정] 토큰과 유저 정보가 모두 완벽히 존재할 때만 로그인 상태로 판정합니다.
+  const isLogin = token && nickname;
 
   return (
     <motion.nav
@@ -61,7 +69,7 @@ const Navbar = () => {
             <img src="/agami-home.svg" alt="Home" />
           </button>
           <div className="nav-links">
-            <button className="nav-item"  onClick={() => navigate("/platform")}>플랫폼</button>
+            <button className="nav-item" onClick={() => navigate("/platform")}>플랫폼</button>
             <button className="nav-item" onClick={() => navigate("/price")}>
               가격
             </button>
@@ -81,8 +89,8 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* 로그인 여부에 따른 조건부 렌더링 */}
-          {nickname ? (
+          {/* 로그인 여부에 따른 조건부 렌더링 검증 변경 */}
+          {isLogin ? (
             <div className="user-profile-wrapper">
               <div className="user-profile-info">
                 {profile && (
