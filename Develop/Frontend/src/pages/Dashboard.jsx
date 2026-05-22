@@ -21,7 +21,7 @@ const modelData = {
     pie: [{ name: '정상 탐지', value: 94.2 }, { name: '보안 차단', value: 5.8 }],
     behavior: { safe: 88.4, suspicious: 9.2, critical: 2.4 }
   },
-  wave: {
+  handlight: {
     summary: { total: '92,410', rate: '98.1%', attack: '412' },
     traffic: [
       { time: '14:00', success: 7100, attack: 210 },
@@ -35,7 +35,21 @@ const modelData = {
     pie: [{ name: '정상 탐지', value: 96.5 }, { name: '보안 차단', value: 3.5 }],
     behavior: { safe: 92.1, suspicious: 6.4, critical: 1.5 }
   },
-  puzzle: {
+  facial: {
+    summary: { total: '58,122', rate: '97.2%', attack: '520' },
+    traffic: [
+      { time: '14:00', success: 4500, attack: 320 },
+      { time: '17:00', success: 5300, attack: 410 },
+      { time: '20:00', success: 6700, attack: 220 },
+      { time: '23:00', success: 7400, attack: 280 },
+      { time: '02:00', success: 3200, attack: 420 },
+      { time: '05:00', success: 2100, attack: 390 },
+      { time: '08:00', success: 4100, attack: 210 },
+    ],
+    pie: [{ name: '정상 탐지', value: 91.8 }, { name: '보안 차단', value: 8.2 }],
+    behavior: { safe: 84.3, suspicious: 12.2, critical: 3.5 }
+  },
+  emotion: {
     summary: { total: '58,122', rate: '97.2%', attack: '520' },
     traffic: [
       { time: '14:00', success: 4500, attack: 320 },
@@ -110,8 +124,9 @@ export default function Dashboard() {
             </div>
             <div className="model-tab-container">
               <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
-              <button className={`tab-btn ${activeModel === 'wave' ? 'active' : ''}`} onClick={() => setActiveModel('wave')}>Wave 캡챠</button>
-              <button className={`tab-btn ${activeModel === 'puzzle' ? 'active' : ''}`} onClick={() => setActiveModel('puzzle')}>Puzzle 캡챠</button>
+              <button className={`tab-btn ${activeModel === 'handlight' ? 'active' : ''}`} onClick={() => setActiveModel('handlight')}>손전등</button>
+              <button className={`tab-btn ${activeModel === 'facial' ? 'active' : ''}`} onClick={() => setActiveModel('facial')}>안면 인식</button>
+              <button className={`tab-btn ${activeModel === 'emotion' ? 'active' : ''}`} onClick={() => setActiveModel('emotion')}>감정 기반</button>
             </div>
           </section>
 
