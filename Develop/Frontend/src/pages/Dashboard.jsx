@@ -6,7 +6,6 @@ import {
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 
-// 캡챠 모델별 데이터 세트 구성
 const modelData = {
   all: {
     summary: { total: '184,392', rate: '97.8%', attack: '1,247' },
@@ -60,7 +59,6 @@ const attackTypeData = [
   { name: 'Tor / VPN 우회', value: 89 },
 ];
 
-// 커스텀 툴팁 컴포넌트 (Recharts 고유의 어색한 박스 및 튕김 현상 제거)
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
@@ -82,24 +80,19 @@ const CustomTooltip = ({ active, payload }) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [activeModel, setActiveModel] = useState('all'); 
-  const [userName, setUserName] = useState('관리자');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // 렌더링 전 즉시 체크
     const token = localStorage.getItem('accessToken');
-    const storedName = localStorage.getItem('userName');
-
-    if (!token || !storedName) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userImage');
-      return;
+    if (!token) {
+      navigate('/login', { replace: true });
+    } else {
+      setIsLoading(false);
     }
-
-    setUserName(storedName);
-    setIsLoading(false);
   }, [navigate]);
 
+  // 로딩 중일 때는 아무것도 보여주지 않거나 로딩바만 노출하여 깜빡임 방지
   if (isLoading) {
     return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   }
@@ -110,14 +103,11 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <div className="main-wrapper">
         <main className="content-body">
-          
-          {/* 최상단 타이틀 & 캡챠 모델 선택 탭 */}
           <section className="dashboard-header-block">
             <div className="welcome-section">
               <h2>안전한 서비스 환경을 유지 중입니다</h2>
               <p>Agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
             </div>
-            
             <div className="model-tab-container">
               <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
               <button className={`tab-btn ${activeModel === 'wave' ? 'active' : ''}`} onClick={() => setActiveModel('wave')}>Wave 캡챠</button>
@@ -125,7 +115,6 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 주요 지표 요약 카드 行 */}
           <section className="summary-grid">
             <div className="summary-card">
               <span className="card-label">오늘 총 요청 수</span>
@@ -144,7 +133,6 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 메인 차트 및 분석 섹션 */}
           <section className="analytics-grid">
             <div className="left-analytics">
               <div className="chart-card">
@@ -176,19 +164,11 @@ export default function Dashboard() {
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
-                      <div className="pie-center-label">
-                        <h4>{current.pie[0].value}%</h4>
-                      </div>
+                      <div className="pie-center-label"><h4>{current.pie[0].value}%</h4></div>
                     </div>
                     <div className="pie-legend-list">
-                      <div className="legend-item">
-                        <span className="dot brand" />
-                        <span className="lbl">정상 사용자 ({current.pie[0].value}%)</span>
-                      </div>
-                      <div className="legend-item">
-                        <span className="dot danger" />
-                        <span className="lbl">보안 차단 ({current.pie[1].value}%)</span>
-                      </div>
+                      <div className="legend-item"><span className="dot brand" /><span className="lbl">정상 사용자 ({current.pie[0].value}%)</span></div>
+                      <div className="legend-item"><span className="dot danger" /><span className="lbl">보안 차단 ({current.pie[1].value}%)</span></div>
                     </div>
                   </div>
                 </div>
@@ -227,25 +207,12 @@ export default function Dashboard() {
                   </ResponsiveContainer>
                 </div>
               </div>
-
               <div className="log-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
                 <div className="log-list">
-                  <div className="log-item danger-log">
-                    <span className="log-ip">203.0.113.42</span>
-                    <span className="log-reason">Headless browser mismatch</span>
-                    <span className="risk-score">0.92</span>
-                  </div>
-                  <div className="log-item danger-log">
-                    <span className="log-ip">198.51.100.7</span>
-                    <span className="log-reason">Datacenter ASN 패턴 유입</span>
-                    <span className="risk-score">0.88</span>
-                  </div>
-                  <div className="log-item warning-log">
-                    <span className="log-ip">192.0.2.55</span>
-                    <span className="log-reason">비정상 마우스 가속도 탐지</span>
-                    <span className="risk-score">0.76</span>
-                  </div>
+                  <div className="log-item danger-log"><span className="log-ip">203.0.113.42</span><span className="log-reason">Headless browser mismatch</span><span className="risk-score">0.92</span></div>
+                  <div className="log-item danger-log"><span className="log-ip">198.51.100.7</span><span className="log-reason">Datacenter ASN 패턴 유입</span><span className="risk-score">0.88</span></div>
+                  <div className="log-item warning-log"><span className="log-ip">192.0.2.55</span><span className="log-reason">비정상 마우스 가속도 탐지</span><span className="risk-score">0.76</span></div>
                 </div>
               </div>
             </div>

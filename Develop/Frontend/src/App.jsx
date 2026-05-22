@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
+import PrivateRoute from './components/PrivateRoute'; // 추가
 import Navbar from './pages/Navbar'; 
 import Home from './pages/Home'; 
 import Login from './pages/Login'; 
@@ -23,16 +24,20 @@ function App() {
     <ThemeProvider>
       <Router>
         <Navbar /> 
-        
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/price" element={<Price />} />
-          <Route path="/platform" element={<Dashboard />} />
-          {/* 카카오 콜백 경로 추가 */}
+          
+          {/* 로그인한 사용자만 접근 가능한 대시보드 경로 */}
+          <Route path="/platform" element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          } />
+          
           <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
         </Routes>
-
       </Router>
     </ThemeProvider>
   );
