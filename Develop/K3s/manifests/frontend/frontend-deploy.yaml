@@ -20,7 +20,7 @@ spec:
         zone: frontend
       containers:
       - name: frontend
-        image: agami-captcha.cloud:8443/agami/frontend:20260522-091836
+        image: agami-captcha.cloud:8443/agami/frontend:20260522-093309
           # Build Trigger ID: 26207345014
           # Build Trigger ID: 26205516328
           # Build Trigger ID: 26202446963
