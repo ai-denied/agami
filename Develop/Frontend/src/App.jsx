@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import Price from './pages/Price';
 import Dashboard from './pages/Dashboard';
 import Test from './pages/Test'
-import KakaoCallback from './contexts/KakaoCallback';
+import KakaoCallback from './pages/KakaoCallback';
 
 function App() {
   useEffect(() => {
