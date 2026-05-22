@@ -1,7 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useCaptcha } from '../hooks/useCaptcha';
-import ImageGridCaptcha from '../components/ImageGridCaptcha';
 import LiquidGlass from '../components/LiquidGlass';
 import './Test.css';
 
