@@ -1,5 +1,5 @@
 :root {
-  --nav-bg: rgba(255, 255, 255, 0.5);
+  --nav-bg: rgba(255, 255, 255, 0.8);
   --nav-border: rgba(255, 255, 255, 0.3);
   --text-color: #000000; /* 라이트모드 폰트 색상을 검은색으로 고정 */
   --main-blue: #5da2ff;

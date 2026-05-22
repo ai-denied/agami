@@ -1,22 +1,24 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import LiquidGlass from '../components/LiquidGlass';
-import './Test.css';
+import React, { useState } from 'react';
+import './CaptchaWidget.css'; // 위젯 스타일 분리
 
-const Test = () => {
-  const handleSubmit = (payload) => submit(payload);
-
+const CaptchaWidget = ({ type, onComplete }) => {
   return (
-    <div className="test-wrapper">
-      <LiquidGlass className="test-container">
-        <header className="test-header">
-          <div className="brand-label">AGAMI CAPTCHA</div>
-          <h1 className="title">감정 맥락 추론</h1>
-          <p className="subtitle">사진 속 인물이 느낄 감정을 골라주세요</p>
-        </header>
-      </LiquidGlass>
+    <div className="captcha-widget-card">
+      <div className="widget-header">
+        {type === 'flashlight' && <h3>손전등 캡챠</h3>}
+        {type === 'face' && <h3>안면인식 캡챠</h3>}
+        {type === 'emotion' && <h3>감정 추론 캡챠</h3>}
+      </div>
+      
+      {/* 여기서 실제 캡챠 로직이 위젯 형태로 렌더링됩니다 */}
+      <div className="widget-body">
+        {/* 각 캡챠 컴포넌트가 들어갈 자리 */}
+        <div className="placeholder-content">위젯 UI 출력 영역</div>
+      </div>
+      
+      <button className="primary-btn" onClick={onComplete}>확인</button>
     </div>
   );
 };
 
-export default Test;
+export default CaptchaWidget;
