@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Captcha from '../api/Captcha';
+import Captcha from '../components/Captcha';
 import './Test.css';
 
 const CAPTCHA_TYPES = [
