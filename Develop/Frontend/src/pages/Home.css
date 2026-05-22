@@ -16,9 +16,7 @@ body.dark-mode {
 body.dark-mode .fish-wrapper img {
   filter: brightness(0.7) saturate(1.2) sepia(0.2) hue-rotate(180deg);
   opacity: 0.8;
-  transition:
-    filter 0.3s ease,
-    opacity 0.3s ease;
+  transition: filter 0.3s ease, opacity 0.3s ease;
 }
 
 html,
@@ -27,38 +25,42 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: auto;
+  overflow: hidden; /* 레이아웃 고정 */
 }
 
 body.no-scroll {
   overflow: hidden;
-  height: 100vh;
+  height: 100dvh;
 }
 
 /* 전체 뷰포트 컨테이너 스크롤 바인딩 */
 .main-wrapper {
   width: 100%;
-  height: 100vh;
+  height: 100dvh; /* dvh 단위 사용 */
   overflow-y: auto;
-  overflow-x: auto; 
+  overflow-x: hidden; 
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   scrollbar-width: none;
 }
 
-/* 각 개별 섹션 - 높이와 너비를 뷰포트에 맞추되 최소 한계점을 보장 */
+.main-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* 각 개별 섹션 */
 .home-container,
 .second-container,
 .third-container {
   width: 100vw;
-  height: 100vh;
-  min-width: 1200px;  
+  height: 100dvh;
   min-height: 720px;  
   scroll-snap-align: start;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
   cursor: default;
+  box-sizing: border-box;
 }
 
 .home-container {
@@ -90,7 +92,6 @@ body.no-scroll {
   inset: 0;
   background-color: #010c1b;
   z-index: 1;
-  cursor: default;
 }
 
 .light-sea-layer {
@@ -98,7 +99,6 @@ body.no-scroll {
   inset: 0;
   background-color: #5da2ff;
   z-index: 2;
-  cursor: default;
 }
 
 .hidden-fish-wrapper {
@@ -137,13 +137,8 @@ body.no-scroll {
 }
 
 @keyframes fade-tip {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.8;
-  }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
 }
 
 .second-container::before,
@@ -180,16 +175,8 @@ body.no-scroll {
   pointer-events: none;
 }
 
-.second-container h1 {
-  font-size: 42px;
-  color: #fff;
-  margin-bottom: 20px;
-}
-
-.second-container p {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 18px;
-}
+.second-container h1 { font-size: 42px; color: #fff; margin-bottom: 20px; }
+.second-container p { color: rgba(255, 255, 255, 0.8); font-size: 18px; }
 
 .third-container {
   background-color: #010c1b;
@@ -199,7 +186,6 @@ body.no-scroll {
   align-items: center;
   z-index: 50;
   position: relative;
-  overflow: hidden; 
 }
 
 .particle-canvas {
@@ -212,7 +198,6 @@ body.no-scroll {
   filter: drop-shadow(0 0 10px rgba(93, 162, 255, 0.5));
 }
 
-/* 세 번째 컨테이너의 하단 박스 레이아웃과 상관없이 뷰포트 정중앙에 고정 */
 .third-logo-wrapper {
   position: absolute !important;
   top: 50% !important;
@@ -228,19 +213,18 @@ body.no-scroll {
   filter: drop-shadow(0 0 40px rgba(93, 162, 255, 0.6));
 }
 
-/* 박스 콘텐츠의 위치를 하단으로 명확히 격리 배치 */
 .third-content-wrapper {
   position: absolute;
-  bottom: 6%; 
+  bottom: 0; 
   left: 50%;
   transform: translateX(-50%);
   z-index: 11;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: flex-end;
   width: 100%;
   max-width: 800px;
-  padding: 0 20px;
+  padding: 0 20px 40px 20px; /* 하단 여백 명시 */
   box-sizing: border-box;
 }
 
@@ -262,11 +246,7 @@ body.no-scroll {
   word-break: keep-all;
 }
 
-.box-btn-group {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
+.box-btn-group { display: flex; flex-direction: column; gap: 15px; }
 
 .box-btn {
   width: 100%;
@@ -285,28 +265,15 @@ body.no-scroll {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.box-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
+.box-btn.secondary:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
 @keyframes wave-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.actor {
-  position: absolute;
-  z-index: 20;
-}
-.bot {
-  width: 120px;
-  height: auto;
-}
+.actor { position: absolute; z-index: 20; }
+.bot { width: 120px; height: auto; }
 
 .left-section {
   position: relative;
@@ -321,15 +288,8 @@ body.no-scroll {
   pointer-events: auto;
 }
 
-.main-logo {
-  width: 60%;
-}
-.logo-text {
-  font-size: 20px;
-  font-weight: 500;
-  color: #929292;
-  line-height: 1.6;
-}
+.main-logo { width: 60%; }
+.logo-text { font-size: 20px; font-weight: 500; color: #929292; line-height: 1.6; }
 
 .circle {
   position: absolute;
@@ -359,22 +319,10 @@ body.no-scroll {
   animation: wave-rotate 20s infinite linear;
 }
 
-.circle::before {
-  background-color: var(--circle-wave1);
-  animation-duration: 18s;
-}
-.circle::after {
-  background-color: var(--circle-wave2);
-  animation-duration: 25s;
-  top: -355%;
-  border-radius: 41%;
-}
+.circle::before { background-color: var(--circle-wave1); animation-duration: 18s; }
+.circle::after { background-color: var(--circle-wave2); animation-duration: 25s; top: -355%; border-radius: 41%; }
 
-.fish-wrapper {
-  position: absolute;
-  pointer-events: none;
-  z-index: 25;
-}
+.fish-wrapper { position: absolute; pointer-events: none; z-index: 25; }
 
 .bot-fixed-area {
   position: absolute;
@@ -405,10 +353,7 @@ body.no-scroll {
   animation: pulse-blue 2s infinite;
 }
 
-.bot-container.active .bot-image {
-  opacity: 0;
-  transform: scale(0.8);
-}
+.bot-container.active .bot-image { opacity: 0; transform: scale(0.8); }
 
 .bot-speech-bubble {
   background: white;
@@ -421,22 +366,12 @@ body.no-scroll {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.bot-image {
-  width: 50px;
-  filter: grayscale(100%) opacity(0.6);
-  transition: transform 0.3s ease;
-}
+.bot-image { width: 50px; filter: grayscale(100%) opacity(0.6); transition: transform 0.3s ease; }
 
 @keyframes pulse-blue {
-  0% {
-    transform: scale(1);
-  }
-  70% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 .scroll-down-btn {
@@ -454,11 +389,7 @@ body.no-scroll {
 }
 
 @media (max-width: 900px) {
-  .home-container {
-    align-items: center;
-    justify-content: center;
-  }
-
+  .home-container { align-items: center; justify-content: center; }
   .left-section {
     width: 100%;
     height: 100%;
@@ -467,38 +398,11 @@ body.no-scroll {
     align-items: center;
     text-align: center;
   }
-
-  .main-logo {
-    width: clamp(180px, 45vw, 280px);
-  }
-
-  .logo-text {
-    font-size: 16px;
-    line-height: 1.5;
-  }
-
-  .circle {
-    right: -45%;
-    opacity: 0.35;
-    z-index: 5;
-  }
-
-  .left-section {
-    z-index: 50;
-  }
-
-  .fish-scene-layer {
-    opacity: 0.45;
-  }
-
-  .bot-fixed-area {
-    top: 84px;
-    right: 20px;
-    transform: scale(0.8);
-    transform-origin: top right;
-  }
-
-  .bot-speech-bubble {
-    display: none;
-  }
+  .main-logo { width: clamp(180px, 45vw, 280px); }
+  .logo-text { font-size: 16px; line-height: 1.5; }
+  .circle { right: -45%; opacity: 0.35; z-index: 5; }
+  .left-section { z-index: 50; }
+  .fish-scene-layer { opacity: 0.45; }
+  .bot-fixed-area { top: 84px; right: 20px; transform: scale(0.8); transform-origin: top right; }
+  .bot-speech-bubble { display: none; }
 }
