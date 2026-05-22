@@ -1,88 +1,95 @@
-/* 캡챠 위젯 카드 스타일 */
-.captcha-widget-card {
-  border: 1px solid #e0e7f3;
-  border-radius: 12px;
-  padding: 20px;
-  background: white;
-  max-width: 400px;
-  margin: 0 auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+/* 레이아웃 구성 */
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f7fb;
 }
 
-.widget-header h3 {
+.sidebar {
+  width: 250px;
+  background: #ffffff;
+  border-right: 1px solid #e0e7f3;
+  padding: 20px;
+}
+
+.sidebar h2 {
   font-size: 1.2rem;
-  color: #1d2a44;
-  margin-bottom: 15px;
+  color: #5da2ff;
+  margin-bottom: 30px;
+}
+
+.sidebar ul { list-style: none; padding: 0; }
+.sidebar li {
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6b7891;
+  transition: 0.3s;
+}
+
+.sidebar li.active {
+  background: #5da2ff;
+  color: white;
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 위젯 스타일 */
+.captcha-widget-card {
+  width: 100%;
+  max-width: 450px;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(93, 162, 255, 0.1);
 }
 
 .widget-body {
-  min-height: 150px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f9fbfd;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px dashed #ced4da;
-}
-
-.placeholder-content {
-  color: #6b7891;
+  background: #f8fbff;
+  border: 2px dashed #5da2ff;
+  border-radius: 12px;
+  margin: 20px 0;
+  color: #5da2ff;
 }
 
 .primary-btn {
   width: 100%;
-  padding: 10px;
-  background: #4a8bff;
+  padding: 12px;
+  background: #5da2ff;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
 }
 
-.primary-btn:hover {
-  background: #357ae8;
-}
-
-/* 캡챠 선택 탭 */
-.captcha-selector {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  justify-content: center;
-}
-
-.captcha-selector button {
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid #e0e7f3;
-  background: white;
-  cursor: pointer;
-}
-
-.captcha-selector button.active {
-  background: #4a8bff;
-  color: white;
-  border-color: #4a8bff;
-}
-
-/* 설명 영역 스타일 */
+/* 설명 영역 */
 .captcha-description {
+  width: 100%;
+  max-width: 450px;
   margin-top: 30px;
   padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
-  text-align: left;
+  border-top: 1px solid #e0e7f3;
 }
 
 .captcha-description h3 {
-  font-size: 1rem;
+  font-size: 1.1rem;
   margin-bottom: 10px;
   color: #1d2a44;
 }
 
 .captcha-description p {
-  font-size: 0.9rem;
   color: #6b7891;
-  line-height: 1.5;
+  line-height: 1.6;
 }
