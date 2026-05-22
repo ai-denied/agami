@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Login from './pages/Login'; 
 import Price from './pages/Price';
 import Dashboard from './pages/Dashboard';
+import Test from './pages/Test'
 import KakaoCallback from './contexts/KakaoCallback';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/price" element={<Price />} />
+          <Route path="/test" element={<Test />} />
           
           {/* 로그인한 사용자만 접근 가능한 대시보드 경로 */}
           <Route path="/platform" element={

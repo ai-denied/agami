@@ -70,10 +70,8 @@ const Navbar = () => {
           </button>
           <div className="nav-links">
             <button className="nav-item" onClick={() => navigate("/platform")}>플랫폼</button>
-            <button className="nav-item" onClick={() => navigate("/price")}>
-              가격
-            </button>
-            <button className="nav-item">소개</button>
+            <button className="nav-item" onClick={() => navigate("/price")}>가격</button>
+            <button className="nav-item"  onClick={() => navigate("/test")}>소개</button>
           </div>
         </div>
 
