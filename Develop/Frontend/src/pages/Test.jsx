@@ -11,38 +11,45 @@ const CaptchaPage = () => {
   const [selectedType, setSelectedType] = useState(CAPTCHA_TYPES[0]);
 
   return (
-    <div className="layout-container">
-      <nav className="sidebar">
-        <h2>Captcha Lab</h2>
-        <ul>
-          {CAPTCHA_TYPES.map((type) => (
-            <li 
-              key={type.id} 
-              className={selectedType.id === type.id ? 'active' : ''}
-              onClick={() => setSelectedType(type)}
-            >
-              {type.title}
-            </li>
-          ))}
-        </ul>
-      </nav>
+    <div className="page-wrapper">
+      {/* 고정된 네비게이션 바 자리 (65px) */}
+      <header className="navbar">
+        {/* 네비게이션 내용 */}
+      </header>
 
-      <main className="main-content">
-        <div className="captcha-widget-card">
-          <div className="widget-header">
-            <h3>{selectedType.title}</h3>
-          </div>
-          <div className="widget-body">
-            {selectedType.title} 인터페이스 영역
-          </div>
-          <button className="primary-btn">확인</button>
-        </div>
+      <div className="layout-container">
+        <nav className="sidebar">
+          <h2>Captcha Lab</h2>
+          <ul>
+            {CAPTCHA_TYPES.map((type) => (
+              <li 
+                key={type.id} 
+                className={selectedType.id === type.id ? 'active' : ''}
+                onClick={() => setSelectedType(type)}
+              >
+                {type.title}
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-        <section className="captcha-description">
-          <h3>{selectedType.title} 상세 설명</h3>
-          <p>{selectedType.desc}</p>
-        </section>
-      </main>
+        <main className="main-content">
+          <div className="captcha-widget-card">
+            <div className="widget-header">
+              <h3>{selectedType.title}</h3>
+            </div>
+            <div className="widget-body">
+              {selectedType.title} 인터페이스 영역
+            </div>
+            <button className="primary-btn">확인</button>
+          </div>
+
+          <section className="captcha-description">
+            <h3>{selectedType.title} 상세 설명</h3>
+            <p>{selectedType.desc}</p>
+          </section>
+        </main>
+      </div>
     </div>
   );
 };
