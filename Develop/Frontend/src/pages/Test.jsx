@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './CaptchaWidget.css'; // 위젯 스타일 분리
+import './test.css'; // 위젯 스타일 분리
 
-const CaptchaWidget = ({ type, onComplete }) => {
+const test = ({ type, onComplete }) => {
   return (
     <div className="captcha-widget-card">
       <div className="widget-header">
@@ -21,4 +21,4 @@ const CaptchaWidget = ({ type, onComplete }) => {
   );
 };
 
-export default CaptchaWidget;
+export default test;
