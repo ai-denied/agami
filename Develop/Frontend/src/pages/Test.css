@@ -1,3 +1,50 @@
+/* 캡챠 위젯 카드 스타일 */
+.captcha-widget-card {
+  border: 1px solid #e0e7f3;
+  border-radius: 12px;
+  padding: 20px;
+  background: white;
+  max-width: 400px;
+  margin: 0 auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.widget-header h3 {
+  font-size: 1.2rem;
+  color: #1d2a44;
+  margin-bottom: 15px;
+}
+
+.widget-body {
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fbfd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px dashed #ced4da;
+}
+
+.placeholder-content {
+  color: #6b7891;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 10px;
+  background: #4a8bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.primary-btn:hover {
+  background: #357ae8;
+}
+
 /* 캡챠 선택 탭 */
 .captcha-selector {
   display: flex;
