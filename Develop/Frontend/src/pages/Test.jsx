@@ -4,11 +4,6 @@ import LiquidGlass from '../components/LiquidGlass';
 import './Test.css';
 
 const Test = () => {
-  const { status, spec, token, error, start, submit, reset } = useCaptcha({ 
-    kind: 'context_inference', 
-    difficulty: 'easy' 
-  });
-
   const handleSubmit = (payload) => submit(payload);
 
   return (
