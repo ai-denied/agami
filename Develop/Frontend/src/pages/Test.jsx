@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './test.css'; // 위젯 스타일 분리
+import './Test.css'; // 위젯 스타일 분리
 
 const test = ({ type, onComplete }) => {
   return (
