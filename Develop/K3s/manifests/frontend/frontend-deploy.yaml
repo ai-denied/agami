@@ -20,10 +20,7 @@ spec:
         zone: frontend
       containers:
       - name: frontend
-        image: agami-captcha.cloud:8443/agami/frontend:20260526-141405
-          # Build Trigger ID: 26207345014
-          # Build Trigger ID: 26205516328
-          # Build Trigger ID: 26202446963
+        image: agami-captcha.cloud:8443/agami/frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -39,37 +36,3 @@ spec:
   ports:
     - port: 80
       targetPort: 80
----
-# ==========================================
-# 2. 통합 인그레스 (Ingress)
-# ==========================================
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: agami-ingress
-  namespace: agami
-  annotations:
-    kubernetes.io/ingress.class: traefik
-spec:
-  tls:
-  - hosts:
-    - agami-captcha.cloud
-    secretName: agami-web-tls
-  rules:
-  - host: agami-captcha.cloud
-    http:
-      paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: agami-backend-svc
-            port:
-              number: 80
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: agami-frontend-svc
-            port:
-              number: 80

@@ -1,3 +1,6 @@
+# ==========================================
+# 2. 백엔드 배포
+# ==========================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,12 +21,6 @@ spec:
       containers:
       - name: backend
         image: agami-captcha.cloud:8443/agami/backend:latest
-          # Build Trigger ID: 26433825387
-          # Build Trigger ID: 26236867466
-          # Build Trigger ID: 26236467788
-          # Build Trigger ID: 26236293142
-          # Build Trigger ID: 26235886737
-          # Build Trigger ID: 26234891642
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
