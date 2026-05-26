@@ -20,6 +20,11 @@ jobs:
           registry: ${{ secrets.HARBOR_URL }}
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
+
+      # [핵심 수정] 환경 변수 생성 단계 추가
+      - name: Create .env
+        run: echo "${{ secrets.FRONTEND_ENV }}" > ./Develop/Frontend/.env
+
       - name: Generate Tag
         id: generate_tag
         run: echo "IMAGE_TAG=$(TZ='Asia/Seoul' date +'%y%m%d%H%M')" >> $GITHUB_ENV
