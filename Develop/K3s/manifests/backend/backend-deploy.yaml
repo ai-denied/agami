@@ -18,6 +18,7 @@ spec:
       containers:
       - name: backend
         image: agami-captcha.cloud:8443/agami/backend:latest
+          # Build Trigger ID: 26433825387
           # Build Trigger ID: 26236867466
           # Build Trigger ID: 26236467788
           # Build Trigger ID: 26236293142
