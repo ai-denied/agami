@@ -14,11 +14,34 @@ spec:
   - host: agami-captcha.cloud
     http:
       paths:
+      # API 라우팅
       - path: /api
         pathType: Prefix
         backend:
           service:
             name: agami-backend-svc
+            port:
+              number: 80
+      # 캡챠 관련 API 라우팅 (기존 captcha-ingress의 설정)
+      - path: /widget
+        pathType: Prefix
+        backend:
+          service:
+            name: captcha-api
+            port:
+              number: 80
+      - path: /captcha
+        pathType: Prefix
+        backend:
+          service:
+            name: captcha-api
+            port:
+              number: 80
+      - path: /static/captcha_images
+        pathType: Prefix
+        backend:
+          service:
+            name: captcha-api
             port:
               number: 80
       - path: /
