@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import Captcha from '../components/Captcha';
+import Handlight from '../components/HandlightCaptcha';
 import './Test.css';
 
 const CAPTCHA_TYPES = [
-  { id: 'flashlight', title: '손전등 캡챠', desc: '손전등의 빛을 조절하여 특정 영역을 맞추는 보안 검증 방식입니다.' },
+  { id: 'Handlight', title: '손전등 캡챠', desc: '손전등의 빛을 조절하여 특정 영역을 맞추는 보안 검증 방식입니다.' },
   { id: 'face', title: '안면인식 캡챠', desc: '사용자의 얼굴 형태를 인식하여 실사용자인지 확인합니다.' },
   { id: 'emotion', title: '감정 추론 캡챠', desc: '표정을 통해 나타나는 감정을 분석하여 인증을 완료합니다.' },
 ];
@@ -30,9 +30,9 @@ const Test = () => {
 
         <main className="main-content">
           {/* 조건부 렌더링 로직 */}
-          {selectedType.id === 'flashlight' ? (
-            <Captcha 
-              kind="flashlight" 
+          {selectedType.id === 'Handlight' ? (
+            <Handlight 
+              kind="Handlight" 
               difficulty="easy" 
               onComplete={(token) => console.log('인증 토큰:', token)} 
             />
