@@ -20,18 +20,7 @@ spec:
         zone: frontend
       containers:
       - name: frontend
-<<<<<<< HEAD
         image: agami-captcha.cloud:8443/agami/frontend:latest
-=======
-<<<<<<< HEAD
-        image: agami-captcha.cloud:8443/agami/frontend:latest
-=======
-        image: agami-captcha.cloud:8443/agami/frontend:20260526-150609
-          # Build Trigger ID: 26207345014
-          # Build Trigger ID: 26205516328
-          # Build Trigger ID: 26202446963
->>>>>>> 2df45d3a42e98ae5a7dfcc6386208be5db5a6d2d
->>>>>>> 24ac4965a5acd3daf1775fe742dfad810f363b6d
         imagePullPolicy: Always
         ports:
         - containerPort: 80
