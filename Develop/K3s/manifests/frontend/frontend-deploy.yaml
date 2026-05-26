@@ -17,7 +17,7 @@ spec:
         zone: frontend
       containers:
       - name: frontend
-        image: agami-captcha.cloud:8443/agami/frontend:2605261609 # CI가 이 부분을 자동 수정함
+        image: agami-captcha.cloud:8443/agami/frontend:2605260814
         imagePullPolicy: Always
         ports:
         - containerPort: 80
