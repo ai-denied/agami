@@ -1,29 +1,42 @@
-/* 전체 래퍼 및 고정 네비바 */
+/* =============================================================================
+   [1] 전체 구조 레이아웃 및 여백 제어
+   ============================================================================= */
 .page-wrapper {
   height: 100vh;
+  box-sizing: border-box;
 }
 
-.navbar {
-  height: 65px;
-  background: #ffffff;
-  border-bottom: 1px solid #e0e7f3;
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-}
+/* 기존의 고정형 .navbar 스타일 구문(#ffffff 강제 지정 및 하단 보더라인)을 제거하여 
+  테마에 상관없이 배경 잔선이 노출되는 결함을 완벽히 파괴했습니다.
+*/
 
-/* 네비바 아래 영역 */
 .layout-container {
   display: flex;
-  height: calc(100vh - 65px);
+  height: 100vh;
+  padding-top: 65px; /* 고정 공통 menu-bar(65px) 공간 확보 */
   background: #f4f7fb;
+  box-sizing: border-box;
+  transition: background 0.3s ease;
 }
 
+body.dark-mode .layout-container {
+  background: #1a1a1b; /* Captcha.css 컨셉과 일치하는 딥다크 톤 통합 */
+}
+
+/* =============================================================================
+   [2] 사이드바 컴포넌트 (테마 유연화)
+   ============================================================================= */
 .sidebar {
   width: 250px;
   background: #ffffff;
   border-right: 1px solid #e0e7f3;
   padding: 30px 20px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-mode .sidebar {
+  background: #141415;
+  border-right: 1px solid #28282a;
 }
 
 .sidebar h2 {
@@ -33,7 +46,12 @@
   padding-left: 10px;
 }
 
-.sidebar ul { list-style: none; padding: 0; }
+.sidebar ul { 
+  list-style: none; 
+  padding: 0; 
+  margin: 0;
+}
+
 .sidebar li {
   padding: 15px;
   margin-bottom: 8px;
@@ -41,25 +59,40 @@
   cursor: pointer;
   color: #6b7891;
   font-weight: 500;
-  transition: 0.2s;
+  transition: all 0.2s ease;
 }
 
-.sidebar li:hover { background: #f0f7ff; }
+body.dark-mode .sidebar li {
+  color: #a0aec0;
+}
+
+.sidebar li:hover { 
+  background: #f0f7ff; 
+  color: #5da2ff;
+}
+
+body.dark-mode .sidebar li:hover { 
+  background: rgba(93, 162, 255, 0.08); 
+  color: #5da2ff;
+}
+
 .sidebar li.active {
   background: #5da2ff;
-  color: white;
+  color: white !important;
 }
 
+/* =============================================================================
+   [3] 메인 컨텐츠 영역 및 부가 카드 정보
+   ============================================================================= */
 .main-content {
   flex: 1;
   padding: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto; /* 내용이 많아질 경우 스크롤 */
+  overflow-y: auto; 
 }
 
-/* 위젯 및 상세 설명 */
 .captcha-widget-card {
   width: 100%;
   max-width: 450px;
@@ -67,9 +100,22 @@
   padding: 30px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
-.widget-header h3 { color: #1d2a44; margin-bottom: 20px; }
+body.dark-mode .captcha-widget-card {
+  background: #141415;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.widget-header h3 { 
+  color: #1d2a44; 
+  margin-bottom: 20px; 
+}
+
+body.dark-mode .widget-header h3 {
+  color: #e2e8f0;
+}
 
 .widget-body {
   height: 200px;
@@ -82,6 +128,11 @@
   margin-bottom: 20px;
   color: #5da2ff;
   font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+body.dark-mode .widget-body {
+  background: #1a1a1b;
 }
 
 .primary-btn {
@@ -93,18 +144,47 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  transition: 0.2s;
+  transition: background 0.2s;
 }
 
-.primary-btn:hover { background: #4a8deb; }
+.primary-btn:hover { 
+  background: #4a8deb; 
+}
 
+/* =============================================================================
+   [4] 하단 캡챠 설명 영역 (상세 매핑)
+   ============================================================================= */
 .captcha-description {
   width: 100%;
-  max-width: 450px;
+  max-width: 720px; /* 메인 캡챠 규격 박스(720px)와 좌우 균형 정렬 일치 */
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid #e0e7f3;
+  transition: border-color 0.3s ease;
 }
 
-.captcha-description h3 { font-size: 1.1rem; margin-bottom: 10px; color: #1d2a44; }
-.captcha-description p { color: #6b7891; line-height: 1.6; font-size: 0.95rem; }
+body.dark-mode .captcha-description {
+  border-top-color: #28282a;
+}
+
+.captcha-description h3 { 
+  font-size: 1.1rem; 
+  margin-bottom: 10px; 
+  color: #1d2a44; 
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .captcha-description h3 {
+  color: #e2e8f0;
+}
+
+.captcha-description p { 
+  color: #6b7891; 
+  line-height: 1.6; 
+  font-size: 0.95rem; 
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .captcha-description p {
+  color: #a0aec0;
+}

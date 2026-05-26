@@ -25,7 +25,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden; /* 레이아웃 고정 */
+  overflow: hidden; 
 }
 
 body.no-scroll {
@@ -36,7 +36,7 @@ body.no-scroll {
 /* 전체 뷰포트 컨테이너 스크롤 바인딩 */
 .main-wrapper {
   width: 100%;
-  height: 100dvh; /* dvh 단위 사용 */
+  height: 100dvh; 
   overflow-y: auto;
   overflow-x: hidden; 
   scroll-snap-type: y mandatory;
@@ -79,19 +79,45 @@ body.no-scroll {
 
 /* --- Second Container Spotlight Game --- */
 .second-container {
-  background-color: #06162d;
+  --sea-base-color: #06162d;
+  --sea-wave-color1: rgba(255, 255, 255, 0.1);
+  --sea-wave-color2: rgba(255, 255, 255, 0.05);
+
+  background-color: var(--sea-base-color);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 50;
-  cursor: crosshair;
+  transition: background-color 0.3s ease;
 }
 
-.dark-sea-layer {
+body.dark-mode .second-container {
+  --sea-base-color: #05122e; 
+  --sea-wave-color1: rgba(0, 150, 255, 0.08); 
+  --sea-wave-color2: rgba(0, 50, 150, 0.2); 
+}
+
+.second-container::before,
+.second-container::after {
+  content: "";
   position: absolute;
-  inset: 0;
-  background-color: #010c1b;
+  width: 300vmax;
+  height: 300vmax;
+  top: -275vmax;
+  left: -100vmax;
+  border-radius: 43%;
+  background-color: var(--sea-wave-color1);
+  animation: wave-rotate 12s infinite linear;
+  transition: background-color 0.3s ease;
+  pointer-events: none;
   z-index: 1;
+}
+
+.second-container::after {
+  border-radius: 40%;
+  background-color: var(--sea-wave-color2);
+  animation-duration: 18s;
+  top: -270vmax;
 }
 
 .light-sea-layer {
@@ -139,33 +165,6 @@ body.no-scroll {
 @keyframes fade-tip {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 0.8; }
-}
-
-.second-container::before,
-.second-container::after {
-  content: "";
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  border-radius: 44%;
-  pointer-events: none;
-  z-index: 4;
-  top: -160%;
-  left: -20%;
-  transform: translateX(-50%);
-  animation: wave-rotate 20s infinite linear;
-}
-
-.second-container::before {
-  background-color: rgba(255, 255, 255, 0.1);
-  animation-duration: 15s;
-}
-
-.second-container::after {
-  background-color: rgba(255, 255, 255, 0.05);
-  animation-duration: 22s;
-  top: -155%;
-  border-radius: 42%;
 }
 
 .second-container .content-box {
@@ -224,7 +223,7 @@ body.no-scroll {
   align-items: flex-end;
   width: 100%;
   max-width: 800px;
-  padding: 0 20px 40px 20px; /* 하단 여백 명시 */
+  padding: 0 20px 40px 20px; 
   box-sizing: border-box;
 }
 
@@ -405,4 +404,48 @@ body.no-scroll {
   .fish-scene-layer { opacity: 0.45; }
   .bot-fixed-area { top: 84px; right: 20px; transform: scale(0.8); transform-origin: top right; }
   .bot-speech-bubble { display: none; }
+}
+
+.wave-bg-layer {
+  --wave-base-color: #5da2ff;
+  --wave-layer-color1: rgba(255, 255, 255, 0.2);
+  --wave-layer-color2: rgba(255, 255, 255, 0.1);
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  background-color: var(--wave-base-color); 
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+body.dark-mode .wave-bg-layer {
+  --wave-base-color: #05122e; 
+  --wave-layer-color1: rgba(0, 150, 255, 0.08); 
+  --wave-layer-color2: rgba(0, 50, 150, 0.2); 
+}
+
+.wave-bg-layer::before,
+.wave-bg-layer::after {
+  content: "";
+  position: absolute;
+  width: 300vmax;
+  height: 300vmax;
+  top: -275vmax;
+  left: -100vmax;
+  border-radius: 43%;
+  background-color: var(--wave-layer-color1); 
+  animation: wave-rotate 12s infinite linear;
+  transition: background-color 0.3s ease;
+}
+
+.wave-bg-layer::after {
+  border-radius: 40%;
+  background-color: var(--wave-layer-color2); 
+  animation-duration: 18s;
+  top: -270vmax;
 }

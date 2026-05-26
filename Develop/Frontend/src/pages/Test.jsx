@@ -8,15 +8,14 @@ const CAPTCHA_TYPES = [
   { id: 'emotion', title: '감정 추론 캡챠', desc: '표정을 통해 나타나는 감정을 분석하여 인증을 완료합니다.' },
 ];
 
-const CaptchaPage = () => {
+const Test = () => {
   const [selectedType, setSelectedType] = useState(CAPTCHA_TYPES[0]);
 
   return (
     <div className="page-wrapper">
-      {/* 고정된 네비게이션 바 자리 (65px) */}
-      <header className="navbar">
-        {/* 네비게이션 내용 */}
-      </header>
+      {/* 공통 fixed 네비바(.menu-bar)와의 중복 배치를 제거하여 잔선 이슈를 해결합니다.
+        대신 Test.css에서 padding-top을 통해 고정 네비바 영역만큼 여백을 안정적으로 확보합니다.
+      */}
 
       <div className="layout-container">
         <nav className="sidebar">
@@ -50,4 +49,4 @@ const CaptchaPage = () => {
   );
 };
 
-export default CaptchaPage;
+export default Test;

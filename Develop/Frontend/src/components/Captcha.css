@@ -1,0 +1,506 @@
+/* =============================================================================
+   [1] FishTimer 애니메이션 및 기본 모션 스펙
+   ============================================================================= */
+@keyframes fishChompAnimation {
+  0% { transform: scale(1); }
+  25% { transform: scale(0.85) rotate(-5deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+  75% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.fish-chomp {
+  animation: fishChompAnimation 0.2s ease-in-out 2;
+}
+
+/* =============================================================================
+   [2] 💡 다크모드 화면 스크롤 억제 및 이질적 잔선 완전 파괴 로직
+   - 스크롤 시 위아래로 흰색이 밀려 올라오는 현상을 막기 위해 overflow를 격리합니다.
+   ============================================================================= */
+html, 
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important; /* 브라우저 자체의 불필요한 스크롤 발생을 강제 차단 */
+  background-color: #1a1a1b !important;
+}
+
+body.dark-mode {
+  background-color: #1a1a1b !important;
+  color: #e2e8f0 !important;
+}
+
+/* 대시보드 메인 프레임 격벽 색상 일체화 */
+body.dark-mode #root,
+body.dark-mode main,
+body.dark-mode [class*="layout_"],
+body.dark-mode [class*="container_"],
+body.dark-mode [class*="page_"],
+body.dark-mode [class*="content_"],
+body.dark-mode [class*="main_"] {
+  background-color: #1a1a1b !important;
+  color: #e2e8f0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
+/* 💡 왼쪽 메뉴 섹션(사이드바) 색상 확실하게 분리 */
+body.dark-mode aside,
+body.dark-mode .sidebar,
+body.dark-mode .side-menu,
+body.dark-mode [class*="sidebar_"],
+body.dark-mode [class*="menu_"] {
+  background-color: #141415 !important;
+  border-right: 1px solid #28282a !important;
+}
+
+/* 💡 네비바 하단의 하얀색 선(경계선 및 그림자 노이즈) 전방위적 강제 소멸 */
+body.dark-mode .menu-bar,
+body.dark-mode nav,
+body.dark-mode [class*="navbar_"],
+body.dark-mode [class*="header_"] {
+  background-color: #141415 !important;
+  border-bottom: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* =============================================================================
+   [3] 캡챠 위젯 기본 레이아웃 구성 정보
+   ============================================================================= */
+.raw-captcha-wrapper {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.captcha-card-layout {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(70, 130, 255, 0.12);
+  border: 1px solid #e0e7f3;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 캡챠 위젯 자체 다크모드 테마 고정 */
+body.dark-mode .captcha-card-layout {
+  background: #1a1a1b !important;
+  border-color: #2d3748 !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+}
+
+.captcha-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 28px;
+  background: linear-gradient(135deg, #4a8bff 0%, #6da5ff 100%) !important;
+  color: #ffffff !important;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon {
+  font-size: 24px;
+  background: rgba(255, 255, 255, 0.2) !important;
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+}
+
+.header-main-title {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.header-sub-title {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+.header-timer-pill {
+  background: rgba(255, 255, 255, 0.2) !important;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.captcha-card-body {
+  padding: 28px;
+  background: #ffffff;
+}
+
+body.dark-mode .captcha-card-body {
+  background: #1a1a1b !important;
+}
+
+.step-indicator-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.step-dot {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: #e0e7f3;
+  transition: background 0.3s;
+}
+
+body.dark-mode .step-dot {
+  background: #2d3748 !important;
+}
+
+.step-dot.active {
+  background: #4a8bff !important;
+}
+
+.step-text-label {
+  font-size: 13px;
+  color: #8a96ad;
+  margin-bottom: 20px;
+}
+
+body.dark-mode .step-text-label {
+  color: #a0aec0 !important;
+}
+
+.highlight-blue {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+body.dark-mode .highlight-blue {
+  color: #63b3ed !important;
+}
+
+.target-hint-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.hint-label-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hint-title {
+  font-size: 14px;
+  color: #8a96ad;
+  font-weight: 600;
+}
+
+body.dark-mode .hint-title {
+  color: #a0aec0 !important;
+}
+
+.hint-badge {
+  background: #eef4ff;
+  border: 1px solid #c8dcff;
+  color: #2563eb;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+body.dark-mode .hint-badge {
+  background: #2b6cb0 !important;
+  border-color: #4299e1 !important;
+  color: #ffffff !important;
+}
+
+.difficulty-text {
+  font-size: 13px;
+  color: #8a96ad;
+}
+
+body.dark-mode .difficulty-text {
+  color: #a0aec0 !important;
+}
+
+.diff-badge {
+  color: #4a8bff;
+  font-weight: 700;
+}
+
+.flashlight-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #0a0a14 !important;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #1a1a28;
+  cursor: crosshair;
+}
+
+.flashlight-bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; 
+  pointer-events: none;
+}
+
+.flashlight-dark-mask {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.flashlight-cursor-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 235, 180, 0.85);
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.flashlight-hint-bubble {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(251, 191, 36, 0.9) !important;
+  color: #451a03 !important;
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* =============================================================================
+   [4] FishTimer 컴포넌트 전용 레이아웃 스타일
+   ============================================================================= */
+.fishtimer-container {
+  position: relative;
+  width: 100%;
+  height: 72px; 
+  overflow: visible;
+  display: block;
+}
+
+.fishtimer-bot {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 42px; 
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4a8bff 0%, #7aa9ff 100%) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.fishtimer-svg-track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.fishtimer-fish-wrapper {
+  position: absolute;
+  left: 0;
+  top: 4px; 
+  width: 64px; 
+  height: 64px;
+  transform-origin: center;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.fishtimer-fish-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  object-fit: contain;
+}
+
+.mt-3\.5 {
+  margin-top: 20px;
+}
+
+.captcha-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-top: 1px solid #e0e7f3;
+  background: #f8fbff;
+}
+
+body.dark-mode .captcha-card-footer {
+  background: #1a1a1b !important;
+  border-top-color: #2d3748 !important;
+}
+
+.footer-protection-text {
+  font-size: 13px;
+  color: #8a96ad;
+}
+
+body.dark-mode .footer-protection-text {
+  color: #a0aec0 !important;
+}
+
+.footer-refresh-btn {
+  background: #ffffff;
+  border: 1px solid #e0e7f3;
+  color: #6b7891;
+  padding: 8px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+body.dark-mode .footer-refresh-btn {
+  background: #2d3748 !important;
+  border-color: #4a5568 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .footer-refresh-btn:hover {
+  border-color: #63b3ed !important;
+  color: #63b3ed !important;
+}
+
+/* =============================================================================
+   [5] 검증 상태 알림 박스 크기 일관성 보정
+   ============================================================================= */
+.captcha-status-card-box {
+  width: 100%;
+  max-width: 720px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(70, 130, 255, 0.12);
+  border: 1px solid #e0e7f3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+body.dark-mode .captcha-status-card-box {
+  background: #1a1a1b !important;
+  border-color: #2d3748 !important;
+}
+
+body.dark-mode .captcha-status-card-box.border-gray { border-color: #2d3748 !important; }
+body.dark-mode .captcha-status-card-box.border-green { border-color: #065f46 !important; background: #061e14 !important; }
+body.dark-mode .captcha-status-card-box.border-red { border-color: #9b1c1c !important; background: #240a0a !important; }
+
+.loading-spinner-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #6b7891;
+}
+
+body.dark-mode .loading-spinner-group {
+  color: #a0aec0 !important;
+}
+
+.spin-circle {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e0e7f3;
+  border-top-color: #4a8bff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+body.dark-mode .spin-circle {
+  border-color: #2d3748 !important;
+  border-top-color: #63b3ed !important;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.status-icon-emoji { font-size: 36px; margin-bottom: 14px; }
+.status-main-title { font-size: 20px; font-weight: 700; color: #1d2a44; }
+body.dark-mode .status-main-title { color: #e2e8f0 !important; }
+
+.status-main-title.text-blue { color: #2563eb; }
+body.dark-mode .status-main-title.text-blue { color: #63b3ed !important; }
+
+.status-sub-desc { font-size: 14px; color: #6b7891; margin-top: 8px; }
+body.dark-mode .status-sub-desc { color: #a0aec0 !important; }
+
+.status-sub-desc.text-red { color: #e11d48; }
+body.dark-mode .status-sub-desc.text-red { color: #fc8181 !important; }
+
+.status-success-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+}
+
+.success-badge-circle, .fail-badge-circle {
+  font-size: 32px;
+  display: flex;
+}
+
+.captcha-retry-action-btn {
+  margin-top: 24px;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #4a8bff 0%, #6da5ff 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(74, 139, 255, 0.25);
+  transition: transform 0.2s;
+}
+
+.captcha-retry-action-btn:hover {
+  transform: translateY(-1px);
+}

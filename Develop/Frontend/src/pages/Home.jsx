@@ -31,6 +31,8 @@ const FoodBot = memo(({ x, y, color }) => (
 ));
 FoodBot.displayName = "FoodBot";
 
+
+
 // --- 반응형 물고기 컴포넌트 ---
 const ScaredFish = memo(({
   index,
@@ -77,7 +79,7 @@ const ScaredFish = memo(({
     }
 
     return {
-      scale: 0.45 + (index % 5) * 0.1, // 물고기 기본 크기 스케일 복원
+      scale: 0.45 + (index % 5) * 0.1, 
       startX,
       startY,
       initialX,
@@ -225,7 +227,7 @@ const ScaredFish = memo(({
         src="/agami-fish.svg"
         alt="fish"
         style={{ 
-          width: "100px", /* 고정 한계 내에서 확실한 시인성을 보장하도록 크기 조정 */
+          width: "100px", 
           transform: "scaleX(-1)", 
           display: "block",
           backfaceVisibility: "hidden",
@@ -236,6 +238,8 @@ const ScaredFish = memo(({
   );
 });
 ScaredFish.displayName = "ScaredFish";
+
+
 
 // --- 지오데식 구 + 배경 네트워크 그래픽 ---
 const ParticleNetwork = memo(() => {
@@ -483,6 +487,8 @@ const ParticleNetwork = memo(() => {
 });
 ParticleNetwork.displayName = "ParticleNetwork";
 
+
+
 const MotionLiquidGlass = motion.create(LiquidGlass);
 
 const Home = () => {
@@ -657,6 +663,8 @@ const Home = () => {
     ? { delay: 3.5, duration: 1.5, ease: [0.4, 0, 0.2, 1] }
     : { duration: 0 };
 
+
+
   return (
     <div className="main-wrapper" ref={wrapperRef} style={{ contentVisibility: "auto" }}>
       <div className="home-container" onMouseMove={handleMouseMove}>
@@ -781,13 +789,13 @@ const Home = () => {
       </div>
 
       <div className="second-container" onMouseMove={handleSecondMouseMove}>
-        <div className="dark-sea-layer" />
         <div
           className="light-sea-layer"
           style={{
             maskImage: `radial-gradient(circle 160px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
             WebkitMaskImage: `radial-gradient(circle 160px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
-            willChange: "mask-image"
+            willChange: "mask-image",
+            zIndex: 2
           }}
         >
           <motion.div
@@ -846,7 +854,6 @@ const Home = () => {
       <div className="third-container">
         <ParticleNetwork />
 
-        {/* 정중앙 배치를 위해 구조를 유지하되 스타일만 분리 확보 */}
         <div className="third-logo-wrapper">
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
