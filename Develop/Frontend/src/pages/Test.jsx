@@ -3,9 +3,9 @@ import Captcha from '../components/Captcha';
 import './Test.css';
 
 const CAPTCHA_TYPES = [
-  { id: 'flashlight', title: '손전등 캡챠', desc: '손전등의 빛을 조절하여 특정 영역을 맞추는 보안 검증 방식입니다.' },
-  { id: 'face', title: '안면인식 캡챠', desc: '사용자의 얼굴 형태를 인식하여 실사용자인지 확인합니다.' },
-  { id: 'emotion', title: '감정 추론 캡챠', desc: '표정을 통해 나타나는 감정을 분석하여 인증을 완료합니다.' },
+  { id: 'flashlight', title: '손전등 캡챠', desc: '손전등과 같은 효과로 특정 영역을 맞추는 보안 검증 방식입니다.' },
+  { id: 'face', title: '안면인식 캡챠', desc: '사용자의 얼굴 형태를 인식하고 미션을 통해 실사용자인지 확인합니다.' },
+  { id: 'emotion', title: '감정 추론 캡챠', desc: '표정을 통해 나타나는 감정과 상황을 분석하여 인증을 완료합니다.' },
 ];
 
 const Test = () => {
@@ -13,10 +13,6 @@ const Test = () => {
 
   return (
     <div className="page-wrapper">
-      {/* 공통 fixed 네비바(.menu-bar)와의 중복 배치를 제거하여 잔선 이슈를 해결합니다.
-        대신 Test.css에서 padding-top을 통해 고정 네비바 영역만큼 여백을 안정적으로 확보합니다.
-      */}
-
       <div className="layout-container">
         <nav className="sidebar">
           <ul>
@@ -33,11 +29,18 @@ const Test = () => {
         </nav>
 
         <main className="main-content">
-          <Captcha 
-            kind="flashlight" 
-            difficulty="easy" 
-            onComplete={(token) => console.log('인증 토큰:', token)} 
-          />
+          {/* 사이드바 상태(selectedType.id)에 따른 조건부 렌더링 */}
+          {selectedType.id === 'flashlight' ? (
+            <Captcha 
+              kind="flashlight" 
+              difficulty="easy" 
+              onComplete={(token) => console.log('인증 토큰:', token)} 
+            />
+          ) : (
+            <div className="captcha-status-card-box">
+              <div className="status-sub-desc">🚧 준비 중입니다.</div>
+            </div>
+          )}
 
           <section className="captcha-description">
             <h3>{selectedType.title} 상세 설명</h3>
