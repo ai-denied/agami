@@ -32,6 +32,9 @@ spec:
           value: "admin1234"
         - name: DB_NAME
           value: "agamidb"
+        # [수정됨] 카카오 환경변수 추가
+        - name: KAKAO_CLIENT_ID
+          value: "21bb77241dca5e660b3bdc037ed54db3"
         - name: KAKAO_REDIRECT_URI
           value: "https://agami-captcha.cloud/auth/kakao/callback"
         volumeMounts:
