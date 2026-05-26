@@ -20,6 +20,11 @@ jobs:
           registry: ${{ secrets.HARBOR_URL }}
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
+      
+      # [추가] 시크릿으로부터 .env 파일 생성
+      - name: Create .env
+        run: echo "${{ secrets.BACKEND_ENV }}" > ./Develop/Backend/.env
+
       - name: Generate Tag
         id: generate_tag
         run: echo "IMAGE_TAG=$(TZ='Asia/Seoul' date +'%y%m%d%H%M')" >> $GITHUB_ENV
