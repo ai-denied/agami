@@ -1,4 +1,5 @@
 name: Frontend CI
+
 on:
   push:
     branches: [ "main" ]
@@ -26,19 +27,25 @@ jobs:
       - name: Create .env
         run: echo "${{ secrets.FRONTEND_ENV }}" > ./Develop/Frontend/.env
 
+      # [추가] 년월일시분 태그 생성
+      - name: Generate Tag
+        id: generate_tag
+        run: echo "IMAGE_TAG=$(date +'%y%m%d%H%M')" >> $GITHUB_ENV
+
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: ./Develop/Frontend
           file: ./Develop/Frontend/Dockerfile
           push: true
-          tags: ${{ secrets.HARBOR_URL }}/agami/frontend:latest
+          # [수정] latest 대신 생성된 태그 사용
+          tags: ${{ secrets.HARBOR_URL }}/agami/frontend:${{ env.IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 매니페스트 수정 없이 바로 배포 트리거 (kubectl 설치 필요 시 아래 단계 추가)
       - name: Trigger ArgoCD Rollout
         run: |
-          # 서버(아르고가 있는 노드)에 직접 명령을 내리거나, kubectl을 통해 롤아웃 유도
-          # 직접 접속이 어렵다면 이미 배포된 Deployment를 재시작하여 latest 이미지를 다시 받게 함
-          echo "Frontend 배포 완료: latest 이미지를 사용합니다."
+          echo "Frontend 배포 태그: ${{ env.IMAGE_TAG }}"
+          # 참고: ArgoCD를 사용 중이라면, 여기서 새 태그를 반영한 manifest를 
+          # 다른 저장소에 업데이트하거나, 아르고CD CLI를 사용하여 수동 동기화 가능합니다.
+          # 예: argocd app set agami-frontend -p image.tag=${{ env.IMAGE_TAG }}
