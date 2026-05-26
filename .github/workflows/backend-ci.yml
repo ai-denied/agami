@@ -22,7 +22,7 @@ jobs:
           password: ${{ secrets.HARBOR_PASSWORD }}
       - name: Generate Tag
         id: generate_tag
-        run: echo "IMAGE_TAG=$(date +'%y%m%d%H%M')" >> $GITHUB_ENV
+        run: echo "IMAGE_TAG=$(TZ='Asia/Seoul' date +'%y%m%d%H%M')" >> $GITHUB_ENV
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
