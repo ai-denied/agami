@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Captcha from '../components/HandlightCaptcha';
+import Captcha from '../components/Captcha';
 import './Test.css';
 
 const CAPTCHA_TYPES = [
@@ -29,7 +29,7 @@ const Test = () => {
         </nav>
 
         <main className="main-content">
-          {/* 조건부 렌더링 추가 */}
+          {/* 조건부 렌더링 로직 */}
           {selectedType.id === 'flashlight' ? (
             <Captcha 
               kind="flashlight" 
@@ -37,8 +37,10 @@ const Test = () => {
               onComplete={(token) => console.log('인증 토큰:', token)} 
             />
           ) : (
-            <div className="captcha-placeholder">
-              <p>{selectedType.title}은 현재 준비 중입니다.</p>
+            <div className="ready-state">
+              <span className="emoji">🚧</span>
+              <h3>현재 준비 중입니다</h3>
+              <p>더 나은 캡챠 서비스를 위해 개발 중이니 조금만 기다려 주세요!</p>
             </div>
           )}
 
