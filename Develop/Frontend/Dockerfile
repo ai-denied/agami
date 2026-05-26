@@ -4,6 +4,9 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
+
+RUN cp -r public/captcha_labels /app/dist/
+
 RUN echo "Build Date: $(date)" > /app/dist/build_time.txt
 
 FROM nginx:stable-alpine
