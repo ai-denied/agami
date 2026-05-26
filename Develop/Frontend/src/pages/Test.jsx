@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Captcha from '../components/Captcha';
+import Captcha from '../components/HandlightCaptcha';
 import './Test.css';
 
 const CAPTCHA_TYPES = [
@@ -13,10 +13,6 @@ const Test = () => {
 
   return (
     <div className="page-wrapper">
-      {/* 공통 fixed 네비바(.menu-bar)와의 중복 배치를 제거하여 잔선 이슈를 해결합니다.
-        대신 Test.css에서 padding-top을 통해 고정 네비바 영역만큼 여백을 안정적으로 확보합니다.
-      */}
-
       <div className="layout-container">
         <nav className="sidebar">
           <ul>
@@ -33,11 +29,18 @@ const Test = () => {
         </nav>
 
         <main className="main-content">
-          <Captcha 
-            kind="flashlight" 
-            difficulty="easy" 
-            onComplete={(token) => console.log('인증 토큰:', token)} 
-          />
+          {/* 조건부 렌더링 추가 */}
+          {selectedType.id === 'flashlight' ? (
+            <Captcha 
+              kind="flashlight" 
+              difficulty="easy" 
+              onComplete={(token) => console.log('인증 토큰:', token)} 
+            />
+          ) : (
+            <div className="captcha-placeholder">
+              <p>{selectedType.title}은 현재 준비 중입니다.</p>
+            </div>
+          )}
 
           <section className="captcha-description">
             <h3>{selectedType.title} 상세 설명</h3>
