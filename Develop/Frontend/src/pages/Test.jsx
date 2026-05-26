@@ -29,7 +29,6 @@ const Test = () => {
         </nav>
 
         <main className="main-content">
-          {/* 사이드바 선택에 따른 렌더링 로직 */}
           {selectedType.id === 'flashlight' ? (
             <Captcha 
               kind="flashlight" 
