@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useId, useLayoutEffect
 import './Captcha.css';
 
 // =============================================================================
-// [1] FishTimer 컴포넌트
+// [1] FishTimer 컴포넌트 (생략된 기존 로직 유지)
 // =============================================================================
 const BOT_WIDTH_PX = 50;
 const FISH_SIZE_PX = 56;
@@ -219,6 +219,7 @@ function FishTimer({ remainingMs, totalMs, className = '' }) {
 // [2] FlashlightCaptcha 컴포넌트
 // =============================================================================
 function FlashlightCaptcha({ spec, onSubmit, onRefresh, onTimeout, onFailure }) {
+  // (생략된 기존 FlashlightCaptcha 로직 유지)
   const wrapRef = useRef(null); const overlayRef = useRef(null); const ringRef = useRef(null);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
   const [currentIndex, setCurrentIndex] = useState(0); 
@@ -290,7 +291,6 @@ function FlashlightCaptcha({ spec, onSubmit, onRefresh, onTimeout, onFailure }) 
 
   return (
     <div className="captcha-card-layout">
-      {/* Header */}
       <div className="captcha-card-header">
         <div className="header-title-group">
           <span className="header-icon">🔦</span>
@@ -301,18 +301,13 @@ function FlashlightCaptcha({ spec, onSubmit, onRefresh, onTimeout, onFailure }) 
         </div>
         <div className="header-timer-pill">⏱️ {timeLeft}s</div>
       </div>
-
-      {/* Body */}
       <div className="captcha-card-body">
-        {/* Step Indicator */}
         <div className="step-indicator-bar">
           {[0, 1, 2].map((i) => (
             <div key={i} className={`step-dot ${i <= currentIndex ? 'active' : ''}`} />
           ))}
         </div>
         <div className="step-text-label">진행 <span className="highlight-blue">{currentIndex + 1}</span> / 3</div>
-
-        {/* Target Hint Row */}
         <div className="target-hint-row">
           <div className="hint-label-box">
             <span className="hint-title">찾을 물건</span>
@@ -320,8 +315,6 @@ function FlashlightCaptcha({ spec, onSubmit, onRefresh, onTimeout, onFailure }) 
           </div>
           <div className="difficulty-text">난이도 · <span className="diff-badge">{spec.difficulty}</span></div>
         </div>
-
-        {/* Canvas Wrap */}
         <div
           ref={wrapRef}
           className="flashlight-canvas-wrapper"
@@ -336,11 +329,8 @@ function FlashlightCaptcha({ spec, onSubmit, onRefresh, onTimeout, onFailure }) 
           <div ref={ringRef} className="flashlight-cursor-ring" />
           {hintVisible && <div className="flashlight-hint-bubble">💡 천천히 둘러보세요</div>}
         </div>
-
         <FishTimer remainingMs={timeLeft * 1000} totalMs={spec.time_limit_sec * 1000} className="mt-3.5" />
       </div>
-
-      {/* Footer */}
       <div className="captcha-card-footer">
         <span className="footer-protection-text">🛡️ agami로 보호되는 페이지</span>
         <button onClick={onRefresh} className="footer-refresh-btn">🔄 새로고침</button>
@@ -350,14 +340,13 @@ function FlashlightCaptcha({ spec, onSubmit, onRefresh, onTimeout, onFailure }) 
 }
 
 // =============================================================================
-// [3] 최상위 Captcha 메인 컴포넌트
+// [3] 최상위 Captcha 메인 컴포넌트 (수정본)
 // =============================================================================
 export default function Captcha({ kind = 'flashlight', difficulty = 'easy', onComplete }) {
   const [status, setStatus] = useState('idle');
   const [spec, setSpec] = useState(null);
 
   const start = useCallback(async () => {
-    // 💡 변경 지점: kind가 'flashlight'가 아니라면 아예 로딩이나 검증 발급을 수행하지 않고 중단
     if (kind !== 'flashlight') return;
 
     setStatus('loading');
@@ -380,17 +369,7 @@ export default function Captcha({ kind = 'flashlight', difficulty = 'easy', onCo
           if (!response.ok) throw new Error(`데이터 세트를 불러올 수 없습니다: ${id}`);
           
           const data = await response.json();
-          
-          let targetLabel = "지정된 물건";
-          if (data.target_object) {
-            const lowerObj = data.target_object.toLowerCase();
-            if (lowerObj.includes("key")) targetLabel = "열쇠 (Key)";
-            else if (lowerObj.includes("pencil")) targetLabel = "연필 (Pencil)";
-            else if (lowerObj.includes("ring")) targetLabel = "반지 (Ring)";
-            else if (lowerObj.includes("watch")) targetLabel = "시계 (Watch)";
-            else targetLabel = data.target_object;
-          }
-
+          let targetLabel = data.target_object || "지정된 물건";
           return {
             index,
             image_url: `${cleanBaseUrl}captcha_images/${id}.jpg`,
@@ -400,20 +379,17 @@ export default function Captcha({ kind = 'flashlight', difficulty = 'easy', onCo
         })
       );
 
-      const localSpec = {
+      setSpec({
         challenge_id: `agami_${Math.random().toString(36).substr(2, 9)}`,
         kind: "flashlight",
-        difficulty: difficulty,
+        difficulty,
         time_limit_sec: 45,
         flashlight_radius: 0.18, 
         hint_after_sec: 5,
         sub_challenges: subChallenges
-      };
-
-      setSpec(localSpec);
+      });
       setStatus('active');
     } catch (err) {
-      console.error("캡챠 초기화 에러:", err);
       setStatus('fail');
     }
   }, [kind, difficulty]);
@@ -429,12 +405,16 @@ export default function Captcha({ kind = 'flashlight', difficulty = 'easy', onCo
   }, [onComplete]);
 
   useEffect(() => {
-    start();
+    if (kind === 'flashlight') start();
   }, [kind, start]);
 
-  // 💡 변경 지점: 손전등 캡챠가 선택되지 않았을 때는 예외 조건 분기 없이 완전한 빈 화면(null) 반환
+  // 'flashlight'가 아닌 경우 대응
   if (kind !== 'flashlight') {
-    return null;
+    return (
+      <div className="captcha-status-card-box">
+        <div className="status-sub-desc">준비 중입니다.</div>
+      </div>
+    );
   }
 
   return (
