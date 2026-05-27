@@ -9,12 +9,12 @@ spec:
   tls:
   - hosts:
     - agami-captcha.cloud
-    secretName: agami-tls-secret
+    secretName: agami-web-tls
   rules:
   - host: agami-captcha.cloud
     http:
       paths:
-      # API 라우팅
+      # 1. API 라우팅
       - path: /api
         pathType: Prefix
         backend:
@@ -22,7 +22,8 @@ spec:
             name: agami-backend-svc
             port:
               number: 80
-      # 캡챠 관련 API 라우팅 (기존 captcha-ingress의 설정)
+      
+      # 2. 캡챠 관련 API 라우팅 (기존 05-ingress.yaml 설정 통합)
       - path: /widget
         pathType: Prefix
         backend:
@@ -44,6 +45,8 @@ spec:
             name: captcha-api
             port:
               number: 80
+              
+      # 3. 프론트엔드 라우팅 (최하단 배치하여 나머지 요청 처리)
       - path: /
         pathType: Prefix
         backend:
