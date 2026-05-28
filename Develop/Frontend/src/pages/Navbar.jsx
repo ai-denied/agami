@@ -36,33 +36,57 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await api.post("/api/auth/logout");
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("로그아웃 실패:", e); }
+    
+    // AuthContext의 상태 초기화 및 로컬 데이터 완전 삭제
     setUser(null);
     localStorage.clear();
+    sessionStorage.removeItem("hasVisitedAgami");
+    
     window.location.href = "/";
   };
 
   if (isFirstVisit === null) return null;
 
   return (
-    <motion.nav className="menu-bar" initial={isFirstVisit ? { opacity: 0, y: -100 } : { opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: isFirstVisit ? 4 : 0, duration: 1 }}>
+    <motion.nav 
+      className="menu-bar" 
+      initial={isFirstVisit ? { opacity: 0, y: -100 } : { opacity: 1, y: 0 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ delay: isFirstVisit ? 4 : 0, duration: 1 }}
+    >
       <div className="nav-container">
         <div className="nav-group left">
-          <button className="home-logo-btn" onClick={() => navigate("/")}><img src="/agami-home.svg" alt="Home" /></button>
+          <button className="home-logo-btn" onClick={() => navigate("/")}>
+            <img src="/agami-home.svg" alt="Home" />
+          </button>
           <div className="nav-links">
             <button className="nav-item" onClick={() => navigate("/platform")}>대쉬보드</button>
             <button className="nav-item" onClick={() => navigate("/price")}>가격</button>
             <button className="nav-item" onClick={() => navigate("/test")}>테스트</button>
           </div>
         </div>
+        
         <div className="nav-group right">
           <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-            <div className="switch-content"><span className="label-light">LIGHT</span><div className="switch-handle"></div><span className="label-dark">DARK</span></div>
+            <div className="switch-content">
+              <span className="label-light">LIGHT</span>
+              <div className="switch-handle"></div>
+              <span className="label-dark">DARK</span>
+            </div>
           </div>
+          
           {user ? (
             <div className="user-profile-wrapper">
               <div className="user-profile-info">
-                {user.profile && <img src={user.profile} alt="profile" className="nav-profile-img" />}
+                {user.profile && (
+                  <img 
+                    src={user.profile} 
+                    alt="profile" 
+                    className="nav-profile-img" 
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                )}
                 <span className="nav-nickname"><strong>{user.nickname}</strong> 님</span>
               </div>
               <button className="nav-item logout-btn" onClick={handleLogout}>로그아웃</button>
