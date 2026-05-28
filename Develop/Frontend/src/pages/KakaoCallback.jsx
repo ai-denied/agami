@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
