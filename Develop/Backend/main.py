@@ -80,8 +80,9 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
         key="accessToken",
         value=jwt_token,
         httponly=True,
-        secure=True,     # HTTPS 환경 필수
-        samesite="none"   # CORS 도메인 간 쿠키 공유 전략
+        secure=True,     
+        samesite="lax",  # 대부분의 경우 lax가 가장 안정적입니다.
+        path="/"         # 도메인을 명시하지 않고 경로만 명시
     )
     
     return {
@@ -98,9 +99,8 @@ async def logout(response: Response):
     response.delete_cookie(
         key="accessToken",
         path="/",
-        domain="agami-captcha.cloud",
         httponly=True,
         secure=True,
-        samesite="none" # [중요] 삭제 시에도 생성 시와 동일한 설정을 전달해야 삭제됨
+        samesite="lax"
     )
     return {"status": "success"}
