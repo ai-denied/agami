@@ -53,8 +53,10 @@ const Navbar = () => {
 
   if (isFirstVisit === null) return null;
 
-  // [교정] 토큰과 유저 정보가 모두 완벽히 존재할 때만 로그인 상태로 판정합니다.
-  const isLogin = token && nickname;
+  const checkIsLogin = () => {
+    return document.cookie.split('; ').some(row => row.startsWith('accessToken='));
+  };
+  const isLogin = checkIsLogin();
 
   return (
     <motion.nav
