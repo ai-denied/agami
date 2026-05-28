@@ -94,6 +94,17 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
         },
     }
 
+@app.get("/api/auth/me")
+async def get_me(request: Request):
+    token = request.cookies.get("accessToken")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return {"status": "success", "user": payload}
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
 @app.post("/api/auth/logout")
 async def logout(response: Response):
     response.delete_cookie(

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // axios 추가
+import axios from "axios";
 import "./Navbar.css";
 
-// 서버와 통신할 API 인스턴스
 const api = axios.create({
   baseURL: "https://agami-captcha.cloud",
   withCredentials: true,
@@ -13,9 +12,9 @@ const api = axios.create({
 const Navbar = () => {
   const [isFirstVisit, setIsFirstVisit] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // 인증 상태 추가
   const navigate = useNavigate();
 
-  // 닉네임과 프로필 정보 로드
   const nickname = localStorage.getItem("userName") || localStorage.getItem("nickname");
   const profile = localStorage.getItem("userImage") || localStorage.getItem("profile");
 
@@ -28,6 +27,11 @@ const Navbar = () => {
       setIsDarkMode(true);
       document.body.classList.add("dark-mode");
     }
+
+    // 서버에 로그인 상태 확인 요청
+    api.get("/api/auth/me")
+      .then(() => setIsLoggedIn(true))
+      .catch(() => setIsLoggedIn(false));
   }, []);
 
   const toggleTheme = () => {
@@ -42,27 +46,18 @@ const Navbar = () => {
     }
   };
 
-  // [수정 완료] 백엔드 로그아웃 API 호출 및 로컬 데이터 소멸
   const handleLogout = async () => {
     try {
-      await api.post("/api/auth/logout"); // 백엔드 쿠키 만료 요청
+      await api.post("/api/auth/logout");
     } catch (error) {
       console.error("로그아웃 API 호출 실패:", error);
     } finally {
-      // 로컬 데이터 정리
       localStorage.removeItem("nickname");
       localStorage.removeItem("profile");
       localStorage.removeItem("userName");
       localStorage.removeItem("userImage");
-      
-      // 로그아웃 후 홈으로 이동 및 새로고침
       window.location.href = "/";
     }
-  };
-
-  // 쿠키 존재 여부 확인 함수
-  const checkLoginStatus = () => {
-    return document.cookie.split('; ').some(row => row.startsWith('accessToken='));
   };
 
   if (isFirstVisit === null) return null;
@@ -95,8 +90,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* 수정: 함수 호출 방식으로 변경 */}
-          {checkLoginStatus() ? (
+          {isLoggedIn ? (
             <div className="user-profile-wrapper">
               <div className="user-profile-info">
                 {profile && <img src={profile} alt="profile" className="nav-profile-img" />}
