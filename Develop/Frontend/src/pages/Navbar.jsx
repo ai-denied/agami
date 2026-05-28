@@ -14,9 +14,13 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setIsFirstVisit(!sessionStorage.getItem("hasVisitedAgami"));
-    setIsDarkMode(localStorage.getItem("theme") === "dark");
-    if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark-mode");
+    const hasVisited = sessionStorage.getItem("hasVisitedAgami");
+    setIsFirstVisit(!hasVisited);
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      document.body.classList.add("dark-mode");
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -30,6 +34,7 @@ const Navbar = () => {
     try { await api.post("/api/auth/logout"); } catch (e) { console.error(e); }
     setUser(null);
     localStorage.clear();
+    // 방문 기록(hasVisitedAgami)은 건드리지 않음
     window.location.href = "/";
   };
 

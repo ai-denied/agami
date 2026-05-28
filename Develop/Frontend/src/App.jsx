@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute'; 
 import Navbar from './pages/Navbar'; 
 import Home from './pages/Home'; 
@@ -11,12 +11,18 @@ import Dashboard from './pages/Dashboard';
 import Test from './pages/Test';
 import KakaoCallback from './pages/KakaoCallback';
 
-// 네비바를 숨길 경로 목록
-const NavbarWrapper = () => {
+// 네비바 렌더링 제어를 위한 내부 컴포넌트
+const Layout = ({ children }) => {
   const location = useLocation();
-  const hideNavbarPaths = ['/login', '/auth/kakao/callback'];
-  if (hideNavbarPaths.includes(location.pathname)) return null;
-  return <Navbar />;
+  // 카카오 콜백 경로에서는 네비바를 숨김
+  const isHideNavbar = location.pathname === '/auth/kakao/callback';
+  
+  return (
+    <>
+      {!isHideNavbar && <Navbar />}
+      {children}
+    </>
+  );
 };
 
 function App() {
@@ -31,15 +37,16 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <NavbarWrapper /> 
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/price" element={<Price />} />
-            <Route path="/test" element={<Test />} />
-            <Route path="/platform" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
-          </Routes>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/price" element={<Price />} />
+              <Route path="/test" element={<Test />} />
+              <Route path="/platform" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+            </Routes>
+          </Layout>
         </Router>
       </AuthProvider>
     </ThemeProvider>
