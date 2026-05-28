@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await api.get("/api/auth/me");
-      setUser(res.data.user);
+      setUser(res.data.user); // { id, nickname, profile } 구조가 저장됨
     } catch {
       setUser(null);
     } finally {

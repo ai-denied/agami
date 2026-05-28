@@ -94,17 +94,31 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
         },
     }
 
+# main.py
 @app.get("/api/auth/me")
-async def get_me(request: Request):
+async def get_me(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
     if not token:
-        raise HTTPException(status_code=401, detail="인증되지 않음")
+        raise HTTPException(status_code=401, detail="Unauthorized")
     try:
-        # 토큰 검증 로직 추가 (필요 시)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return {"status": "success", "user": payload}
-    except:
-        raise HTTPException(status_code=401, detail="유효하지 않은 토큰")
+        user_id = payload.get("sub")
+        
+        # DB에서 최신 정보를 다시 조회하여 프로필 데이터까지 포함
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+            
+        return {
+            "status": "success", 
+            "user": {
+                "id": user.id,
+                "nickname": user.nickname,
+                "profile": user.profile_image # 프로필 이미지 포함
+            }
+        }
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
     
 @app.post("/api/auth/logout")
 async def logout(response: Response):

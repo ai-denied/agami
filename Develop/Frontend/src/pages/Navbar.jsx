@@ -61,7 +61,10 @@ const Navbar = () => {
           </div>
           {user ? (
             <div className="user-profile-wrapper">
-              <div className="user-profile-info"><span className="nav-nickname"><strong>{user.nickname}</strong> 님</span></div>
+              <div className="user-profile-info">
+                {user.profile && <img src={user.profile} alt="profile" className="nav-profile-img" />}
+                <span className="nav-nickname"><strong>{user.nickname}</strong> 님</span>
+              </div>
               <button className="nav-item logout-btn" onClick={handleLogout}>로그아웃</button>
             </div>
           ) : (
