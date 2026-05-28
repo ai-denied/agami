@@ -1,6 +1,6 @@
 import os
 import requests
-from fastapi import FastAPI, Depends, HTTPException, Response
+from fastapi import FastAPI, Depends, HTTPException, Response, Request
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
