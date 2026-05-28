@@ -39,30 +39,30 @@ const modelData = {
   facial: {
     summary: { total: '58,122', rate: '97.2%', attack: '520' },
     traffic: [
-      { time: '14:00', success: 4500, attack: 320 },
-      { time: '17:00', success: 5300, attack: 410 },
-      { time: '20:00', success: 6700, attack: 220 },
-      { time: '23:00', success: 7400, attack: 280 },
-      { time: '02:00', success: 3200, attack: 420 },
-      { time: '05:00', success: 2100, attack: 390 },
-      { time: '08:00', success: 4100, attack: 210 },
+      { time: '14:00', success: 4200, attack: 410 },
+      { time: '17:00', success: 4800, attack: 520 },
+      { time: '20:00', success: 6100, attack: 280 },
+      { time: '23:00', success: 6900, attack: 310 },
+      { time: '02:00', success: 2800, attack: 550 },
+      { time: '05:00', success: 1900, attack: 420 },
+      { time: '08:00', success: 3800, attack: 290 },
     ],
-    pie: [{ name: '정상 탐지', value: 91.8 }, { name: '보안 차단', value: 8.2 }],
-    behavior: { safe: 84.3, suspicious: 12.2, critical: 3.5 }
+    pie: [{ name: '정상 탐지', value: 91.5 }, { name: '보안 차단', value: 8.5 }],
+    behavior: { safe: 82.5, suspicious: 13.5, critical: 4.0 }
   },
   emotion: {
-    summary: { total: '58,122', rate: '97.2%', attack: '520' },
+    summary: { total: '33,860', rate: '95.4%', attack: '315' },
     traffic: [
-      { time: '14:00', success: 4500, attack: 320 },
-      { time: '17:00', success: 5300, attack: 410 },
-      { time: '20:00', success: 6700, attack: 220 },
-      { time: '23:00', success: 7400, attack: 280 },
-      { time: '02:00', success: 3200, attack: 420 },
-      { time: '05:00', success: 2100, attack: 390 },
-      { time: '08:00', success: 4100, attack: 210 },
+      { time: '14:00', success: 2800, attack: 150 },
+      { time: '17:00', success: 3100, attack: 180 },
+      { time: '20:00', success: 4200, attack: 90 },
+      { time: '23:00', success: 5000, attack: 120 },
+      { time: '02:00', success: 1500, attack: 220 },
+      { time: '05:00', success: 900, attack: 190 },
+      { time: '08:00', success: 2500, attack: 80 },
     ],
-    pie: [{ name: '정상 탐지', value: 91.8 }, { name: '보안 차단', value: 8.2 }],
-    behavior: { safe: 84.3, suspicious: 12.2, critical: 3.5 }
+    pie: [{ name: '정상 탐지', value: 89.2 }, { name: '보안 차단', value: 10.8 }],
+    behavior: { safe: 78.0, suspicious: 15.5, critical: 6.5 }
   }
 };
 
@@ -97,7 +97,7 @@ export default function Dashboard() {
   const [activeModel, setActiveModel] = useState('all');
 
   if (loading) return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
-  if (!user) return null; // PrivateRoute에서 리다이렉트됨
+  if (!user) return null;
 
   const current = modelData[activeModel] || modelData.all;
 
