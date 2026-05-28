@@ -9,20 +9,11 @@ spec:
   tls:
   - hosts:
     - agami-captcha.cloud
-    secretName: agami-tls-secret
+    secretName: agami-web-tls
   rules:
   - host: agami-captcha.cloud
     http:
       paths:
-      # API 라우팅
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: agami-backend-svc
-            port:
-              number: 80
-      # 캡챠 관련 API 라우팅 (기존 captcha-ingress의 설정)
       - path: /widget
         pathType: Prefix
         backend:
@@ -44,7 +35,15 @@ spec:
             name: captcha-api
             port:
               number: 80
-      # 프론트엔드 기본 라우팅
+      # 팀원분 코드에 추가된 라벨 경로
+      - path: /captcha_labels
+        pathType: Prefix
+        backend:
+          service:
+            name: captcha-api
+            port:
+              number: 80
+      # 질문자님의 프론트엔드 경로
       - path: /
         pathType: Prefix
         backend:

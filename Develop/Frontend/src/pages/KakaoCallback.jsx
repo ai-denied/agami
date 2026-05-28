@@ -1,8 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import axios from "axios";
 import WaveBg from "../components/WaveBg";
-import "../pages/Login.css"; // 기존 로그인 스타일 재사용
+import "../pages/Login.css";
+
+// 쿠키를 포함하여 통신하기 위한 axios 인스턴스 생성
+const api = axios.create({
+  withCredentials: true,
+});
 
 const KakaoCallback = () => {
   const [searchParams] = useSearchParams();
@@ -14,30 +20,23 @@ const KakaoCallback = () => {
     if (!code || hasCalled.current) return;
     hasCalled.current = true;
 
-    fetch(`/api/auth/kakao/callback?code=${code}`)
+    // 생성한 api 인스턴스 사용
+    api.get(`/api/auth/kakao/callback`, { params: { code } })
       .then((res) => {
-        if (!res.ok) throw new Error("서버 응답 에러");
-        return res.json();
-      })
-      .then((data) => {
+        const { data } = res;
+
         if (data.status === "success") {
-          // 1. JWT 토큰 저장
-          localStorage.setItem("accessToken", data.accessToken);
-
-          // 2. 유저 이름 저장 (Dashboard.jsx의 'userName' 키와 매칭)
+          // 토큰은 쿠키에 자동 저장되므로 저장 불필요
           localStorage.setItem("nickname", data.user.nickname);
-          localStorage.setItem("userName", data.user.nickname); 
+          localStorage.setItem("userName", data.user.nickname);
 
-          // 3. 프로필 이미지 가공 및 저장 (Mixed Content 원천 차단)
           const rawProfile = data.user.profile;
           if (rawProfile) {
-            // 정규식을 이용해 http:// 시작 구간을 https://로 강제 치환합니다.
             const secureProfile = rawProfile.replace(/^http:\/\//i, "https://");
             localStorage.setItem("profile", secureProfile);
-            localStorage.setItem("userImage", secureProfile); // Dashboard.jsx 매칭용
+            localStorage.setItem("userImage", secureProfile);
           }
 
-          // 4. 홈 또는 플랫폼 대시보드로 이동
           navigate("/", { replace: true });
         } else {
           navigate("/login");
@@ -51,19 +50,13 @@ const KakaoCallback = () => {
 
   return (
     <div className="login-wrapper">
-      {/* 로그인 화면과 동일한 파도 배경 */}
       <WaveBg />
-
       <div style={{ position: "relative", zIndex: 10, textAlign: "center" }}>
-        {/* 물고기 로고 애니메이션 */}
         <motion.img
           src="/agami-fish.svg"
           alt="Loading..."
           style={{ width: "80px", height: "auto" }}
-          animate={{
-            rotate: 360,
-            y: [0, -15, 0], // 위아래로 살짝 떠있는 듯한 효과 추가
-          }}
+          animate={{ rotate: 360, y: [0, -15, 0] }}
           transition={{
             rotate: { repeat: Infinity, duration: 2, ease: "linear" },
             y: { repeat: Infinity, duration: 1.5, ease: "easeInOut" },
