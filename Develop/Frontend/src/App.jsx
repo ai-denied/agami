@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute'; 
@@ -10,6 +10,14 @@ import Price from './pages/Price';
 import Dashboard from './pages/Dashboard';
 import Test from './pages/Test';
 import KakaoCallback from './pages/KakaoCallback';
+
+// 네비바를 숨길 경로 목록
+const NavbarWrapper = () => {
+  const location = useLocation();
+  const hideNavbarPaths = ['/login', '/auth/kakao/callback'];
+  if (hideNavbarPaths.includes(location.pathname)) return null;
+  return <Navbar />;
+};
 
 function App() {
   useEffect(() => {
@@ -23,7 +31,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <Navbar /> 
+          <NavbarWrapper /> 
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />

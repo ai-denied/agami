@@ -4,10 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
-  if (loading) return <div className="loading-spinner">Loading...</div>;
-  
+  if (loading) return <div style={{display:'flex', justifyContent:'center', marginTop:'20%'}}>Loading...</div>;
   return user ? children : <Navigate to="/login" replace />;
 };
-
 export default PrivateRoute;

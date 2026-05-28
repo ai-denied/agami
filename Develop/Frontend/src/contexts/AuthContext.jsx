@@ -1,11 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "https://agami-captcha.cloud",
-  withCredentials: true,
-});
-
+const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -16,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await api.get("/api/auth/me");
-      setUser(res.data.user); // { id, nickname, profile } 구조가 저장됨
+      setUser(res.data.user);
     } catch {
       setUser(null);
     } finally {
@@ -24,15 +20,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  useEffect(() => { checkAuth(); }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, loading, checkAuth, setUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, loading, checkAuth, setUser }}>{children}</AuthContext.Provider>;
 };
-
 export const useAuth = () => useContext(AuthContext);
