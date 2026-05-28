@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
 import WaveBg from "../components/WaveBg";
 import "../pages/Login.css";
-import { motion } from "framer-motion";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
@@ -24,13 +24,27 @@ const KakaoCallback = () => {
         await checkAuth();
         navigate("/", { replace: true });
       })
-      .catch(() => navigate("/login"));
+      .catch((err) => {
+        console.error("로그인 처리 실패:", err);
+        navigate("/login");
+      });
   }, [searchParams, navigate, checkAuth]);
 
   return (
     <div className="login-wrapper">
       <WaveBg />
-      <motion.img src="/agami-fish.svg" animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} />
+      <div style={{ position: "relative", zIndex: 10, textAlign: "center" }}>
+        <motion.img
+          src="/agami-fish.svg"
+          alt="Loading..."
+          style={{ width: "80px", height: "auto" }}
+          animate={{ rotate: 360, y: [0, -15, 0] }}
+          transition={{
+            rotate: { repeat: Infinity, duration: 2, ease: "linear" },
+            y: { repeat: Infinity, duration: 1.5, ease: "easeInOut" },
+          }}
+        />
+      </div>
     </div>
   );
 };
