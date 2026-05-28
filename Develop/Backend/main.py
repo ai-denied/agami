@@ -80,8 +80,8 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
         key="accessToken",
         value=jwt_token,
         httponly=True,
-        secure=True,     
-        samesite="none"  # 외부 도메인(카카오)에서 돌아올 때 쿠키가 유지되도록 변경
+        secure=True,     # HTTPS 환경 필수
+        samesite="lax"   # CORS 도메인 간 쿠키 공유 전략
     )
     
     return {
@@ -92,3 +92,13 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
             "profile": user.profile_image,
         },
     }
+
+@app.post("/api/auth/logout")
+async def logout(response: Response):
+    # 쿠키를 즉시 만료시켜 삭제합니다.
+    response.delete_cookie(
+        key="accessToken",
+        path="/",
+        domain="agami-captcha.cloud" # 도메인 설정이 있다면 일치시켜야 함
+    )
+    return {"status": "success", "message": "로그아웃 성공"}
