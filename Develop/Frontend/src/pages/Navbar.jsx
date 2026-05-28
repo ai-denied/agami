@@ -53,10 +53,9 @@ const Navbar = () => {
 
   if (isFirstVisit === null) return null;
 
-  const checkIsLogin = () => {
+  const isLogin = () => {
     return document.cookie.split('; ').some(row => row.startsWith('accessToken='));
   };
-  const isLogin = checkIsLogin();
 
   return (
     <motion.nav

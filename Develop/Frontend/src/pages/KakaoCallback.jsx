@@ -7,6 +7,7 @@ import "../pages/Login.css";
 
 // 쿠키를 포함하여 통신하기 위한 axios 인스턴스 생성
 const api = axios.create({
+  baseURL: "https://agami-captcha.cloud", // baseURL을 명시적으로 지정하는 것이 안전합니다.
   withCredentials: true,
 });
 
