@@ -81,7 +81,7 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
         value=jwt_token,
         httponly=True,
         secure=True,     
-        samesite="lax",  # 대부분의 경우 lax가 가장 안정적입니다.
+        samesite="none",  # 대부분의 경우 lax가 가장 안정적입니다.
         path="/"         # 도메인을 명시하지 않고 경로만 명시
     )
     
