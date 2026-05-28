@@ -98,12 +98,13 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
 async def get_me(request: Request):
     token = request.cookies.get("accessToken")
     if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise HTTPException(status_code=401, detail="인증되지 않음")
     try:
+        # 토큰 검증 로직 추가 (필요 시)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return {"status": "success", "user": payload}
     except:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="유효하지 않은 토큰")
     
 @app.post("/api/auth/logout")
 async def logout(response: Response):
