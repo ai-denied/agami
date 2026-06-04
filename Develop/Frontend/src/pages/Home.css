@@ -1,3 +1,36 @@
+/* =============================================================================
+   [전역 고정] 시스템 스크롤바 공간 개입 박탈 및 테마 엔진 최적화
+   ============================================================================= */
+html {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root,
+.global-app-root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important; 
+  position: relative;
+}
+
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+}
+
+* {
+  scrollbar-width: none !important; 
+  -ms-overflow-style: none !important; 
+}
+
+/* =============================================================================
+   [1] 테마별 변수 제어 (오리지널 동일)
+   ============================================================================= */
 :root {
   --main-color: #5da2ff;
   --home-bg: #ffffff;
@@ -5,7 +38,6 @@
   --circle-wave2: rgba(255, 255, 255, 0.1);
 }
 
-/* 다크모드 대응 */
 body.dark-mode {
   --home-bg: #1a1a1b;
   --main-color: #05122e;
@@ -19,46 +51,54 @@ body.dark-mode .fish-wrapper img {
   transition: filter 0.3s ease, opacity 0.3s ease;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
+body.no-scroll {
+  overflow: hidden !important;
+  height: 100dvh !important;
+}
+
+/* =============================================================================
+   [2] App.js 레이아웃 격리 구조 연동 스타일
+   ============================================================================= */
+.global-navbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 65px;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.global-main-viewport {
   width: 100%;
   height: 100%;
-  overflow: hidden; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden !important;
+  z-index: 1;
 }
 
-body.no-scroll {
-  overflow: hidden;
-  height: 100dvh;
-}
-
-/* 전체 뷰포트 컨테이너 스크롤 바인딩 */
 .main-wrapper {
   width: 100%;
-  height: 100dvh; 
-  overflow-y: auto;
-  overflow-x: hidden; 
+  height: 100%; 
+  overflow-y: auto !important; 
+  overflow-x: hidden !important; 
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
-  scrollbar-width: none;
 }
 
-.main-wrapper::-webkit-scrollbar {
-  display: none;
-}
-
-/* 각 개별 섹션 */
 .home-container,
 .second-container,
 .third-container {
   width: 100vw;
-  height: 100dvh;
+  height: 100vh;
+  height: 100dvh; 
   min-height: 720px;  
   scroll-snap-align: start;
   flex-shrink: 0;
   position: relative;
-  overflow: hidden;
+  overflow: hidden !important;
   cursor: default;
   box-sizing: border-box;
 }
@@ -82,7 +122,6 @@ body.no-scroll {
   --sea-base-color: #06162d;
   --sea-wave-color1: rgba(255, 255, 255, 0.1);
   --sea-wave-color2: rgba(255, 255, 255, 0.05);
-
   background-color: var(--sea-base-color);
   display: flex;
   justify-content: center;
@@ -177,6 +216,7 @@ body.dark-mode .second-container {
 .second-container h1 { font-size: 42px; color: #fff; margin-bottom: 20px; }
 .second-container p { color: rgba(255, 255, 255, 0.8); font-size: 18px; }
 
+/* --- Third Container 스타일 --- */
 .third-container {
   background-color: #010c1b;
   display: flex;
@@ -266,6 +306,7 @@ body.dark-mode .second-container {
 
 .box-btn.secondary:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
+/* --- 애니메이션 제어 구조 --- */
 @keyframes wave-rotate {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -290,6 +331,7 @@ body.dark-mode .second-container {
 .main-logo { width: 60%; }
 .logo-text { font-size: 20px; font-weight: 500; color: #929292; line-height: 1.6; }
 
+/* [완벽 복원] 원본 100vmax 크기와 translate 위치를 온전하게 보존 */
 .circle {
   position: absolute;
   top: 50%;
@@ -399,7 +441,7 @@ body.dark-mode .second-container {
   }
   .main-logo { width: clamp(180px, 45vw, 280px); }
   .logo-text { font-size: 16px; line-height: 1.5; }
-  .circle { right: -45%; opacity: 0.35; z-index: 5; }
+  .circle { right: -45%; opacity: 0.35; z-index: 5; transform: translate(0, -50%) !important; }
   .left-section { z-index: 50; }
   .fish-scene-layer { opacity: 0.45; }
   .bot-fixed-area { top: 84px; right: 20px; transform: scale(0.8); transform-origin: top right; }
@@ -410,42 +452,10 @@ body.dark-mode .second-container {
   --wave-base-color: #5da2ff;
   --wave-layer-color1: rgba(255, 255, 255, 0.2);
   --wave-layer-color2: rgba(255, 255, 255, 0.1);
-
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: none;
-  background-color: var(--wave-base-color); 
-  overflow: hidden;
-  transition: background-color 0.3s ease;
+  top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+  background-color: var(--wave-base-color); overflow: hidden; transition: background-color 0.3s ease;
 }
-
-body.dark-mode .wave-bg-layer {
-  --wave-base-color: #05122e; 
-  --wave-layer-color1: rgba(0, 150, 255, 0.08); 
-  --wave-layer-color2: rgba(0, 50, 150, 0.2); 
-}
-
-.wave-bg-layer::before,
-.wave-bg-layer::after {
-  content: "";
-  position: absolute;
-  width: 300vmax;
-  height: 300vmax;
-  top: -275vmax;
-  left: -100vmax;
-  border-radius: 43%;
-  background-color: var(--wave-layer-color1); 
-  animation: wave-rotate 12s infinite linear;
-  transition: background-color 0.3s ease;
-}
-
-.wave-bg-layer::after {
-  border-radius: 40%;
-  background-color: var(--wave-layer-color2); 
-  animation-duration: 18s;
-  top: -270vmax;
-}
+body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1: rgba(0, 150, 255, 0.08); --wave-layer-color2: rgba(0, 50, 150, 0.2); }
+.wave-bg-layer::before, .wave-bg-layer::after { content: ""; position: absolute; width: 300vmax; height: 300vmax; top: -275vmax; left: -100vmax; border-radius: 43%; background-color: var(--wave-layer-color1); animation: wave-rotate 12s infinite linear; transition: background-color 0.3s ease; }
+.wave-bg-layer::after { border-radius: 40%; background-color: var(--wave-layer-color2); animation-duration: 18s; top: -270vmax; }

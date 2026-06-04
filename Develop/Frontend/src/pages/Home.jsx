@@ -32,58 +32,38 @@ const FoodBot = memo(({ x, y, color }) => (
 FoodBot.displayName = "FoodBot";
 
 
-
-// --- 반응형 물고기 컴포넌트 ---
+// --- 반응형 물고기 컴포넌트 (해상도 변화 대응 수정) ---
 const ScaredFish = memo(({
   index,
   isFeeding,
   mousePos,
   allFishRefs,
   isFirstVisit,
+  windowSize, // 부모로부터 실시간 화면 크기를 전달받음
 }) => {
+  // 고정적인 속성만 useMemo로 관리하고, 좌표 계산은 실시간 크기를 반영하도록 분리
   const fishProps = useMemo(() => {
     const totalFish = 25;
     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-    
     const t = index / totalFish;
     const radius = Math.pow(t, 0.6) * 0.5;
     const angle = index * goldenAngle;
 
+    // 중앙 정렬 비율 수치화
     const centerRatioX = 0.75; 
     const centerRatioY = 0.55;  
 
-    const currentW = Math.max(window.innerWidth, 1200);
-    const currentH = Math.max(window.innerHeight, 720);
-
-    const initialX = (centerRatioX + Math.cos(angle) * radius * 0.6) * currentW;
-    const initialY = (centerRatioY + Math.sin(angle) * radius) * currentH;
-
     const margin = 400;
     const side = index % 4; 
-    let startX, startY;
-
     const spreadOffset = (index * 137.5) % 1;
-
-    if (side === 0) {
-      startX = currentW + margin;
-      startY = spreadOffset * currentH;
-    } else if (side === 1) {
-      startX = -margin;
-      startY = spreadOffset * currentH;
-    } else if (side === 2) {
-      startX = spreadOffset * currentW;
-      startY = -margin;
-    } else {
-      startX = spreadOffset * currentW;
-      startY = currentH + margin;
-    }
 
     return {
       scale: 0.45 + (index % 5) * 0.1, 
-      startX,
-      startY,
-      initialX,
-      initialY,
+      side,
+      spreadOffset,
+      margin,
+      angle,
+      radius,
       centerRatioX,
       centerRatioY,
       stiffness: 70 + (index % 5) * 10,
@@ -97,8 +77,37 @@ const ScaredFish = memo(({
     };
   }, [index]);
 
-  const mX = useMotionValue(isFirstVisit ? fishProps.startX : fishProps.initialX);
-  const mY = useMotionValue(isFirstVisit ? fishProps.startY : fishProps.initialY);
+  // 실시간 윈도우 크기에 기반한 초기 좌표 연산
+  const getInitialPositions = () => {
+    const currentW = Math.max(windowSize.width, 1200);
+    const currentH = Math.max(windowSize.height, 720);
+
+    const initialX = (fishProps.centerRatioX + Math.cos(fishProps.angle) * fishProps.radius * 0.6) * currentW;
+    const initialY = (fishProps.centerRatioY + Math.sin(fishProps.angle) * fishProps.radius) * currentH;
+
+    let startX, startY;
+    if (fishProps.side === 0) {
+      startX = currentW + fishProps.margin;
+      startY = fishProps.spreadOffset * currentH;
+    } else if (fishProps.side === 1) {
+      startX = -fishProps.margin;
+      startY = fishProps.spreadOffset * currentH;
+    } else if (fishProps.side === 2) {
+      startX = fishProps.spreadOffset * currentW;
+      startY = -fishProps.margin;
+    } else {
+      startX = fishProps.spreadOffset * currentW;
+      startY = currentH + fishProps.margin;
+    }
+
+    return { startX, startY, initialX, initialY };
+  };
+
+  const initialPositions = useMemo(getInitialPositions, [fishProps, windowSize]);
+
+  // Motion Value 초기화
+  const mX = useMotionValue(isFirstVisit ? initialPositions.startX : initialPositions.initialX);
+  const mY = useMotionValue(isFirstVisit ? initialPositions.startY : initialPositions.initialY);
   const mRotate = useMotionValue(0);
 
   const springX = useSpring(mX, { stiffness: fishProps.stiffness, damping: fishProps.damping });
@@ -111,11 +120,11 @@ const ScaredFish = memo(({
   useEffect(() => {
     allFishRefs.current[index] = { x: mX, y: mY };
     let requestRef;
-    const delayTime = isFirstVisit ? 5000 : 0;
+    const delayTime = isFirstVisit ? 5500 : 0; // 인트로 애니메이션 시간과 동기화
     let frameCount = 0;
     
-    const currentW = Math.max(window.innerWidth, 1200);
-    const currentH = Math.max(window.innerHeight, 720);
+    const currentW = Math.max(windowSize.width, 1200);
+    const currentH = Math.max(windowSize.height, 720);
 
     const centerX = currentW * fishProps.centerRatioX;
     const centerY = currentH * fishProps.centerRatioY;
@@ -129,8 +138,9 @@ const ScaredFish = memo(({
       const curX = mX.get();
       const curY = mY.get();
 
-      let targetX = fishProps.initialX + Math.sin(time * fishProps.floatSpeed + fishProps.phase) * fishProps.floatIntensity;
-      let targetY = fishProps.initialY + Math.cos(time * fishProps.floatSpeed * 0.8 + fishProps.phase) * fishProps.floatIntensity;
+      // 실시간 화면 크기가 적용된 타깃 좌표 계산
+      let targetX = initialPositions.initialX + Math.sin(time * fishProps.floatSpeed + fishProps.phase) * fishProps.floatIntensity;
+      let targetY = initialPositions.initialY + Math.cos(time * fishProps.floatSpeed * 0.8 + fishProps.phase) * fishProps.floatIntensity;
 
       const mouseX = mousePos.current.x;
       const mouseY = mousePos.current.y;
@@ -204,7 +214,7 @@ const ScaredFish = memo(({
       clearTimeout(timer);
       cancelAnimationFrame(requestRef);
     };
-  }, [fishProps, index, allFishRefs, isFirstVisit, mX, mY, mRotate, mousePos]);
+  }, [fishProps, initialPositions, index, allFishRefs, isFirstVisit, mX, mY, mRotate, mousePos, windowSize]);
 
   return (
     <motion.div
@@ -242,7 +252,7 @@ ScaredFish.displayName = "ScaredFish";
 
 
 // --- 지오데식 구 + 배경 네트워크 그래픽 ---
-const ParticleNetwork = memo(() => {
+const ParticleNetwork = memo(({ windowSize }) => {
   const canvasRef = useRef(null);
   const fishImgRef = useRef(null);
   const botImgRef = useRef(null);
@@ -264,14 +274,14 @@ const ParticleNetwork = memo(() => {
     let animationFrameId;
 
     const getSphereRadius = () => {
-      const currentW = Math.max(window.innerWidth, 1200);
-      const currentH = Math.max(window.innerHeight, 720);
+      const currentW = Math.max(windowSize.width, 1200);
+      const currentH = Math.max(windowSize.height, 720);
       return Math.min(currentW, currentH) * 0.38;
     };
 
-    const resize = () => {
-      canvas.width = Math.max(window.innerWidth, 1200);
-      canvas.height = Math.max(window.innerHeight, 720);
+    const updateCanvasSize = () => {
+      canvas.width = Math.max(windowSize.width, 1200);
+      canvas.height = Math.max(windowSize.height, 720);
       init();
     };
 
@@ -398,6 +408,8 @@ const ParticleNetwork = memo(() => {
       }
     };
 
+    updateCanvasSize();
+    
     const drawSphereLines = () => {
       ctx.lineWidth = 1.0;
       const connectionDistSq = 180 * 180;
@@ -468,14 +480,11 @@ const ParticleNetwork = memo(() => {
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    window.addEventListener("resize", resize, { passive: true });
-    resize();
     animate(0);
     return () => {
-      window.removeEventListener("resize", resize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [windowSize]); // windowSize 변경 시 캔버스 초기화 및 리사이즈 연동
 
   return (
     <canvas
@@ -498,12 +507,36 @@ const Home = () => {
   const [isFeeding, setIsFeeding] = useState(false);
   const [hasFed, setHasFed] = useState(false);
   const [foods, setFoods] = useState([]);
+  
+  // 브라우저 리사이즈 상태 관리 최적화
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
   const mousePos = useRef({ x: -1000, y: -1000 });
   const allFishRefs = useRef([]);
   const wrapperRef = useRef(null);
   const [spotlightPos, setSpotlightPos] = useState({ x: -500, y: -500 });
   const [targetFishPos, setTargetFishPos] = useState({ x: 50, y: 50 });
   const [isFound, setIsFound] = useState(false);
+
+  // 리사이즈 이벤트 바인딩 (디바운스/쓰로틀링 적용 가능)
+  useEffect(() => {
+    let timeoutId = null;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setWindowSize({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      }, 100); // 잦은 업데이트 방지를 위한 디바운스 처리
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const link =
@@ -526,6 +559,7 @@ const Home = () => {
       const timer = setTimeout(() => {
         sessionStorage.setItem("hasVisitedAgami", "true");
         document.body.classList.remove("no-scroll");
+        setIsFirstVisit(false); // 인트로가 끝나면 명시적으로 상태 변경 구조 확보
       }, 5500);
       return () => {
         clearTimeout(timer);
@@ -575,7 +609,7 @@ const Home = () => {
     mousePos.current.x = relX;
     mousePos.current.y = relY;
 
-    const currentW = Math.max(window.innerWidth, 1200);
+    const currentW = Math.max(windowSize.width, 1200);
     const threshold = currentW * 0.5;
     if (isFeeding && e.clientX < threshold) {
       setIsFeeding(false);
@@ -605,7 +639,7 @@ const Home = () => {
     const handleScroll = () => {
       if (wrapperRef.current) {
         const scrollY = wrapperRef.current.scrollTop;
-        const currentH = Math.max(window.innerHeight, 720);
+        const currentH = Math.max(windowSize.height, 720);
         if (isFeeding && scrollY > currentH * 0.5) {
           setIsFeeding(false);
         }
@@ -617,7 +651,7 @@ const Home = () => {
       if (currentWrapper)
         currentWrapper.removeEventListener("scroll", handleScroll);
     };
-  }, [isFeeding]);
+  }, [isFeeding, windowSize]);
 
   if (isFirstVisit === null) return null;
 
@@ -628,7 +662,7 @@ const Home = () => {
   };
   const scrollToSecond = () => {
     if (wrapperRef.current) {
-      const currentH = Math.max(window.innerHeight, 720);
+      const currentH = Math.max(windowSize.height, 720);
       wrapperRef.current.scrollTo({
         top: currentH,
         behavior: "smooth",
@@ -637,7 +671,7 @@ const Home = () => {
   };
   const scrollToThird = () => {
     if (wrapperRef.current) {
-      const currentH = Math.max(window.innerHeight, 720);
+      const currentH = Math.max(windowSize.height, 720);
       wrapperRef.current.scrollTo({
         top: currentH * 2,
         behavior: "smooth",
@@ -662,7 +696,6 @@ const Home = () => {
   const mainTransition = isFirstVisit
     ? { delay: 3.5, duration: 1.5, ease: [0.4, 0, 0.2, 1] }
     : { duration: 0 };
-
 
 
   return (
@@ -702,6 +735,7 @@ const Home = () => {
               mousePos={mousePos}
               allFishRefs={allFishRefs}
               isFirstVisit={isFirstVisit}
+              windowSize={windowSize} // 실시간 해상도 데이터 바인딩
             />
           ))}
         </div>
@@ -852,7 +886,7 @@ const Home = () => {
       </div>
 
       <div className="third-container">
-        <ParticleNetwork />
+        <ParticleNetwork windowSize={windowSize} />
 
         <div className="third-logo-wrapper">
           <motion.div
