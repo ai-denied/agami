@@ -699,7 +699,14 @@ const Home = () => {
 
 
   return (
-    <div className="main-wrapper" ref={wrapperRef} style={{ contentVisibility: "auto" }}>
+    <div 
+      className="main-wrapper" 
+      ref={wrapperRef} 
+      style={{ 
+        contentVisibility: "auto", 
+        overflow: isFirstVisit ? "hidden" : "auto" 
+      }}
+    >
       <div className="home-container" onMouseMove={handleMouseMove}>
         <motion.div
           className="circle"
