@@ -10,16 +10,24 @@ const Login = () => {
     const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
     const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
     
-    // 카카오 인가 코드 요청 URL
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
-    
-    // 현재 창을 카카오 로그인 페이지로 전환
     window.location.href = kakaoAuthUrl;
+  };
+
+  // 구글 로그인 핸들러 추가
+  const handleGoogleLogin = () => {
+    const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
+    
+    // 구글은 권한(scope) 명시가 필수적입니다.
+    const scope = "email profile";
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${scope}`;
+    
+    window.location.href = googleAuthUrl;
   };
 
   return (
     <div className="login-wrapper">
-      {/* 분리된 파도 배경 컴포넌트 */}
       <WaveBg />
 
       <LiquidGlass
@@ -28,14 +36,13 @@ const Login = () => {
           zIndex: '10',
           width: '90%',
           maxWidth: '420px',
-          // 고정된 rgba 대신 CSS 변수 사용
           background: 'var(--login-bg)', 
           backdropFilter: 'blur(10px)',
           padding: '60px 45px',
           borderRadius: '32px',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
           textAlign: 'center',
-          transition: 'background 0.3s ease, color 0.3s ease' // 부드러운 전환
+          transition: 'background 0.3s ease, color 0.3s ease'
         }}
       >
         <div className="login-header">
@@ -44,7 +51,6 @@ const Login = () => {
         </div>
 
         <div className="login-buttons">
-          {/* 카카오 공식 버튼 이미지 적용 */}
           <button className="kakao-btn-wrapper" onClick={handleKakaoLogin}>
             <img 
               src="/kakao_login_large_wide.png" 
@@ -53,7 +59,8 @@ const Login = () => {
             />
           </button>
           
-          <button className="login-btn google" onClick={() => console.log("Google Login")}>
+          {/* 구글 로그인 버튼에 핸들러 연결 */}
+          <button className="login-btn google" onClick={handleGoogleLogin}>
             <img src="/google-icon.svg" alt="Google" className="btn-icon" />
             <span>구글로 시작하기</span>
           </button>

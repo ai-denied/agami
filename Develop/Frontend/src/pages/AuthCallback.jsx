@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom"; // useParams 추가
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,7 +8,8 @@ import "../pages/Login.css";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
-const KakaoCallback = () => {
+const AuthCallback = () => {
+  const { provider } = useParams(); // URL에서 'kakao' 또는 'google' 추출
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
@@ -16,19 +17,23 @@ const KakaoCallback = () => {
 
   useEffect(() => {
     const code = searchParams.get("code");
-    if (!code || hasCalled.current) return;
+    
+    // provider가 없거나 코드가 없으면 방어 코드로 차단
+    if (!code || !provider || hasCalled.current) return;
     hasCalled.current = true;
 
-    api.get(`/api/auth/kakao/callback`, { params: { code } })
+    // provider 변수를 사용하여 백엔드 엔드포인트를 동적으로 지정합니다.
+    // 백엔드에는 /api/auth/kakao/callback 과 /api/auth/google/callback 이 준비되어 있어야 합니다.
+    api.get(`/api/auth/${provider}/callback`, { params: { code } })
       .then(async () => {
         await checkAuth();
         navigate("/", { replace: true });
       })
       .catch((err) => {
-        console.error("로그인 처리 실패:", err);
+        console.error(`${provider} 로그인 처리 실패:`, err);
         navigate("/login");
       });
-  }, [searchParams, navigate, checkAuth]);
+  }, [searchParams, navigate, checkAuth, provider]);
 
   return (
     <div className="login-wrapper">
@@ -48,4 +53,5 @@ const KakaoCallback = () => {
     </div>
   );
 };
-export default KakaoCallback;
+
+export default AuthCallback;

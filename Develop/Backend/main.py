@@ -39,6 +39,9 @@ def get_db():
     finally:
         db.close()
 
+# -----------------------------------------------------------------------------
+# 카카오 로그인 콜백 API
+# -----------------------------------------------------------------------------
 @app.get("/api/auth/kakao/callback")
 async def kakao_callback(code: str, response: Response, db: Session = Depends(get_db)):
     # 1. 카카오 토큰 요청
@@ -81,8 +84,8 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
         value=jwt_token,
         httponly=True,
         secure=True,     
-        samesite="lax",  # 대부분의 경우 lax가 가장 안정적입니다.
-        path="/"         # 도메인을 명시하지 않고 경로만 명시
+        samesite="lax",  
+        path="/"         
     )
     
     return {
@@ -94,7 +97,70 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
         },
     }
 
-# main.py
+# -----------------------------------------------------------------------------
+# 구글 로그인 콜백 API (새로 추가됨)
+# -----------------------------------------------------------------------------
+@app.get("/api/auth/google/callback")
+async def google_callback(code: str, response: Response, db: Session = Depends(get_db)):
+    # 1. 구글 토큰 요청
+    token_url = "https://oauth2.googleapis.com/token"
+    payload = {
+        "grant_type": "authorization_code",
+        "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+        "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+        "redirect_uri": os.getenv("GOOGLE_REDIRECT_URI", "https://agami-captcha.cloud/auth/google/callback"),
+        "code": code
+    }
+    
+    token_res = requests.post(token_url, data=payload)
+    if token_res.status_code != 200:
+        raise HTTPException(status_code=400, detail="구글 토큰 요청 실패")
+    
+    access_token = token_res.json().get("access_token")
+    
+    # 2. 유저 정보 조회
+    user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+    user_res = requests.get(user_info_url, headers={"Authorization": f"Bearer {access_token}"}).json()
+    
+    google_id = str(user_res.get("id"))
+    name = user_res.get("name", "구글 유저")
+    picture = user_res.get("picture")
+    
+    # 3. DB 로직
+    user = db.query(models.User).filter(models.User.google_id == google_id).first()
+    if not user:
+        user = models.User(google_id=google_id, nickname=name, profile_image=picture)
+        db.add(user)
+    else:
+        user.nickname = name
+        user.profile_image = picture
+    db.commit()
+    db.refresh(user)
+
+    # 4. JWT 발행 및 HttpOnly 쿠키 설정
+    jwt_token = create_access_token({"sub": str(user.id), "nickname": user.nickname})
+    
+    response.set_cookie(
+        key="accessToken",
+        value=jwt_token,
+        httponly=True,
+        secure=True,     
+        samesite="lax",
+        path="/"
+    )
+    
+    return {
+        "status": "success",
+        "user": {
+            "id": user.id,
+            "nickname": user.nickname,
+            "profile": user.profile_image,
+        },
+    }
+
+# -----------------------------------------------------------------------------
+# 공통 인증 및 로그아웃 API
+# -----------------------------------------------------------------------------
 @app.get("/api/auth/me")
 async def get_me(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
@@ -104,7 +170,6 @@ async def get_me(request: Request, db: Session = Depends(get_db)):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         
-        # DB에서 최신 정보를 다시 조회하여 프로필 데이터까지 포함
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
@@ -114,7 +179,7 @@ async def get_me(request: Request, db: Session = Depends(get_db)):
             "user": {
                 "id": user.id,
                 "nickname": user.nickname,
-                "profile": user.profile_image # 프로필 이미지 포함
+                "profile": user.profile_image
             }
         }
     except Exception:
