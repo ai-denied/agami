@@ -12,7 +12,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await api.get("/api/auth/me");
-      setUser(res.data.user);
+      const userData = res.data.user;
+
+      // [추가된 로직] 프로필 이미지가 존재할 경우, http를 https로 중앙에서 강제 변환
+      if (userData && userData.profile) {
+        userData.profile = userData.profile.replace('http://', 'https://');
+      }
+
+      setUser(userData); // 정제된 안전한 데이터를 전역 상태로 저장
     } catch {
       setUser(null);
     } finally {
