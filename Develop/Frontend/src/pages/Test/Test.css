@@ -4,14 +4,15 @@
 .page-wrapper {
   height: 100vh;
   height: 100dvh; 
+  padding-top: 65px; /* 네비게이션 바 공간을 최상단에서 원천 확보 */
   box-sizing: border-box;
-  overflow: hidden; 
+  overflow: hidden; /* 페이지 전체 단위의 브라우저 스크롤은 차단 */
 }
 
 .layout-container {
   display: flex;
-  height: 100%; 
-  padding-top: 65px; 
+  height: 100%; /* padding-top 65px를 제외한 나머지 화면을 100% 사용 */
+  width: 100%;
   background: #f4f7fb;
   box-sizing: border-box;
   transition: background 0.3s ease;
@@ -23,20 +24,18 @@ body.dark-mode .layout-container {
 }
 
 /* =============================================================================
-   [1-1] 스크롤바 강제 노출 디자인 (크로스 브라우징)
+   [1-1] 스크롤바 강제 노출 디자인
    ============================================================================= */
-/* Firefox 등 비-Webkit 브라우저용 표준 속성 */
 .sidebar, .main-content {
   scrollbar-width: thin;
   scrollbar-color: rgba(93, 162, 255, 0.6) transparent;
 }
 
-/* Chrome, Safari 등 Webkit 브라우저 강제 설정 */
 .sidebar::-webkit-scrollbar,
 .main-content::-webkit-scrollbar {
   width: 8px; 
-  display: block; /* OS 설정 무시 및 스크롤바 영역 강제 확보 */
-  background-color: rgba(0, 0, 0, 0.02); /* 투명하지만 트랙이 존재하도록 설정 */
+  display: block; 
+  background-color: rgba(0, 0, 0, 0.02); 
 }
 
 .sidebar::-webkit-scrollbar-track,
@@ -68,11 +67,13 @@ body.dark-mode .main-content::-webkit-scrollbar-thumb {
 .sidebar {
   width: 250px;
   flex-shrink: 0; 
+  height: 100%; /* 부모(layout-container)의 높이를 넘지 못하게 강제 */
   background: #ffffff;
   border-right: 1px solid #e0e7f3;
   padding: 30px 20px;
+  box-sizing: border-box;
   transition: background 0.3s ease, border-color 0.3s ease;
-  overflow-y: auto; 
+  overflow-y: auto; /* 한계를 넘으면 스크롤 발생 */
 }
 
 body.dark-mode .sidebar {
@@ -127,14 +128,14 @@ body.dark-mode .sidebar li:hover {
    ============================================================================= */
 .main-content {
   flex: 1;
-  padding: 40px;
+  height: 100%; /* 캡챠 컨텐츠가 커져도 이 한계선을 넘지 못함 */
   min-width: 600px; 
+  padding: 40px;
   display: flex;
   flex-direction: column;
   align-items: center; 
-  overflow-y: auto; 
-  height: 100%; 
   box-sizing: border-box;
+  overflow-y: auto; /* 한계를 넘으면 여기서 스크롤 발생 */
 }
 
 .captcha-widget-card {
