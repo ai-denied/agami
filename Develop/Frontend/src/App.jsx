@@ -68,8 +68,7 @@ function App() {
               <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
-                {/* 기존 주석 처리 오류 수정 */}
-                {/* <Route path="settings" element={<Settings />} /> */}
+                <Route path="settings" element={<Settings />} /> 
               </Route>
             </Routes>
           </Layout>
