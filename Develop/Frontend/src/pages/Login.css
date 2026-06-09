@@ -1,11 +1,21 @@
 :root {
-  --login-subtitle: #707070;
-  --login-footer: #111;
+  --login-bg: rgba(255, 255, 255, 0.5);
+  --login-subtitle: #777;
+  --login-footer: #000;
+
+  --google-btn-bg: #fff;
+  --google-btn-text: #202124;
+  --google-btn-border: #dadce0;
 }
 
 body.dark-mode {
+  --login-bg: rgba(30, 30, 35, 0.7);
   --login-subtitle: #aaa;
   --login-footer: #eee;
+
+  --google-btn-bg: #2d2d2d;
+  --google-btn-text: #fff;
+  --google-btn-border: #444;
 }
 
 .login-wrapper {
@@ -27,92 +37,90 @@ body.dark-mode {
 }
 
 .login-logo {
-  height: 90px;
-  margin-bottom: 40px;
+  height: 60px;
+  margin-bottom: 12px;
 }
 
 .login-subtitle {
-  font-size: 1.2rem;
   color: var(--login-subtitle);
-  margin-bottom: 70px;
+  font-size: 0.9rem;
+  margin-bottom: 40px;
+  transition: color 0.3s ease;
 }
 
 .login-buttons {
-  width: 100%;
-  max-width: 660px;
-  margin: 0 auto;
-
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+
+  width: 100%;
 }
 
+/* 공통 버튼 */
 .social-btn {
   position: relative;
 
   width: 100%;
-  height: 78px;
+  height: 56px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 14px;
+  border-radius: 10px;
 
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
 
   cursor: pointer;
-  transition: 0.2s;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .social-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .social-icon {
   position: absolute;
-  left: 28px;
+  left: 20px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+/* 카카오 */
 .kakao {
   background: #FEE500;
   border: none;
   color: #191919;
 }
 
+/* 구글 */
 .google {
-  background: white;
-  border: 1px solid #dadce0;
-  color: #202124;
+  background: var(--google-btn-bg);
+  color: var(--google-btn-text);
+  border: 1px solid var(--google-btn-border);
 }
 
 .login-footer {
-  margin-top: 55px;
-  font-size: 1rem;
+  margin-top: 35px;
+  font-size: 0.8rem;
   color: var(--login-footer);
+
+  transition: color 0.3s ease;
 }
 
 @media (max-width: 768px) {
-  .login-logo {
-    height: 70px;
-  }
-
-  .login-subtitle {
-    font-size: 1rem;
-    margin-bottom: 50px;
-  }
-
   .social-btn {
-    height: 68px;
-    font-size: 1rem;
+    height: 52px;
+    font-size: 0.95rem;
   }
 
   .social-icon {
-    left: 20px;
+    left: 16px;
   }
 }

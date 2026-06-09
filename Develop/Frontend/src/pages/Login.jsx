@@ -61,11 +61,16 @@ const Login = () => {
       <LiquidGlass
         style={{
           position: 'relative',
-          zIndex: 10,
+          zIndex: '10',
           width: '90%',
-          maxWidth: '840px',
-          padding: '90px 80px',
-          textAlign: 'center'
+          maxWidth: '420px',
+          background: 'var(--login-bg)',
+          backdropFilter: 'blur(10px)',
+          padding: '60px 45px',
+          borderRadius: '32px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
+          textAlign: 'center',
+          transition: 'background 0.3s ease, color 0.3s ease'
         }}
       >
         <div className="login-header">
