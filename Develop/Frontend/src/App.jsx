@@ -2,14 +2,14 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
-import PrivateRoute from './components/PrivateRoute'; 
-import Navbar from './pages/Navbar'; 
-import Home from './pages/Home'; 
-import Login from './pages/Login'; 
-import Price from './pages/Price';
-import Dashboard from './pages/Dashboard';
-import Test from './pages/Test';
-import AuthCallback from "./pages/AuthCallback";
+import PrivateRoute from './routes/PrivateRoute'; 
+import Navbar from './layouts/Navbar'; 
+import Home from './pages/Home/Home'; 
+import Login from './pages/Login/Login'; 
+import Price from './pages/Price/Price';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Test from './pages/Test/Test';
+import AuthCallback from "./pages/Login/AuthCallback";
 
 // 네비바 렌더링 제어를 위한 내부 컴포넌트
 const Layout = ({ children }) => {

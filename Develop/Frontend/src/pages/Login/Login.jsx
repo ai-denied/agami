@@ -1,6 +1,6 @@
 import React from 'react';
-import WaveBg from '../components/WaveBg';
-import LiquidGlass from '../components/LiquidGlass';
+import WaveBg from '../../components/WaveBg';
+import LiquidGlass from '../../components/LiquidGlass/LiquidGlass';
 import './Login.css';
 
 const GoogleIcon = () => (
