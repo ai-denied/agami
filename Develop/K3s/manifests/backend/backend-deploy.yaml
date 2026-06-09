@@ -17,7 +17,7 @@ spec:
         zone: backend
       containers:
       - name: backend
-        image: agami-captcha.cloud:8443/agami/backend:2606071232
+        image: agami-captcha.cloud:8443/agami/backend:2606091010
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -36,7 +36,6 @@ spec:
           value: "21bb77241dca5e660b3bdc037ed54db3"
         - name: KAKAO_REDIRECT_URI
           value: "https://agami-captcha.cloud/auth/kakao/callback"
-        # [추가] main.py가 필요로 하는 JWT 설정들
         - name: JWT_SECRET_KEY
           value: "super-secret-key-for-agami-jwt-token"
         - name: JWT_ALGORITHM

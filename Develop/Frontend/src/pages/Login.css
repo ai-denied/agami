@@ -2,19 +2,25 @@
   --login-bg: rgba(255, 255, 255, 0.5);
   --login-subtitle: #777;
   --login-footer: #000;
-  --google-btn-bg: #fff;
-  --google-btn-text: #000;
-  --google-btn-border: #eee;
+  
+  /* 구글 버튼 기본 (라이트) 모드 색상 */
+  --google-btn-bg: #ffffff;
+  --google-btn-text: #3c4043; /* 구글 공식 폰트 색상 */
+  --google-btn-border: #dadce0;
+  --google-btn-hover: #f8faff;
 }
 
 /* 다크모드 대응 */
 body.dark-mode {
-  --login-bg: rgba(30, 30, 35, 0.7); /* 어두운 반투명 배경 */
-  --login-subtitle: #aaa; /* 보조 텍스트 밝게 */
-  --login-footer: #eee; /* 하단 텍스트 밝게 */
-  --google-btn-bg: #2d2d2d; /* 구글 버튼 다크 대응 */
-  --google-btn-text: #fff;
-  --google-btn-border: #444;
+  --login-bg: rgba(30, 30, 35, 0.7);
+  --login-subtitle: #aaa; 
+  --login-footer: #eee; 
+  
+  /* 구글 버튼 다크 모드 색상 */
+  --google-btn-bg: #2d2d2d; 
+  --google-btn-text: #ffffff;
+  --google-btn-border: #444444;
+  --google-btn-hover: #3d3d3d;
 }
 
 .login-wrapper {
@@ -39,7 +45,11 @@ body.dark-mode {
   transition: color 0.3s ease;
 }
 
-.login-buttons { display: flex; flex-direction: column; gap: 16px; }
+.login-buttons { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+}
 
 /* 카카오 공식 버튼 스타일 */
 .kakao-btn-wrapper {
@@ -55,23 +65,49 @@ body.dark-mode {
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 6px; /* 공식 이미지의 둥근 모서리에 맞춤 */
+  border-radius: 6px;
 }
 
+/* 공통 버튼 설정 (구글) */
 .login-btn { 
-  display: flex; align-items: center; justify-content: center; 
-  padding: 15px; border: none;
-  font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s;
-  border-radius: 8px;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 0; 
+  border: none;
+  font-size: 1rem; 
+  cursor: pointer; 
+  transition: all 0.2s ease;
+  height: 48px; /* 카카오 공식 이미지 비율과 유사한 높이 설정 */
+  border-radius: 6px;
+  position: relative;
 }
 
+/* 구글 커스텀 디자인 세부 설정 */
 .login-btn.google { 
   background-color: var(--google-btn-bg); 
   color: var(--google-btn-text);
   border: 1px solid var(--google-btn-border); 
+  /* 구글 공식 가이드의 은은한 그림자 */
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); 
 }
 
-.btn-icon { width: 20px; height: 20px; margin-right: 10px; }
+.login-btn.google:hover {
+  background-color: var(--google-btn-hover);
+}
+
+.login-btn.google .google-icon { 
+  width: 18px; 
+  height: 18px; 
+  position: absolute;
+  left: 20px; /* 로고를 좌측에 고정시켜 카카오 버튼의 아이콘 배열과 일치감 부여 */
+}
+
+.login-btn.google .google-text {
+  font-family: 'Roboto', 'Noto Sans KR', sans-serif; /* 구글 권장 폰트 */
+  font-weight: 500;
+  font-size: 15px;
+}
 
 .login-footer { 
   margin-top: 35px; 

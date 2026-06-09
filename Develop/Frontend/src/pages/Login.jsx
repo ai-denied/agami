@@ -14,12 +14,11 @@ const Login = () => {
     window.location.href = kakaoAuthUrl;
   };
 
-  // 구글 로그인 핸들러 추가
+  // 구글 로그인 핸들러
   const handleGoogleLogin = () => {
     const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
     
-    // 구글은 권한(scope) 명시가 필수적입니다.
     const scope = "email profile";
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${scope}`;
     
@@ -59,10 +58,10 @@ const Login = () => {
             />
           </button>
           
-          {/* 구글 로그인 버튼에 핸들러 연결 */}
           <button className="login-btn google" onClick={handleGoogleLogin}>
-            <img src="/google-icon.svg" alt="Google" className="btn-icon" />
-            <span>구글로 시작하기</span>
+            {/* SVG 이미지가 안 나올 경우, public 폴더 내 파일명/경로를 다시 확인해주세요 */}
+            <img src="/google-icon.svg" alt="Google" className="btn-icon google-icon" />
+            <span className="google-text">Google 계정으로 로그인</span>
           </button>
         </div>
 
