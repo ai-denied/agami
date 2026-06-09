@@ -11,17 +11,27 @@ import Price from '@/pages/Price/Price';
 import Test from '@/pages/Test/Test';
 import AuthCallback from "@/pages/Login/AuthCallback";
 
-// 마이페이지 관련 컴포넌트
 import MyPage from '@/pages/MyPage/MyPage'; 
 import Dashboard from '@/pages/MyPage/Dashboard'; 
 import Settings from '@/pages/MyPage/Settings'; 
+
+// 1. (신규 추가) 로그인된 사용자의 접근을 막는 PublicRoute 래퍼
+const PublicRoute = ({ children }) => {
+  const { user } = useAuth();
+  
+  // 유저 정보가 존재(로그인 상태)하면 무조건 대시보드로 강제 이동 (replace: true로 뒤로가기 방지)
+  if (user) {
+    return <Navigate to="/mypage/dashboard" replace />;
+  }
+  
+  return children;
+};
 
 // 네비바 렌더링 제어 컴포넌트
 const Layout = ({ children }) => {
   const location = useLocation();
   const { user } = useAuth();
   
-  // 소셜 로그인 콜백 경로이거나, 로그인된 유저(마이페이지 렌더링 상태)일 경우 네비바 숨김
   const isHideNavbar = location.pathname.startsWith('/auth/') || user;
   
   return (
@@ -43,19 +53,23 @@ function App() {
         <Router>
           <Layout>
             <Routes>
-              {/* 퍼블릭 라우트 */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
+              {/* 2. (수정) Home과 Login 라우트를 <PublicRoute>로 감싸서 
+                로그인된 유저는 접근하지 못하도록 차단합니다. 
+              */}
+              <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+              
+              {/* 가격과 테스트 페이지는 로그인 유저도 볼 수 있게 PublicRoute로 감싸지 않았습니다 */}
               <Route path="/price" element={<Price />} />
               <Route path="/test" element={<Test />} />
               <Route path="/auth/:provider/callback" element={<AuthCallback />} />
 
               {/* 프라이빗 라우트 (로그인 필수) */}
               <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>}>
-                {/* /mypage 접근 시 기본으로 대시보드로 리다이렉트 */}
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
-                /* <Route path="settings" element={<Settings />} />
+                {/* 기존 주석 처리 오류 수정 */}
+                {/* <Route path="settings" element={<Settings />} /> */}
               </Route>
             </Routes>
           </Layout>
