@@ -3,7 +3,7 @@
    ============================================================================= */
 .page-wrapper {
   height: 100vh;
-  height: 100dvh; /* 하단 툴바 등에 의해 잘리는 현상 방지 */
+  height: 100dvh; 
   box-sizing: border-box;
   overflow: hidden; 
 }
@@ -20,6 +20,35 @@
 
 body.dark-mode .layout-container {
   background: #1a1a1b; 
+}
+
+/* =============================================================================
+   [1-1] 스크롤바 강제 노출 디자인 (Webkit 브라우저 대상)
+   ============================================================================= */
+.sidebar::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+  width: 8px; /* 스크롤바 두께 지정으로 강제 활성화 */
+}
+
+.sidebar::-webkit-scrollbar-track,
+.main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.main-content::-webkit-scrollbar-thumb {
+  background-color: rgba(93, 162, 255, 0.4);
+  border-radius: 10px;
+}
+
+body.dark-mode .sidebar::-webkit-scrollbar-thumb,
+body.dark-mode .main-content::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.main-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(93, 162, 255, 0.8);
 }
 
 /* =============================================================================
@@ -94,7 +123,7 @@ body.dark-mode .sidebar li:hover {
   align-items: center; 
   overflow-y: auto; 
   height: 100%; 
-  box-sizing: border-box; /* 패딩을 포함하여 높이를 계산해 내부 여백 유지 */
+  box-sizing: border-box;
 }
 
 .captcha-widget-card {
