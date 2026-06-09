@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import "./Settings.css";
@@ -8,66 +8,45 @@ const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentia
 const Settings = () => {
   const { user, setUser } = useAuth();
   const [nickname, setNickname] = useState("");
-  const [previewImage, setPreviewImage] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef(null);
+  const [notification, setNotification] = useState({ show: false, message: "", type: "" });
 
-  // 초기 유저 정보 로드
   useEffect(() => {
     if (user) {
       setNickname(user.nickname || "");
-      setPreviewImage(user.profile || "/default-profile.png");
     }
   }, [user]);
 
-  // 이미지 파일 선택 핸들러
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      // 로컬 미리보기 생성
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+  // 자체 UI 알림 함수
+  const showNotification = (message, type = "success") => {
+    setNotification({ show: true, message, type });
+    // 3초 후 메시지 자동 숨김
+    setTimeout(() => {
+      setNotification({ show: false, message: "", type: "" });
+    }, 3000);
   };
 
-  // 프로필 업데이트 제출 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const formData = new FormData();
-    if (nickname !== user.nickname) {
-      formData.append("nickname", nickname);
-    }
-    if (selectedFile) {
-      formData.append("profile_image", selectedFile);
-    }
-
-    // 변경사항이 없으면 조기 종료
-    if (!formData.has("nickname") && !formData.has("profile_image")) {
-      alert("변경된 내용이 없습니다.");
+    if (nickname === user?.nickname) {
+      showNotification("변경된 닉네임이 없습니다.", "error");
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const response = await api.patch("/api/auth/me", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // JSON 페이로드 전송
+      const response = await api.patch("/api/auth/me", { nickname });
 
       if (response.data.status === "success") {
-        alert("프로필이 성공적으로 업데이트되었습니다.");
-        setUser(response.data.user); // 전역 유저 상태 갱신
-        setSelectedFile(null);
+        showNotification("닉네임이 성공적으로 업데이트되었습니다.");
+        setUser(response.data.user);
       }
     } catch (error) {
       console.error("프로필 업데이트 실패:", error);
-      alert("프로필 업데이트 중 오류가 발생했습니다.");
+      showNotification("닉네임 변경 중 오류가 발생했습니다.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -79,32 +58,16 @@ const Settings = () => {
       <p className="settings-description">플랫폼에서 사용될 프로필과 닉네임을 관리할 수 있습니다.</p>
 
       <form className="settings-form" onSubmit={handleSubmit}>
-        {/* 프로필 이미지 수정 영역 */}
-        <div className="form-group image-upload-group">
+        {/* 읽기 전용 프로필 이미지 */}
+        <div className="form-group profile-readonly-group">
           <label className="form-label">프로필 사진</label>
           <div className="image-preview-wrapper">
             <img 
-              src={previewImage} 
-              alt="Profile Preview" 
+              src={user?.profile || "/agami-profile.png"} 
+              alt="Profile" 
               className="settings-profile-img"
-              onError={(e) => { e.target.src = "/default-profile.png"; }}
+              onError={(e) => { e.target.src = "/agami-profile.png"; }}
             />
-            <div className="image-actions">
-              <button 
-                type="button" 
-                className="btn-change-image"
-                onClick={() => fileInputRef.current.click()}
-              >
-                이미지 변경
-              </button>
-              <input 
-                type="file" 
-                accept="image/*" 
-                ref={fileInputRef} 
-                onChange={handleImageChange} 
-                style={{ display: "none" }} 
-              />
-            </div>
           </div>
         </div>
 
@@ -123,8 +86,13 @@ const Settings = () => {
           />
         </div>
 
-        {/* 저장 버튼 */}
+        {/* 저장 버튼 및 알림 메시지 영역 */}
         <div className="form-actions">
+          {notification.show && (
+            <span className={`notification-msg ${notification.type}`}>
+              {notification.message}
+            </span>
+          )}
           <button 
             type="submit" 
             className="btn-submit" 
