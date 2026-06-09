@@ -2,9 +2,9 @@ import React, { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom"; // useParams 추가
 import { motion } from "framer-motion";
 import axios from "axios";
-import { useAuth } from "../../contexts/AuthContext";
-import WaveBg from "../../components/WaveBg/WaveBg";
-import "../pages/Login.css";
+import { useAuth } from "@/contexts/AuthContext";
+import WaveBg from "@/components/WaveBg/WaveBg";
+import "@/pages/Login.css";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 

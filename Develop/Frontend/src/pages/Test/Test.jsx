@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Flashlight from '../components/FlashlightCaptcha';
+import Flashlight from '@/components/FlashlightCaptcha';
 import './Test.css';
 
 const CAPTCHA_TYPES = [
