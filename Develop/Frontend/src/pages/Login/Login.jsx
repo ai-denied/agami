@@ -1,7 +1,7 @@
 import React from 'react';
 import WaveBg from '@/components/WaveBg';
 import LiquidGlass from '@/components/LiquidGlass/LiquidGlass';
-import './Login.css';
+import '@/Login/Login.css';
 
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 48 48">

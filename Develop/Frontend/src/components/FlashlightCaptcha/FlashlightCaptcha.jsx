@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useId, useLayoutEffect } from 'react';
-import './FlashlightCaptcha.css';
+import '@/FlashlightCaptcha/FlashlightCaptcha.css';
 
 // =============================================================================
 // [1] FishTimer 컴포넌트

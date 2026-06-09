@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import './Dashboard.css';
+import '@/Dashboard/Dashboard.css';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar

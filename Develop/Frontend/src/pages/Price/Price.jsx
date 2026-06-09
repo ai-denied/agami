@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import React from "react";
-import "./Price.css";
+import "@/Price/Price.css";
 import BubbleBtn from "@/components/BubbleBtn";
 import WaveBg from "@/components/WaveBg";
 import LiquidGlass from "@/components/LiquidGlass";

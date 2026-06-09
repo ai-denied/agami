@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../contexts/AuthContext";
-import "./Navbar.css";
+import { useAuth } from "@/contexts/AuthContext";
+import "@/Navbar/Navbar.css";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
