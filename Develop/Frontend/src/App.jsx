@@ -14,6 +14,7 @@ import AuthCallback from "@/pages/Login/AuthCallback";
 // 마이페이지 관련 컴포넌트
 import MyPage from '@/pages/MyPage/MyPage'; 
 import Dashboard from '@/pages/MyPage/Dashboard'; 
+import Settings from '@/pages/MyPage/Settings'; 
 
 // 네비바 렌더링 제어 컴포넌트
 const Layout = ({ children }) => {
@@ -33,7 +34,7 @@ const Layout = ({ children }) => {
 
 function App() {
   useEffect(() => {
-    document.title = "Agami - 차세대 지능형 캡챠 서비스";
+    document.title = "agami - 차세대 지능형 캡챠 서비스";
   }, []);
 
   return (
@@ -54,6 +55,7 @@ function App() {
                 {/* /mypage 접근 시 기본으로 대시보드로 리다이렉트 */}
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                /* <Route path="settings" element={<Settings />} />
               </Route>
             </Routes>
           </Layout>

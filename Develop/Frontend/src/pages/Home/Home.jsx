@@ -865,7 +865,7 @@ const Home = () => {
           </motion.div>
         </div>
         <div className="content-box">
-          <h1>Agami의 혁신적인 기술</h1>
+          <h1>agami의 혁신적인 기술</h1>
           <p>사용자 경험을 해치지 않는 스마트한 보안 솔루션입니다.</p>
           <span className="game-tip">
             어둠 속에서 숨겨진 물고기를 찾아보세요!
@@ -933,7 +933,7 @@ const Home = () => {
           >
             <h2 className="box-title">보안을 넘어선 새로운 연결</h2>
             <p className="box-desc">
-              Agami는 단순한 인증을 넘어 사용자 친화적인 인터페이스와
+              agami는 단순한 인증을 넘어 사용자 친화적인 인터페이스와
               <br />
               강력한 지능형 보안 엔진을 결합하여 최상의 디지털 환경을
               제공합니다.
