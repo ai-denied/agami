@@ -13,8 +13,7 @@ import AuthCallback from "@/pages/Login/AuthCallback";
 
 // 마이페이지 관련 컴포넌트
 import MyPage from '@/pages/MyPage/MyPage'; 
-import Dashboard from '@/pages/Dashboard/Dashboard'; 
-import Settings from '@/pages/Settings/Settings'; 
+import Dashboard from '@/pages/MyPage/Dashboard'; 
 
 // 네비바 렌더링 제어 컴포넌트
 const Layout = ({ children }) => {
@@ -55,7 +54,6 @@ function App() {
                 {/* /mypage 접근 시 기본으로 대시보드로 리다이렉트 */}
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
-                <Route path="settings" element={<Settings />} />
               </Route>
             </Routes>
           </Layout>
