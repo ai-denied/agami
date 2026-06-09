@@ -4,11 +4,8 @@
 .page-wrapper {
   height: 100vh;
   box-sizing: border-box;
+  overflow: hidden; /* 페이지 전체 단위의 불필요한 스크롤 방지 */
 }
-
-/* 기존의 고정형 .navbar 스타일 구문(#ffffff 강제 지정 및 하단 보더라인)을 제거하여 
-  테마에 상관없이 배경 잔선이 노출되는 결함을 완벽히 파괴했습니다.
-*/
 
 .layout-container {
   display: flex;
@@ -17,6 +14,7 @@
   background: #f4f7fb;
   box-sizing: border-box;
   transition: background 0.3s ease;
+  overflow-x: auto; /* 화면 폭이 극도로 좁아질 경우 레이아웃 붕괴 방지용 가로 스크롤 생성 */
 }
 
 body.dark-mode .layout-container {
@@ -28,10 +26,12 @@ body.dark-mode .layout-container {
    ============================================================================= */
 .sidebar {
   width: 250px;
+  flex-shrink: 0; /* 폭이 줄어들어도 사이드바 비율이 강제로 찌그러지는 것을 방지 */
   background: #ffffff;
   border-right: 1px solid #e0e7f3;
   padding: 30px 20px;
   transition: background 0.3s ease, border-color 0.3s ease;
+  overflow-y: auto; /* 메뉴 항목이 많아질 경우 사이드바 내에서만 스크롤 가능하도록 조치 */
 }
 
 body.dark-mode .sidebar {
@@ -87,10 +87,11 @@ body.dark-mode .sidebar li:hover {
 .main-content {
   flex: 1;
   padding: 40px;
+  min-width: 600px; /* 캡챠 컴포넌트의 본래 비율이 유지되도록 최소 너비 보장 */
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto; 
+  overflow-y: auto; /* 콘텐츠가 세로로 길어지면 해당 영역에서만 스크롤되도록 제어 */
 }
 
 .captcha-widget-card {
@@ -156,7 +157,7 @@ body.dark-mode .widget-body {
    ============================================================================= */
 .captcha-description {
   width: 100%;
-  max-width: 720px; /* 메인 캡챠 규격 박스(720px)와 좌우 균형 정렬 일치 */
+  max-width: 720px;
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid #e0e7f3;

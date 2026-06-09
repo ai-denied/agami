@@ -22,15 +22,17 @@ body.dark-mode {
 
 .pricing-wrapper {
   position: relative;
-  /* 핵심 수정: 높이를 100vh로 고정하고 padding 대신 정렬로 제어 */
-  height: 100vh; 
+  /* 콘텐츠가 화면보다 길어질 경우를 대비해 height 대신 min-height 사용 */
+  min-height: 100vh; 
   background-color: var(--pricing-bg);
   font-family: 'Pretendard', sans-serif;
   display: flex;
   align-items: center;      
   justify-content: center;   
   box-sizing: border-box;
-  overflow: hidden;
+  /* 가로 스크롤은 숨기고 세로 스크롤을 허용하여 넘치는 콘텐츠 대응 */
+  overflow-x: hidden;
+  overflow-y: auto;
   transition: background-color 0.3s ease;
 }
 
@@ -40,12 +42,12 @@ body.dark-mode {
   width: 100%;
   max-width: 1200px;
   padding: 0 20px; 
-  /* 핵심 수정: 투명 네비바 공간만큼 콘텐츠 영역을 아래로 밀어줌 */
+  /* 네비바 공간만큼 밀어주고, 하단 여백을 추가하여 스크롤 시 끝단 확보 */
   margin-top: var(--nav-height); 
+  margin-bottom: 40px; 
 }
 
-/* 
-  [핵심] 
+/* [핵심] 
   LiquidGlass 파일에 있는 원래 모양을 그대로 쓰기 위해 
   여기서는 배경 투명도와 테두리 변수만 수정합니다.
 */
@@ -70,18 +72,18 @@ body.dark-mode .pricing-content .liquid-glass-box {
 .pricing-header p {
   color: var(--text-main);
   text-align: center;
-  margin-bottom: 40px; /* 여백 미세 조정 */
+  margin-bottom: 40px;
 }
 
 .pricing-container {
   display: flex;
   justify-content: center;
   gap: 20px;
-  flex-wrap: nowrap;
+  /* 창이 좁아지면 카드가 찌그러지지 않고 다음 줄로 넘어가도록 수정 */
+  flex-wrap: wrap; 
 }
 
 .price-card {
-  /* 카드 내부 질감은 별도 변수 없이 인라인으로 고정하셨던 기존 수치 유지 */
   background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -183,20 +185,14 @@ body.dark-mode .price-card:hover {
 /* 태블릿 및 모바일 대응 수정 */
 @media (max-width: 950px) {
   .pricing-wrapper {
-    /* 모바일에서는 카드가 아래로 쌓이므로 스크롤이 필연적으로 발생해야 합니다 */
     height: auto;
     min-height: 100vh;
-    overflow-y: auto;
     padding-top: var(--nav-height);
   }
   
   .pricing-content {
     margin-top: 0;
     padding: 40px 20px;
-  }
-
-  .pricing-container { 
-    flex-wrap: wrap; 
   }
   
   .price-card { 
