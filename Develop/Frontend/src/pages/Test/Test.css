@@ -23,11 +23,20 @@ body.dark-mode .layout-container {
 }
 
 /* =============================================================================
-   [1-1] 스크롤바 강제 노출 디자인 (Webkit 브라우저 대상)
+   [1-1] 스크롤바 강제 노출 디자인 (크로스 브라우징)
    ============================================================================= */
+/* Firefox 등 비-Webkit 브라우저용 표준 속성 */
+.sidebar, .main-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(93, 162, 255, 0.6) transparent;
+}
+
+/* Chrome, Safari 등 Webkit 브라우저 강제 설정 */
 .sidebar::-webkit-scrollbar,
 .main-content::-webkit-scrollbar {
-  width: 8px; /* 스크롤바 두께 지정으로 강제 활성화 */
+  width: 8px; 
+  display: block; /* OS 설정 무시 및 스크롤바 영역 강제 확보 */
+  background-color: rgba(0, 0, 0, 0.02); /* 투명하지만 트랙이 존재하도록 설정 */
 }
 
 .sidebar::-webkit-scrollbar-track,
@@ -37,18 +46,20 @@ body.dark-mode .layout-container {
 
 .sidebar::-webkit-scrollbar-thumb,
 .main-content::-webkit-scrollbar-thumb {
-  background-color: rgba(93, 162, 255, 0.4);
+  background-color: rgba(93, 162, 255, 0.6);
   border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 body.dark-mode .sidebar::-webkit-scrollbar-thumb,
 body.dark-mode .main-content::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover,
 .main-content::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(93, 162, 255, 0.8);
+  background-color: rgba(93, 162, 255, 0.9);
 }
 
 /* =============================================================================

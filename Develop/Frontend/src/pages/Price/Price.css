@@ -1,35 +1,29 @@
 :root {
-  /* Layout & Main Color */
   --nav-height: 65px;
-  --brand-color: #5da2ff;       /* 라이트모드 메인 블루 */
-  --brand-point: #5da2ff;       /* 다크모드용 고정 블루 */
-  
-  /* Backgrounds */
-  --pricing-bg: #5da2ff;        /* 페이지 전체 배경 */
-  
-  /* Typography */
+  --brand-color: #5da2ff;       
+  --brand-point: #5da2ff;       
+  --pricing-bg: #5da2ff;        
   --text-main: #111111;
   --text-sub: #444444;
   --text-inverse: #ffffff;
 }
 
-/* 다크모드 설정 */
 body.dark-mode {
-  --pricing-bg: #05122e;        /* 깊은 심해색 배경 */
+  --pricing-bg: #05122e;        
   --text-main: #ffffff;
   --text-sub: rgba(255, 255, 255, 0.7);
 }
 
 .pricing-wrapper {
   position: relative;
-  height: 100vh; /* 한 화면에 고정 */
+  height: 100vh; 
+  height: 100dvh;
   background-color: var(--pricing-bg);
   font-family: 'Pretendard', sans-serif;
   display: flex;
-  align-items: center; 
-  justify-content: center; /* 다시 정중앙 배치 */
+  flex-direction: column;
   box-sizing: border-box;
-  overflow: hidden; /* 데스크톱 환경에서는 스크롤 완벽 차단 */
+  overflow: hidden; /* 데스크톱 전체 화면 스크롤 절대 차단 */
   transition: background-color 0.3s ease;
 }
 
@@ -38,13 +32,18 @@ body.dark-mode {
   z-index: 10;
   width: 100%;
   max-width: 1200px;
-  padding: 0 20px; 
-  margin-top: var(--nav-height); /* 네비바 하단으로 위치 조정 */
+  margin: 0 auto;
+  padding: 0 20px;
+  /* 네비게이션 높이를 뺀 나머지 공간을 정확히 할당하여 그 안에서 중앙 정렬 */
+  height: calc(100vh - var(--nav-height)); 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-/* LiquidGlass 파일에 있는 원래 모양 유지 
-*/
 .pricing-content .liquid-glass-box {
+  width: 100%;
   --glass-bg: rgba(255, 255, 255, 0.25);
   --glass-border: rgba(255, 255, 255, 0.3);
 }
@@ -55,7 +54,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
 }
 
 .pricing-header h1 {
-  font-size: clamp(2rem, 4vh, 2.8rem); /* 화면 높이에 맞춰 폰트 유동적 조절 */
+  font-size: 2.8rem;
   font-weight: 800;
   color: var(--brand-color);
   text-align: center;
@@ -65,14 +64,15 @@ body.dark-mode .pricing-content .liquid-glass-box {
 .pricing-header p {
   color: var(--text-main);
   text-align: center;
-  margin-bottom: max(3vh, 20px);
+  margin-bottom: 40px;
 }
 
 .pricing-container {
   display: flex;
   justify-content: center;
-  gap: 1.5vw; /* 창 너비에 비례하여 간격 조절 */
-  flex-wrap: nowrap; /* 노트북 화면에서 카드가 겹치거나 떨어지지 않게 강제 가로 정렬 */
+  width: 100%;
+  gap: 20px;
+  flex-wrap: nowrap;
 }
 
 .price-card {
@@ -81,8 +81,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 28px;
-  /* 화면이 작을 경우 패딩을 줄여 카드 크기 압축 */
-  padding: max(3vh, 20px) 25px;
+  padding: 40px 25px;
   flex: 1;
   min-width: 220px; 
   max-width: 320px; 
@@ -116,7 +115,7 @@ body.dark-mode .price-card:hover {
 }
 
 .plan-name {
-  font-size: clamp(1.2rem, 2.5vh, 1.5rem);
+  font-size: 1.5rem;
   font-weight: 800;
   color: var(--text-main);
   margin-bottom: 8px;
@@ -126,11 +125,11 @@ body.dark-mode .price-card:hover {
   font-size: 0.9rem;
   color: var(--text-sub);
   height: 40px;
-  margin-bottom: max(1.5vh, 10px);
+  margin-bottom: 20px;
 }
 
 .plan-price .amount {
-  font-size: clamp(1.8rem, 4vh, 2.4rem);
+  font-size: 2.4rem;
   font-weight: 850;
   color: var(--brand-color);
 }
@@ -142,12 +141,12 @@ body.dark-mode .price-card:hover {
 .feature-list {
   list-style: none;
   padding: 0;
-  margin: max(2vh, 15px) 0;
+  margin: 25px 0;
   flex-grow: 1;
 }
 
 .feature-list li { 
-  padding: max(0.8vh, 5px) 0; 
+  padding: 8px 0; 
   color: var(--text-sub);
   font-size: 0.9rem; 
   display: flex; 
@@ -175,30 +174,57 @@ body.dark-mode .price-card:hover {
   transition: all 0.3s ease-in-out !important;
 }
 
-/* 노트북과 같이 세로폭이 비좁은 화면을 위한 추가 압축 로직 */
-@media (max-height: 850px) {
-  .price-card {
-    padding: 20px 15px;
-    border-radius: 20px;
+/* =============================================================================
+   [핵심] 세로폭이 좁은 노트북(14인치 이하) 환경에서 화면 넘침 방지를 위한 동적 압축
+   ============================================================================= */
+@media (max-height: 800px) {
+  .pricing-header h1 { 
+    font-size: 2.2rem; 
+    margin-bottom: 5px; 
   }
-  .feature-list li {
-    font-size: 0.85rem;
+  .pricing-header p { 
+    font-size: 0.9rem; 
+    margin-bottom: 15px; 
+  }
+  .price-card { 
+    padding: 20px 20px; /* 패딩 대폭 축소 */
+    border-radius: 20px; 
+  }
+  .plan-name { 
+    font-size: 1.3rem; 
+    margin-bottom: 5px; 
+  }
+  .plan-desc { 
+    height: auto; 
+    min-height: 35px; 
+    margin-bottom: 10px; 
+    font-size: 0.8rem; 
+  }
+  .plan-price .amount { 
+    font-size: 2rem; 
+  }
+  .feature-list { 
+    margin: 15px 0; 
+  }
+  .feature-list li { 
+    padding: 5px 0; 
+    font-size: 0.85rem; /* 리스트 높이 감소 */
   }
 }
 
-/* 태블릿 및 모바일 대응 (모바일은 가로 폭이 너무 좁아 부득이하게 스크롤을 엽니다) */
+/* 모바일 및 태블릿 가로 폭 대응 (여기서는 불가피하게 스크롤 개방) */
 @media (max-width: 950px) {
   .pricing-wrapper {
     height: auto;
-    min-height: 100vh;
-    overflow-y: auto; /* 모바일 한정 스크롤 허용 */
-    align-items: flex-start;
+    overflow-y: auto; 
   }
   .pricing-content {
+    height: auto;
     padding: 40px 20px;
+    margin-top: var(--nav-height);
   }
   .pricing-container {
-    flex-wrap: wrap; /* 모바일에서는 세로 배치 */
+    flex-wrap: wrap; 
   }
   .price-card { 
     max-width: 400px; 
