@@ -3,6 +3,7 @@ import React from "react";
 import "./Price.css";
 import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
 import LiquidGlass from "@/components/LiquidGlass/LiquidGlass";
+import WaveBg from "@/components/WaveBg/WaveBg";
 
 const PricePage = () => {
   const navigate = useNavigate();
