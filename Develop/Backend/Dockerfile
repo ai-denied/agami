@@ -3,6 +3,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y libpq-dev gcc ca-certificates && rm -rf /var/lib/apt/lists/*
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-RUN pip install --no-cache-dir uvicorn fastapi requests certifi sqlalchemy python-dotenv psycopg2-binary "python-jose[cryptography]"
+
+# 기존 설치 목록 맨 끝에 python-multipart 추가
+RUN pip install --no-cache-dir uvicorn fastapi requests certifi sqlalchemy python-dotenv psycopg2-binary "python-jose[cryptography]" python-multipart
+
 COPY . .
 CMD ["python3", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
