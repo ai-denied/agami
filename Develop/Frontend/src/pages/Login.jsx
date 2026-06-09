@@ -4,11 +4,7 @@ import LiquidGlass from '../components/LiquidGlass';
 import './Login.css';
 
 const GoogleIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 48 48"
-  >
+  <svg width="20" height="20" viewBox="0 0 48 48">
     <path
       fill="#EA4335"
       d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
@@ -29,12 +25,7 @@ const GoogleIcon = () => (
 );
 
 const KakaoIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="black"
-  >
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="black">
     <path d="M12 3C6.477 3 2 6.582 2 11c0 2.801 1.824 5.262 4.575 6.664l-.938 3.43a.5.5 0 0 0 .728.56l4.017-2.655c.529.068 1.068.101 1.618.101 5.523 0 10-3.582 10-8S17.523 3 12 3z" />
   </svg>
 );
@@ -67,7 +58,16 @@ const Login = () => {
     <div className="login-wrapper">
       <WaveBg />
 
-      <LiquidGlass className="login-card">
+      <LiquidGlass
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          width: '90%',
+          maxWidth: '840px',
+          padding: '90px 80px',
+          textAlign: 'center'
+        }}
+      >
         <div className="login-header">
           <img
             src="/agami-text.png"
@@ -81,7 +81,6 @@ const Login = () => {
         </div>
 
         <div className="login-buttons">
-
           <button
             className="social-btn kakao"
             onClick={handleKakaoLogin}
@@ -103,7 +102,6 @@ const Login = () => {
 
             <span>Google 계정으로 로그인</span>
           </button>
-
         </div>
 
         <p className="login-footer">

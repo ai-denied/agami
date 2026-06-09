@@ -1,11 +1,9 @@
 :root {
-  --login-bg: rgba(255,255,255,0.35);
-  --login-subtitle: #767676;
+  --login-subtitle: #707070;
   --login-footer: #111;
 }
 
 body.dark-mode {
-  --login-bg: rgba(30,30,35,0.7);
   --login-subtitle: #aaa;
   --login-footer: #eee;
 }
@@ -22,41 +20,38 @@ body.dark-mode {
   overflow: hidden;
 }
 
-.login-card {
-  position: relative;
-  z-index: 10;
-
-  width: 90%;
-  max-width: 520px;
-
-  padding: 70px 55px;
-
-  border-radius: 48px;
-  text-align: center;
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .login-logo {
-  height: 82px;
-  margin-bottom: 28px;
+  height: 90px;
+  margin-bottom: 40px;
 }
 
 .login-subtitle {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: var(--login-subtitle);
-  margin-bottom: 60px;
+  margin-bottom: 70px;
 }
 
 .login-buttons {
+  width: 100%;
+  max-width: 660px;
+  margin: 0 auto;
+
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .social-btn {
   position: relative;
 
   width: 100%;
-  height: 72px;
+  height: 78px;
 
   display: flex;
   align-items: center;
@@ -64,11 +59,10 @@ body.dark-mode {
 
   border-radius: 14px;
 
+  font-size: 1.1rem;
+  font-weight: 600;
+
   cursor: pointer;
-
-  font-size: 1.7rem;
-  font-weight: 500;
-
   transition: 0.2s;
 }
 
@@ -93,28 +87,32 @@ body.dark-mode {
 
 .google {
   background: white;
-  border: 1px solid #d8d8d8;
+  border: 1px solid #dadce0;
   color: #202124;
 }
 
 .login-footer {
-  margin-top: 60px;
-
+  margin-top: 55px;
   font-size: 1rem;
   color: var(--login-footer);
 }
 
 @media (max-width: 768px) {
-  .login-card {
-    padding: 50px 30px;
+  .login-logo {
+    height: 70px;
+  }
+
+  .login-subtitle {
+    font-size: 1rem;
+    margin-bottom: 50px;
   }
 
   .social-btn {
-    height: 64px;
-    font-size: 1.2rem;
+    height: 68px;
+    font-size: 1rem;
   }
 
-  .login-logo {
-    height: 64px;
+  .social-icon {
+    left: 20px;
   }
 }
