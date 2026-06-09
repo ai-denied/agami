@@ -9,13 +9,14 @@ import Login from './pages/Login';
 import Price from './pages/Price';
 import Dashboard from './pages/Dashboard';
 import Test from './pages/Test';
-import KakaoCallback from './pages/KakaoCallback';
+import AuthCallback from "./pages/AuthCallback";
 
 // 네비바 렌더링 제어를 위한 내부 컴포넌트
 const Layout = ({ children }) => {
   const location = useLocation();
-  // 카카오 콜백 경로에서는 네비바를 숨김
-  const isHideNavbar = location.pathname === '/auth/kakao/callback';
+  
+  // 수정: 특정 소셜(kakao)에 국한되지 않고, /auth/로 시작하고 /callback으로 끝나는 모든 경로에서 네비바를 숨김 처리합니다.
+  const isHideNavbar = location.pathname.startsWith('/auth/') && location.pathname.endsWith('/callback');
   
   return (
     <>
@@ -44,7 +45,7 @@ function App() {
               <Route path="/price" element={<Price />} />
               <Route path="/test" element={<Test />} />
               <Route path="/platform" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-              <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+              <Route path="/auth/:provider/callback" element={<AuthCallback />} />
             </Routes>
           </Layout>
         </Router>
@@ -52,4 +53,5 @@ function App() {
     </ThemeProvider>
   );
 }
+
 export default App;
