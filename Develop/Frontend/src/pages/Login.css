@@ -1,12 +1,11 @@
 :root {
-  --login-bg: rgba(255, 255, 255, 0.5);
-  --login-subtitle: #777;
-  --login-footer: #000;
+  --login-bg: rgba(255,255,255,0.35);
+  --login-subtitle: #767676;
+  --login-footer: #111;
 }
 
-/* 다크모드 대응 */
 body.dark-mode {
-  --login-bg: rgba(30, 30, 35, 0.7);
+  --login-bg: rgba(30,30,35,0.7);
   --login-subtitle: #aaa;
   --login-footer: #eee;
 }
@@ -15,151 +14,107 @@ body.dark-mode {
   position: relative;
   width: 100%;
   height: 100vh;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   overflow: hidden;
 }
 
-.login-logo { 
-  height: 60px; 
-  margin-bottom: 12px; 
-}
-
-.login-subtitle { 
-  color: var(--login-subtitle); 
-  font-size: 0.9rem; 
-  margin-bottom: 40px; 
-  transition: color 0.3s ease;
-}
-
-.login-buttons { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 16px; 
-}
-
-/* 카카오 공식 버튼 스타일 */
-.kakao-btn-wrapper {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.kakao-login-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 6px;
-}
-
-/* ------------------------------------------- */
-/* 구글 GSI 공식 버튼 스타일 (가이드라인 준수) */
-/* ------------------------------------------- */
-.gsi-material-button {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  -webkit-appearance: none;
-  background-color: #ffffff; /* 다크모드 무관하게 구글 버튼은 흰색 권장 */
-  background-image: none;
-  border: 1px solid #747775;
-  -webkit-border-radius: 6px; /* 카카오 버튼 모서리와 둥글기 통일 */
-  border-radius: 6px;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  color: #1f1f1f;
-  cursor: pointer;
-  font-family: 'Roboto', arial, sans-serif;
-  font-size: 14px;
-  height: 45px; /* 카카오 버튼과 높이 균형 맞춤 */
-  letter-spacing: 0.25px;
-  outline: none;
-  overflow: hidden;
-  padding: 0 12px;
+.login-card {
   position: relative;
+  z-index: 10;
+
+  width: 90%;
+  max-width: 520px;
+
+  padding: 70px 55px;
+
+  border-radius: 48px;
   text-align: center;
-  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s;
-  transition: background-color .218s, border-color .218s, box-shadow .218s;
-  vertical-align: middle;
-  white-space: nowrap;
-  width: 100%; /* 카카오 버튼과 동일한 100% 폭 적용 */
 }
 
-.gsi-material-button .gsi-material-button-icon {
-  height: 20px;
-  margin-right: 12px;
-  min-width: 20px;
-  width: 20px;
+.login-logo {
+  height: 82px;
+  margin-bottom: 28px;
 }
 
-.gsi-material-button .gsi-material-button-content-wrapper {
-  -webkit-align-items: center;
-  align-items: center;
+.login-subtitle {
+  font-size: 1.1rem;
+  color: var(--login-subtitle);
+  margin-bottom: 60px;
+}
+
+.login-buttons {
   display: flex;
-  -webkit-flex-direction: row;
-  flex-direction: row;
-  -webkit-flex-wrap: nowrap;
-  flex-wrap: nowrap;
-  height: 100%;
-  justify-content: center; /* 텍스트를 중앙에 배치하기 위해 변경 */
+  flex-direction: column;
+  gap: 18px;
+}
+
+.social-btn {
   position: relative;
+
   width: 100%;
-}
+  height: 72px;
 
-.gsi-material-button .gsi-material-button-contents {
-  font-family: 'Roboto', arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  font-size: 1.7rem;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: top;
+
+  transition: 0.2s;
 }
 
-.gsi-material-button .gsi-material-button-state {
-  -webkit-transition: opacity .218s;
-  transition: opacity .218s;
-  bottom: 0;
-  left: 0;
-  opacity: 0;
+.social-btn:hover {
+  transform: translateY(-2px);
+}
+
+.social-icon {
   position: absolute;
-  right: 0;
-  top: 0;
+  left: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.gsi-material-button:disabled {
-  cursor: default;
-  background-color: #ffffff61;
-  border-color: #1f1f1f1f;
+.kakao {
+  background: #FEE500;
+  border: none;
+  color: #191919;
 }
 
-.gsi-material-button:disabled .gsi-material-button-contents,
-.gsi-material-button:disabled .gsi-material-button-icon {
-  opacity: 38%;
+.google {
+  background: white;
+  border: 1px solid #d8d8d8;
+  color: #202124;
 }
 
-.gsi-material-button:not(:disabled):active .gsi-material-button-state, 
-.gsi-material-button:not(:disabled):focus .gsi-material-button-state {
-  background-color: #303030;
-  opacity: 12%;
+.login-footer {
+  margin-top: 60px;
+
+  font-size: 1rem;
+  color: var(--login-footer);
 }
 
-.gsi-material-button:not(:disabled):hover {
-  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
-}
+@media (max-width: 768px) {
+  .login-card {
+    padding: 50px 30px;
+  }
 
-.gsi-material-button:not(:disabled):hover .gsi-material-button-state {
-  background-color: #303030;
-  opacity: 8%;
-}
+  .social-btn {
+    height: 64px;
+    font-size: 1.2rem;
+  }
 
-.login-footer { 
-  margin-top: 35px; 
-  font-size: 0.8rem; 
-  color: var(--login-footer); 
-  transition: color 0.3s ease;
+  .login-logo {
+    height: 64px;
+  }
 }
