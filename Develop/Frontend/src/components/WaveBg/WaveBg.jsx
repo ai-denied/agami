@@ -1,5 +1,5 @@
 import React from 'react';
-import '@/WaveBg/WaveBg.css';
+import './WaveBg.css';
 
 const WaveBackground = () => {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import '@/BubbleBtn/BubbleBtn.css';
+import './BubbleBtn.css';
 
 const BubbleBtn = ({ children, onClick, className = "", variant = "primary" }) => {
   return (

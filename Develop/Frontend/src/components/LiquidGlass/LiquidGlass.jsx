@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import '@/LiquidGlass//LiquidGlass.css';
+import './LiquidGlass.css';
 
 const LiquidGlass = forwardRef(({ children, style, ...props }, ref) => {
   return (

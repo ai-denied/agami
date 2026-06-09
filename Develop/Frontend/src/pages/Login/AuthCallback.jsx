@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import WaveBg from "@/components/WaveBg/WaveBg";
-import "@/pages/Login.css";
+import "@/pages/Login/Login.css";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
