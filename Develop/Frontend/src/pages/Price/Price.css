@@ -22,17 +22,17 @@ body.dark-mode {
 
 .pricing-wrapper {
   position: relative;
-  /* 콘텐츠가 화면보다 길어질 경우를 대비해 height 대신 min-height 사용 */
   min-height: 100vh; 
+  min-height: 100dvh; /* 작은 랩탑 및 모바일 환경을 위한 동적 뷰포트 높이 보장 */
   background-color: var(--pricing-bg);
   font-family: 'Pretendard', sans-serif;
   display: flex;
-  align-items: center;      
-  justify-content: center;   
+  flex-direction: column; 
+  align-items: center; /* 가로 중앙 정렬만 유지 */
+  /* 세로 중앙 정렬(justify-content)을 제거하여 화면이 좁아질 때 상하단이 잘리는 현상 방지 */
   box-sizing: border-box;
-  /* 가로 스크롤은 숨기고 세로 스크롤을 허용하여 넘치는 콘텐츠 대응 */
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: auto; /* 내용이 넘치면 세로 스크롤 활성화 */
   transition: background-color 0.3s ease;
 }
 
@@ -42,9 +42,12 @@ body.dark-mode {
   width: 100%;
   max-width: 1200px;
   padding: 0 20px; 
-  /* 네비바 공간만큼 밀어주고, 하단 여백을 추가하여 스크롤 시 끝단 확보 */
-  margin-top: var(--nav-height); 
-  margin-bottom: 40px; 
+  /* margin: auto를 통해 여유 공간이 있을 때만 자연스럽게 중앙으로 배치되도록 유도 */
+  margin-top: auto; 
+  margin-bottom: auto;
+  /* 스크롤의 시작점과 끝점에 안전한 여백을 두어 요소가 잘리지 않도록 보호 */
+  padding-top: calc(var(--nav-height) + 30px); 
+  padding-bottom: 50px; 
 }
 
 /* [핵심] 
@@ -79,8 +82,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
   display: flex;
   justify-content: center;
   gap: 20px;
-  /* 창이 좁아지면 카드가 찌그러지지 않고 다음 줄로 넘어가도록 수정 */
-  flex-wrap: wrap; 
+  flex-wrap: wrap; /* 카드가 찌그러지지 않고 좁은 화면에서 다음 줄로 넘어가도록 처리 */
 }
 
 .price-card {
@@ -182,16 +184,13 @@ body.dark-mode .price-card:hover {
   transition: all 0.3s ease-in-out !important;
 }
 
-/* 태블릿 및 모바일 대응 수정 */
+/* 태블릿 및 모바일 대응 */
 @media (max-width: 950px) {
   .pricing-wrapper {
     height: auto;
-    min-height: 100vh;
-    padding-top: var(--nav-height);
   }
   
   .pricing-content {
-    margin-top: 0;
     padding: 40px 20px;
   }
   
