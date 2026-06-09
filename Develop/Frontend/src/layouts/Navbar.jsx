@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
-import "@/Navbar/Navbar.css";
+import "./Navbar.css";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 

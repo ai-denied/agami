@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Flashlight from "@/components/FlashlightCaptcha/FlashlightCaptcha";
-import '@/Test/Test.css';
+import './Test.css';
 
 const CAPTCHA_TYPES = [
   { id: 'flashlight', title: '손전등 캡챠', desc: '손전등의 빛을 조절하여 특정 영역을 맞추는 보안 검증 방식입니다.' },

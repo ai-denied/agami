@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 import LiquidGlass from "@/components/LiquidGlass/LiquidGlass";
 import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
-import "@/Home/Home.css";
+import "./Home.css";
 
 // --- 먹이 로봇 컴포넌트 ---
 const FoodBot = memo(({ x, y, color }) => (
