@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useNavigate, useSearchParams, useParams } from "react-router-dom"; // useParams 추가
+import { useNavigate, useSearchParams, useParams } from "react-router-dom"; 
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +9,7 @@ import "@/pages/Login/Login.css";
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
 const AuthCallback = () => {
-  const { provider } = useParams(); // URL에서 'kakao' 또는 'google' 추출
+  const { provider } = useParams(); 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
@@ -22,12 +22,13 @@ const AuthCallback = () => {
     if (!code || !provider || hasCalled.current) return;
     hasCalled.current = true;
 
-    // provider 변수를 사용하여 백엔드 엔드포인트를 동적으로 지정합니다.
-    // 백엔드에는 /api/auth/kakao/callback 과 /api/auth/google/callback 이 준비되어 있어야 합니다.
+    // 백엔드 통신을 통한 로그인 처리
     api.get(`/api/auth/${provider}/callback`, { params: { code } })
       .then(async () => {
         await checkAuth();
-        navigate("/", { replace: true });
+        
+        // ✅ 수정된 부분: Home("/")이 아닌 대시보드로 이동하도록 변경
+        navigate("/mypage/dashboard", { replace: true });
       })
       .catch((err) => {
         console.error(`${provider} 로그인 처리 실패:`, err);
