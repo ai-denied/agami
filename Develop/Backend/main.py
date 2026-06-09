@@ -185,6 +185,63 @@ async def get_me(request: Request, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
     
+PROFILE_UPLOAD_DIR = "static/profiles"
+os.makedirs(PROFILE_UPLOAD_DIR, exist_ok=True)
+
+@app.patch("/api/auth/me")
+async def update_profile(
+    request: Request,
+    nickname: str = Form(None),
+    profile_image: UploadFile = File(None),
+    db: Session = Depends(get_db)
+):
+    # 1. JWT 토큰 검증 및 유저 식별
+    token = request.cookies.get("accessToken")
+    if not token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # 2. 닉네임 업데이트
+    if nickname:
+        user.nickname = nickname
+
+    # 3. 프로필 이미지 업데이트 (파일이 전송된 경우)
+    if profile_image:
+        # 안전한 파일명 생성
+        file_extension = profile_image.filename.split(".")[-1]
+        unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+        file_path = os.path.join(PROFILE_UPLOAD_DIR, unique_filename)
+
+        # 파일 저장
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(profile_image.file, buffer)
+        
+        # DB에 저장될 URL (호스트 주소에 맞게 조정 필요)
+        # FastAPI에서 StaticFiles를 마운트하여 정적 파일을 서빙하도록 설정해야 합니다.
+        user.profile_image = f"https://agami-captcha.cloud/{file_path}"
+
+    # 4. DB 반영
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "status": "success",
+        "user": {
+            "id": user.id,
+            "nickname": user.nickname,
+            "profile": user.profile_image
+        }
+    }
+    
 @app.post("/api/auth/logout")
 async def logout(response: Response):
     response.delete_cookie(
