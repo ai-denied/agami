@@ -22,15 +22,17 @@ body.dark-mode {
 
 .pricing-wrapper {
   position: relative;
-  /* 핵심 수정: 높이를 100vh로 고정하고 padding 대신 정렬로 제어 */
-  height: 100vh; 
+  /* 화면이 작은 노트북에서 위아래가 잘리지 않도록 min-height로 변경 */
+  min-height: 100vh; 
+  padding: 60px 0; /* 상하 여백을 주어 스크롤 시 답답하지 않게 설정 */
   background-color: var(--pricing-bg);
   font-family: 'Pretendard', sans-serif;
   display: flex;
   align-items: center;      
   justify-content: center;   
   box-sizing: border-box;
-  overflow: hidden;
+  /* hidden으로 되어 있던 것을 auto로 변경하여 스크롤바 허용 */
+  overflow-y: auto; 
   transition: background-color 0.3s ease;
 }
 
@@ -40,14 +42,9 @@ body.dark-mode {
   width: 100%;
   max-width: 1200px;
   padding: 0 20px; 
-  /* 핵심 수정: 투명 네비바 공간만큼 콘텐츠 영역을 아래로 밀어줌 */
   margin-top: var(--nav-height); 
 }
 
-/* [핵심] 
-  LiquidGlass 파일에 있는 원래 모양을 그대로 쓰기 위해 
-  여기서는 배경 투명도와 테두리 변수만 수정합니다.
-*/
 .pricing-content .liquid-glass-box {
   --glass-bg: rgba(255, 255, 255, 0.25);
   --glass-border: rgba(255, 255, 255, 0.3);
@@ -69,7 +66,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
 .pricing-header p {
   color: var(--text-main);
   text-align: center;
-  margin-bottom: 40px; /* 여백 미세 조정 */
+  margin-bottom: 40px; 
 }
 
 .pricing-container {
@@ -80,7 +77,6 @@ body.dark-mode .pricing-content .liquid-glass-box {
 }
 
 .price-card {
-  /* 카드 내부 질감은 별도 변수 없이 인라인으로 고정하셨던 기존 수치 유지 */
   background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -166,27 +162,22 @@ body.dark-mode .price-card:hover {
   font-weight: 900;
 }
 
+/* 억지로 크기를 늘리던 width: 100%를 제거하고, 가운데 정렬을 추가하여 원상복구 */
 .btn-wrapper {
   width: 100%;
   margin-top: auto;
-  display: flex;
-  justify-content: center;
+  text-align: center; /* 쏠림 방지 */
 }
 
 .cta-button-shared { 
-  width: 100% !important; 
-  box-sizing: border-box !important;
-  padding: 18px 0 !important;
   background-color: transparent !important;
   border: 1px solid var(--brand-color) !important;
   color: var(--brand-color) !important;
   transition: all 0.3s ease-in-out !important;
 }
 
-/* 태블릿 및 모바일 대응 수정 */
 @media (max-width: 950px) {
   .pricing-wrapper {
-    /* 모바일에서는 카드가 아래로 쌓이므로 스크롤이 필연적으로 발생해야 합니다 */
     height: auto;
     min-height: 100vh;
     overflow-y: auto;
@@ -208,6 +199,9 @@ body.dark-mode .price-card:hover {
   }
 }
 
+/* ---------------------------------------------------
+   자체 알림창 (Alert 커스텀 모달) 공통 스타일
+--------------------------------------------------- */
 .custom-sys-modal-overlay {
   position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
