@@ -1,6 +1,7 @@
-import { useNavigate } from "react-router-dom";
 import React from "react";
-import axios from "axios"; // axios 추가
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "@/contexts/AuthContext"; // 로그인 상태를 가져오기 위해 추가
 import "./Price.css";
 import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
 import LiquidGlass from "@/components/LiquidGlass/LiquidGlass";
@@ -8,14 +9,16 @@ import WaveBg from "@/components/WaveBg/WaveBg";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
-const PricePage = () => {
+const Price = () => {
   const navigate = useNavigate();
+  // AuthContext에서 user 정보를 가져옵니다.
+  const { user } = useAuth(); 
 
   const handlePlanClick = async (plan) => {
     const planName = plan.name.toLowerCase();
-    const token = localStorage.getItem("accessToken");
 
-    if (!token) {
+    // 토큰 대신 user 객체가 있는지 확인하여 로그인 여부를 정확히 판별합니다.
+    if (!user) {
       navigate(`/login?redirect=/price&plan=${planName}`);
       return;
     }
@@ -27,7 +30,7 @@ const PricePage = () => {
         const response = await api.post("/api/payment/ready");
         
         if (response.data.status === "success") {
-          // 2. 카카오 결제 고유 번호 저장 (나중에 승인할 때 사용)
+          // 2. 카카오 결제 고유 번호 저장 (승인할 때 사용하기 위해 로컬에 임시 저장)
           localStorage.setItem("kakao_tid", response.data.tid);
           
           // 3. 카카오페이 결제창으로 페이지 이동
@@ -38,7 +41,7 @@ const PricePage = () => {
         alert("결제 서버와 통신 중 오류가 발생했습니다.");
       }
     } else {
-      // Basic이나 문의하기는 기존 로직 (또는 원하는 동작)
+      // Basic이나 Enterprise는 다른 로직 처리
       alert(`${plan.name} 플랜이 선택되었습니다.`);
     }
   };
@@ -112,4 +115,4 @@ const PricePage = () => {
   );
 };
 
-export default PricePage;
+export default Price;
