@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "@/contexts/AuthContext"; // 로그인 상태를 가져오기 위해 추가
+import { useAuth } from "@/contexts/AuthContext";
 import "./Price.css";
 import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
 import LiquidGlass from "@/components/LiquidGlass/LiquidGlass";
@@ -11,63 +11,70 @@ const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentia
 
 const Price = () => {
   const navigate = useNavigate();
-  // AuthContext에서 user 정보를 가져옵니다.
   const { user } = useAuth(); 
+
+  // 커스텀 알림 모달 상태 관리
+  const [alertModal, setAlertModal] = useState({ show: false, message: "" });
+  const closeAlert = () => setAlertModal({ show: false, message: "" });
+  const showAlert = (message) => setAlertModal({ show: true, message });
+
+  // 요금제 등급 (비교용)
+  const planHierarchy = {
+    "basic": 1,
+    "pro": 2,
+    "enterprise": 3
+  };
 
   const handlePlanClick = async (plan) => {
     const planName = plan.name.toLowerCase();
 
-    // 토큰 대신 user 객체가 있는지 확인하여 로그인 여부를 정확히 판별합니다.
     if (!user) {
       navigate(`/login?redirect=/price&plan=${planName}`);
       return;
     }
 
-    // Pro 플랜 선택 시 카카오페이 결제 진행
+    // 현재 유저의 플랜 (없으면 기본값 'basic')
+    const currentPlan = (user.plan || "basic").toLowerCase();
+
+    // 1. 엔터프라이즈 문의하기 처리
+    if (planName === "enterprise") {
+      showAlert("엔터프라이즈 요금제는 고객센터를 통해 맞춤형으로 제공됩니다.\nsupport@agami.com으로 문의해주세요.");
+      // window.location.href = "mailto:support@agami.com"; // 실제 메일 연동 시 주석 해제
+      return;
+    }
+
+    // 2. 이미 사용 중이거나 하위 플랜인 경우 차단
+    if (planHierarchy[planName] === planHierarchy[currentPlan]) {
+      showAlert(`이미 ${plan.name} 플랜을 사용 중입니다.`);
+      return;
+    }
+    
+    if (planHierarchy[planName] < planHierarchy[currentPlan]) {
+      // (예) 현재 Pro인데 Basic을 누른 경우
+      const currentPlanDisplay = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+      showAlert(`현재 상위 요금제인 ${currentPlanDisplay} 플랜을 사용 중입니다.\n다운그레이드는 마이페이지에서 신청해주세요.`);
+      return;
+    }
+
+    // 3. Pro 결제 진행 (Basic -> Pro)
     if (planName === "pro") {
       try {
-        // 1. 백엔드에 결제 준비 요청
         const response = await api.post("/api/payment/ready");
-        
         if (response.data.status === "success") {
-          // 2. 카카오 결제 고유 번호 저장 (승인할 때 사용하기 위해 로컬에 임시 저장)
           localStorage.setItem("kakao_tid", response.data.tid);
-          
-          // 3. 카카오페이 결제창으로 페이지 이동
           window.location.href = response.data.next_redirect_pc_url;
         }
       } catch (error) {
         console.error("결제 준비 실패:", error);
-        alert("결제 서버와 통신 중 오류가 발생했습니다.");
+        showAlert("결제 서버와 통신 중 오류가 발생했습니다.");
       }
-    } else {
-      // Basic이나 Enterprise는 다른 로직 처리
-      alert(`${plan.name} 플랜이 선택되었습니다.`);
     }
   };
 
   const plans = [
-    {
-      name: "Basic",
-      price: "0",
-      description: "개인 개발자 및 테스트용",
-      features: ["월 1,000회 무료 호출", "표준 캡챠 유형 제공", "기본 분석 데이터"],
-      buttonText: "무료로 시작하기",
-    },
-    {
-      name: "Pro",
-      price: "49,000",
-      description: "성장하는 비즈니스를 위한 최적의 선택",
-      features: ["월 100,000회 호출", "모든 캡챠 유형 제공", "상세 분석 대시보드", "도메인 화이트리스트"],
-      buttonText: "Pro 시작하기",
-    },
-    {
-      name: "Enterprise",
-      price: "문의",
-      description: "대규모 트래픽 및 커스텀 보안",
-      features: ["호출 횟수 무제한", "커스텀 CAPTCHA 생성", "관리자 대시보드 제공", "실시간 공격 모니터링", "온프레미스 구축 지원"],
-      buttonText: "영업팀 문의",
-    },
+    { name: "Basic", price: "0", description: "개인 개발자 및 테스트용", features: ["월 1,000회 무료 호출", "표준 캡챠 유형 제공", "기본 분석 데이터"], buttonText: "무료로 시작하기" },
+    { name: "Pro", price: "49,000", description: "성장하는 비즈니스를 위한 최적의 선택", features: ["월 100,000회 호출", "모든 캡챠 유형 제공", "상세 분석 대시보드", "도메인 화이트리스트"], buttonText: "Pro 시작하기" },
+    { name: "Enterprise", price: "문의", description: "대규모 트래픽 및 커스텀 보안", features: ["호출 횟수 무제한", "커스텀 CAPTCHA 생성", "관리자 대시보드 제공", "실시간 공격 모니터링", "온프레미스 구축 지원"], buttonText: "영업팀 문의" },
   ];
 
   return (
@@ -93,16 +100,10 @@ const Price = () => {
                   </div>
                 </div>
                 <ul className="feature-list">
-                  {plan.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
+                  {plan.features.map((feature, i) => <li key={i}>{feature}</li>)}
                 </ul>
                 <div className="btn-wrapper">
-                  <BubbleBtn
-                    className="cta-button-shared"
-                    variant="primary"
-                    onClick={() => handlePlanClick(plan)}
-                  >
+                  <BubbleBtn variant="primary" onClick={() => handlePlanClick(plan)}>
                     {plan.buttonText}
                   </BubbleBtn>
                 </div>
@@ -111,6 +112,18 @@ const Price = () => {
           </div>
         </LiquidGlass>
       </div>
+
+      {/* 자체 Alert 모달 */}
+      {alertModal.show && (
+        <div className="custom-sys-modal-overlay" onClick={closeAlert}>
+          <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="custom-sys-modal-text">{alertModal.message}</div>
+            <div className="custom-sys-modal-actions">
+              <button className="btn-sys-ok" onClick={closeAlert}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
