@@ -1,29 +1,36 @@
 :root {
+  /* Layout & Main Color */
   --nav-height: 65px;
-  --brand-color: #5da2ff;       
-  --brand-point: #5da2ff;       
-  --pricing-bg: #5da2ff;        
+  --brand-color: #5da2ff;       /* 라이트모드 메인 블루 */
+  --brand-point: #5da2ff;       /* 다크모드용 고정 블루 */
+  
+  /* Backgrounds */
+  --pricing-bg: #5da2ff;        /* 페이지 전체 배경 */
+  
+  /* Typography */
   --text-main: #111111;
   --text-sub: #444444;
   --text-inverse: #ffffff;
 }
 
+/* 다크모드 설정 */
 body.dark-mode {
-  --pricing-bg: #05122e;        
+  --pricing-bg: #05122e;        /* 깊은 심해색 배경 */
   --text-main: #ffffff;
   --text-sub: rgba(255, 255, 255, 0.7);
 }
 
 .pricing-wrapper {
   position: relative;
+  /* 핵심 수정: 높이를 100vh로 고정하고 padding 대신 정렬로 제어 */
   height: 100vh; 
-  height: 100dvh;
   background-color: var(--pricing-bg);
   font-family: 'Pretendard', sans-serif;
   display: flex;
-  flex-direction: column;
+  align-items: center;      
+  justify-content: center;   
   box-sizing: border-box;
-  overflow: hidden; /* 데스크톱 전체 화면 스크롤 절대 차단 */
+  overflow: hidden;
   transition: background-color 0.3s ease;
 }
 
@@ -32,18 +39,17 @@ body.dark-mode {
   z-index: 10;
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  /* 네비게이션 높이를 뺀 나머지 공간을 정확히 할당하여 그 안에서 중앙 정렬 */
-  height: calc(100vh - var(--nav-height)); 
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  padding: 0 20px; 
+  /* 핵심 수정: 투명 네비바 공간만큼 콘텐츠 영역을 아래로 밀어줌 */
+  margin-top: var(--nav-height); 
 }
 
+/* 
+  [핵심] 
+  LiquidGlass 파일에 있는 원래 모양을 그대로 쓰기 위해 
+  여기서는 배경 투명도와 테두리 변수만 수정합니다.
+*/
 .pricing-content .liquid-glass-box {
-  width: 100%;
   --glass-bg: rgba(255, 255, 255, 0.25);
   --glass-border: rgba(255, 255, 255, 0.3);
 }
@@ -64,18 +70,18 @@ body.dark-mode .pricing-content .liquid-glass-box {
 .pricing-header p {
   color: var(--text-main);
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 40px; /* 여백 미세 조정 */
 }
 
 .pricing-container {
   display: flex;
   justify-content: center;
-  width: 100%;
   gap: 20px;
   flex-wrap: nowrap;
 }
 
 .price-card {
+  /* 카드 내부 질감은 별도 변수 없이 인라인으로 고정하셨던 기존 수치 유지 */
   background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -83,7 +89,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
   border-radius: 28px;
   padding: 40px 25px;
   flex: 1;
-  min-width: 220px; 
+  min-width: 250px; 
   max-width: 320px; 
   display: flex;
   flex-direction: column;
@@ -174,58 +180,25 @@ body.dark-mode .price-card:hover {
   transition: all 0.3s ease-in-out !important;
 }
 
-/* =============================================================================
-   [핵심] 세로폭이 좁은 노트북(14인치 이하) 환경에서 화면 넘침 방지를 위한 동적 압축
-   ============================================================================= */
-@media (max-height: 800px) {
-  .pricing-header h1 { 
-    font-size: 2.2rem; 
-    margin-bottom: 5px; 
-  }
-  .pricing-header p { 
-    font-size: 0.9rem; 
-    margin-bottom: 15px; 
-  }
-  .price-card { 
-    padding: 20px 20px; /* 패딩 대폭 축소 */
-    border-radius: 20px; 
-  }
-  .plan-name { 
-    font-size: 1.3rem; 
-    margin-bottom: 5px; 
-  }
-  .plan-desc { 
-    height: auto; 
-    min-height: 35px; 
-    margin-bottom: 10px; 
-    font-size: 0.8rem; 
-  }
-  .plan-price .amount { 
-    font-size: 2rem; 
-  }
-  .feature-list { 
-    margin: 15px 0; 
-  }
-  .feature-list li { 
-    padding: 5px 0; 
-    font-size: 0.85rem; /* 리스트 높이 감소 */
-  }
-}
-
-/* 모바일 및 태블릿 가로 폭 대응 (여기서는 불가피하게 스크롤 개방) */
+/* 태블릿 및 모바일 대응 수정 */
 @media (max-width: 950px) {
   .pricing-wrapper {
+    /* 모바일에서는 카드가 아래로 쌓이므로 스크롤이 필연적으로 발생해야 합니다 */
     height: auto;
-    overflow-y: auto; 
+    min-height: 100vh;
+    overflow-y: auto;
+    padding-top: var(--nav-height);
   }
+  
   .pricing-content {
-    height: auto;
+    margin-top: 0;
     padding: 40px 20px;
-    margin-top: var(--nav-height);
   }
-  .pricing-container {
+
+  .pricing-container { 
     flex-wrap: wrap; 
   }
+  
   .price-card { 
     max-width: 400px; 
     width: 100%; 
