@@ -36,9 +36,8 @@ const ProjectManager = () => {
     }
   };
 
-  // 프로젝트 삭제 기능 추가
   const handleDeleteProject = async (e, projectId) => {
-    e.stopPropagation(); // 부모 엘리먼트의 클릭 이벤트(대시보드 이동) 방지
+    e.stopPropagation(); 
     if (!window.confirm("정말로 이 프로젝트를 삭제하시겠습니까? (관련 데이터 모두 삭제됨)")) return;
 
     try {
@@ -85,12 +84,12 @@ const ProjectManager = () => {
               <h2 className="project-name">{project.name}</h2>
               <div className="card-header-right">
                 <span className="project-usage">이번 달 사용량: {project.monthly_usage}회</span>
+                {/* 텍스트 형태의 삭제 버튼으로 변경 */}
                 <button 
                   className="btn-delete-project" 
                   onClick={(e) => handleDeleteProject(e, project.id)}
-                  title="프로젝트 삭제"
                 >
-                  <i className="fa-solid fa-trash-can"></i>
+                  삭제
                 </button>
               </div>
             </div>
@@ -101,8 +100,9 @@ const ProjectManager = () => {
               <div className="key-row">
                 <span className="key-label">Site Key</span>
                 <input type="text" className="key-value" value={project.site_key} readOnly />
+                {/* 텍스트 형태의 복사 버튼으로 변경 */}
                 <button className="btn-copy-box" onClick={(e) => copyToClipboard(e, project.site_key)}>
-                  <i className="fa-regular fa-copy"></i>
+                  복사
                 </button>
               </div>
               
@@ -110,7 +110,7 @@ const ProjectManager = () => {
                 <span className="key-label">Secret Key</span>
                 <input type="text" className="key-value" value={project.secret_key} readOnly />
                 <button className="btn-copy-box" onClick={(e) => copyToClipboard(e, project.secret_key)}>
-                  <i className="fa-regular fa-copy"></i>
+                  복사
                 </button>
               </div>
             </div>
@@ -121,6 +121,7 @@ const ProjectManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box">
+            <h2>신규 프로젝트 생성</h2>
             <form onSubmit={handleCreateProject}>
               <div className="form-group">
                 <label>프로젝트 이름</label>
