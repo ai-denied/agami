@@ -35,23 +35,13 @@ const MyPage = () => {
         </div>
 
         <nav className="sidebar-menu">
-          {/* 1. 신규: 프로젝트 관리 메뉴 */}
           <NavLink 
             to="/mypage/projects" 
             className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}
           >
             프로젝트 관리
           </NavLink>
-
-          {/* 2. 기존: 트래픽 대시보드 */}
-          <NavLink 
-            to="/mypage/dashboard" 
-            className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}
-          >
-            트래픽 대시보드
-          </NavLink>
-
-          {/* 3. 기존: 계정 설정 */}
+          {/* 트래픽 대시보드는 프로젝트 내부로 이동했으므로 글로벌 LNB에서 제거 */}
           <NavLink 
             to="/mypage/settings" 
             className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}

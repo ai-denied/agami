@@ -206,8 +206,8 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    generated_site_key = f"ag_site_{secrets.token_hex(16)}"
-    generated_secret_key = f"ag_secret_{secrets.token_hex(32)}"
+    generated_site_key = f"agami_site_{secrets.token_hex(16)}"
+    generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
     new_project = models.Project(
         user_id=user_id,
