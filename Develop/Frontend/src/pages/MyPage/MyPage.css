@@ -18,12 +18,12 @@ body.dark-mode .mypage-container {
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease, border-right-color 0.3s ease;
 }
 
 body.dark-mode .mypage-sidebar {
   background-color: #141415;
-  border-right: 1px solid #28282a;
+  border-right-color: #28282a;
 }
 
 .sidebar-header {
@@ -33,7 +33,7 @@ body.dark-mode .mypage-sidebar {
   padding-bottom: 24px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border-color, #e5e7eb);
-  transition: border-color 0.3s ease;
+  transition: border-bottom-color 0.3s ease;
 }
 
 body.dark-mode .sidebar-header {
@@ -66,7 +66,7 @@ body.dark-mode .profile-name {
   color: #ffffff;
 }
 
-/* 로그아웃 버튼 */
+/* 로그아웃 버튼 - 싱크 동기화 및 부드러운 전환 효과 고정 */
 .logout-btn {
   width: 100%;
   padding: 8px 0;
@@ -77,12 +77,13 @@ body.dark-mode .profile-name {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .logout-btn:hover {
   background-color: #ef4444; 
   color: #ffffff;            
+  transition: background-color 0.2s ease, color 0.2s ease; /* 호버 피드백은 기민하게 */
 }
 
 /* 사이드바 메뉴 */
@@ -98,7 +99,6 @@ body.dark-mode .profile-name {
   color: #6b7891; 
   font-weight: 500;
   border-radius: 8px;
-  /* [수정] 0.3s에서 0.3s로 사이드바와 싱크를 맞추고 변환 속성을 명시하여 네모 잔상 제거 */
   transition: background-color 0.3s ease, color 0.3s ease; 
 }
 
@@ -109,11 +109,13 @@ body.dark-mode .menu-item {
 .menu-item:hover {
   background-color: #f0f7ff;
   color: #5da2ff;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 body.dark-mode .menu-item:hover {
   background-color: rgba(93, 162, 255, 0.08); 
   color: #5da2ff;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .menu-item.active {
@@ -122,7 +124,6 @@ body.dark-mode .menu-item:hover {
   font-weight: 600;
 }
 
-/* 다크모드 활성화 상태에서 호버 시 색상 변질 방지 고정 */
 body.dark-mode .menu-item.active:hover {
   background-color: #5da2ff !important;
   color: #ffffff !important;
@@ -165,7 +166,7 @@ body.dark-mode .menu-item.active:hover {
 }
 
 /* ---------------------------------------------------
-   개선된 프로젝트 목록 돌아가기 백버튼 UI
+   개선된 프로젝트 목록 돌아가기 백버튼 UI (싱크 완벽 수정)
 --------------------------------------------------- */
 .btn-sidebar-back {
   display: flex;
@@ -180,20 +181,22 @@ body.dark-mode .menu-item.active:hover {
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
   box-sizing: border-box;
+  /* 핵심: 전역 타임라인과 완벽 동기화를 위해 ease-in-out 제거 후 0.3s ease 배치 */
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; 
 }
 
 .btn-sidebar-back .arrow-icon {
   margin-right: 8px;
   font-weight: 900;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .btn-sidebar-back:hover {
   background: rgba(93, 162, 255, 0.08);
   border-color: #5da2ff;
   color: #5da2ff;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; 
 }
 
 .btn-sidebar-back:hover .arrow-icon {
@@ -204,14 +207,13 @@ body.dark-mode .btn-sidebar-back {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
   color: #9ca3af;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  /* 중복 선언되던 테마 파괴 transition 구문 자산 박탈 제거 */
 }
 
 body.dark-mode .btn-sidebar-back:hover {
   background: rgba(93, 162, 255, 0.15);
   border-color: #5da2ff;
   color: #5da2ff;
-  transition: none; /* 호버 응답은 즉각 반응하도록 예외 처리 */
 }
 
 .menu-category-title {
