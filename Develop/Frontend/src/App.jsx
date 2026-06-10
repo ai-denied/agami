@@ -12,6 +12,7 @@ import Test from '@/pages/Test/Test';
 import AuthCallback from "@/pages/Login/AuthCallback";
 
 import MyPage from '@/pages/MyPage/MyPage'; 
+import ProjectManager from '@/pages/MyPage/ProjectManager';
 import Dashboard from '@/pages/MyPage/Dashboard'; 
 import Settings from '@/pages/MyPage/Settings'; 
 
