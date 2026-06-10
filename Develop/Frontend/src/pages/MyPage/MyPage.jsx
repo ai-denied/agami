@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
@@ -10,16 +10,32 @@ const MyPage = () => {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // 초기 로드 시 기존 브라우저 테마 상태 동기화
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark" || document.body.classList.contains("dark-mode")) {
+      setIsDarkMode(true);
+      document.body.classList.add("dark-mode");
+    }
+  }, []);
+
+  // 테마 토글 핸들러 (Navbar 로직과 동일하게 연동)
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    document.body.classList.toggle("dark-mode", newTheme);
+    localStorage.setItem("theme", newTheme ? "dark" : "light");
+  };
 
   const handleLogout = async () => {
     try { await api.post("/api/auth/logout"); } catch (e) { console.error(e); }
     setUser(null); localStorage.clear(); window.location.href = "/";
   };
 
-  // 현재 URL이 특정 프로젝트 내부인지 정규식으로 확인
   const projectMatch = location.pathname.match(/\/mypage\/projects\/(\d+)/);
   const projectId = projectMatch ? projectMatch[1] : null;
-  // 프로젝트 목록 메인 화면(/mypage/projects)일 때는 글로벌 메뉴 표시
   const isProjectContext = projectId && location.pathname !== "/mypage/projects";
 
   return (
@@ -27,23 +43,40 @@ const MyPage = () => {
       <aside className="mypage-sidebar">
         <div className="sidebar-header">
           <div className="profile-section">
-            <img src={user?.profile || '/agami-profile.png'} alt="profile" className="profile-img" onError={(e) => { e.target.src = '/agami-profile.png'; }} />
+            <img 
+              src={user?.profile || '/agami-profile.png'} 
+              alt="profile" 
+              className="profile-img" 
+              onError={(e) => { e.target.src = '/agami-profile.png'; }} 
+            />
             <span className="profile-name"><strong>{user?.nickname}</strong> 님</span>
           </div>
+          
+          {/* 테마 스위치 이식 및 디자인 통일 */}
+          <div className={`theme-switch sidebar-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
+            <div className="switch-content">
+              <span className="label-light">LIGHT</span>
+              <div className="switch-handle"></div>
+              <span className="label-dark">DARK</span>
+            </div>
+          </div>
+
           <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
         </div>
 
         <nav className="sidebar-menu">
           {isProjectContext ? (
             <>
-              {/* 프로젝트 내부 전용 사이드바 */}
-              <div 
+              {/* 프로젝트 내부 전용 사이드바: 직관적인 백버튼 UI 디자인 적용 */}
+              <button 
+                type="button"
+                className="btn-sidebar-back"
                 onClick={() => navigate("/mypage/projects")}
-                style={{ padding: '12px 16px', cursor: 'pointer', color: '#6b7280', fontSize: '0.95rem', fontWeight: '600', marginBottom: '10px' }}
               >
-                <i className="fa-solid fa-arrow-left" style={{marginRight: '8px'}}></i> 프로젝트 목록
-              </div>
-              <div style={{ margin: '16px 0 8px 16px', fontSize: '0.8rem', fontWeight: '700', color: '#9ca3af' }}>프로젝트 관리</div>
+                <span className="arrow-icon">←</span> 프로젝트 목록으로
+              </button>
+              
+              <div className="menu-category-title">프로젝트 관리</div>
               <NavLink to={`/mypage/projects/${projectId}/info`} className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}>
                 기본 정보
               </NavLink>
