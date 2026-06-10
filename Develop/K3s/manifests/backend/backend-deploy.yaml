@@ -17,10 +17,11 @@ spec:
         zone: backend
       containers:
       - name: backend
-        image: agami-captcha.cloud:8443/agami/backend:2606101112
+        image: agami-captcha.cloud:8443/agami/backend:2606101101
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        # 환경 변수를 Secret에서 주입하도록 수정
         env:
         - name: DB_HOST
           value: "postgres-db-postgresql.default.svc.cluster.local"
@@ -28,16 +29,30 @@ spec:
           value: "5432"
         - name: DB_USER
           value: "admin"
-        - name: DB_PASSWORD
-          value: "admin1234"
         - name: DB_NAME
           value: "agamidb"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: agami-env-secret
+              key: DB_PASSWORD
         - name: KAKAO_CLIENT_ID
-          value: "21bb77241dca5e660b3bdc037ed54db3"
+          valueFrom:
+            secretKeyRef:
+              name: agami-env-secret
+              key: KAKAO_CLIENT_ID
         - name: KAKAO_REDIRECT_URI
           value: "https://agami-captcha.cloud/auth/kakao/callback"
+        - name: KAKAO_PAY_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: agami-env-secret
+              key: KAKAO_PAY_SECRET_KEY
         - name: JWT_SECRET_KEY
-          value: "super-secret-key-for-agami-jwt-token"
+          valueFrom:
+            secretKeyRef:
+              name: agami-env-secret
+              key: JWT_SECRET_KEY
         - name: JWT_ALGORITHM
           value: "HS256"
         - name: JWT_EXPIRE_MINUTES
