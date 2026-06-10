@@ -4,16 +4,14 @@
 .page-wrapper {
   height: 100vh;
   height: 100dvh; 
-  /* 이전의 잘못된 padding-top: 65px 삭제 (배경이 네비바 뒤까지 꽉 차도록 원복) */
   box-sizing: border-box;
-  overflow: hidden; /* 페이지 전체 화면 스크롤 차단 */
+  overflow: hidden; 
 }
 
 .layout-container {
   display: flex;
   width: 100%;
   height: 100%; 
-  /* 네비바(65px) 공간만큼 콘텐츠만 아래로 밀어내어, 뒷배경(리퀴드 글래스)을 채웁니다 */
   padding-top: 65px; 
   background: #f4f7fb;
   box-sizing: border-box;
@@ -70,7 +68,7 @@ body.dark-mode .main-content::-webkit-scrollbar-thumb {
   width: 250px;
   flex-shrink: 0; 
   height: 100%; 
-  min-height: 0; /* [핵심] Flexbox 내부에서 콘텐츠가 팽창하지 않고 스크롤되도록 강제 제한 */
+  min-height: 0; 
   background: #ffffff;
   border-right: 1px solid #e0e7f3;
   padding: 30px 20px;
@@ -126,13 +124,19 @@ body.dark-mode .sidebar li:hover {
   color: white !important;
 }
 
+/* [핵심 수정] 다크모드에서 이미 활성화된 리스트 아이템은 호버 시에도 색상 고정 */
+body.dark-mode .sidebar li.active:hover {
+  background: #5da2ff !important;
+  color: white !important;
+}
+
 /* =============================================================================
    [3] 메인 컨텐츠 영역 및 부가 카드 정보
    ============================================================================= */
 .main-content {
   flex: 1;
   height: 100%;
-  min-height: 0; /* [핵심] 캡챠 카드가 화면보다 커져도 레이아웃을 찢지 않고 스크롤 생성 */
+  min-height: 0; 
   min-width: 600px; 
   padding: 40px;
   display: flex;
