@@ -16,13 +16,13 @@ import ProjectManager from '@/pages/MyPage/ProjectManager';
 import Dashboard from '@/pages/MyPage/Dashboard'; 
 import Settings from '@/pages/MyPage/Settings'; 
 
-// 1. (신규 추가) 로그인된 사용자의 접근을 막는 PublicRoute 래퍼
+// 로그인된 사용자의 접근을 막는 PublicRoute 래퍼
 const PublicRoute = ({ children }) => {
   const { user } = useAuth();
   
-  // 유저 정보가 존재(로그인 상태)하면 무조건 대시보드로 강제 이동 (replace: true로 뒤로가기 방지)
+  // ✅ 수정된 부분: 존재하지 않는 /mypage/dashboard 대신 기본 시작점인 프로젝트 관리(/mypage/projects)로 리다이렉트합니다.
   if (user) {
-    return <Navigate to="/mypage/dashboard" replace />;
+    return <Navigate to="/mypage/projects" replace />;
   }
   
   return children;
@@ -54,13 +54,10 @@ function App() {
         <Router>
           <Layout>
             <Routes>
-              {/* 2. (수정) Home과 Login 라우트를 <PublicRoute>로 감싸서 
-                로그인된 유저는 접근하지 못하도록 차단합니다. 
-              */}
+              {/* 퍼블릭 라우트 */}
               <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
               <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
               
-              {/* 가격과 테스트 페이지는 로그인 유저도 볼 수 있게 PublicRoute로 감싸지 않았습니다 */}
               <Route path="/price" element={<Price />} />
               <Route path="/test" element={<Test />} />
               <Route path="/auth/:provider/callback" element={<AuthCallback />} />
