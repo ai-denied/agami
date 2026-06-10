@@ -11,6 +11,13 @@ import LiquidGlass from "@/components/LiquidGlass/LiquidGlass";
 import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
 import "./Home.css";
 
+// 캔버스 이미지 객체를 컴포넌트 외부에 선언하여 불필요한 재생성과 로딩 지연을 원천 차단합니다.
+const canvasFishImg = new Image();
+canvasFishImg.src = "/agami-fish-right.svg";
+
+const canvasBotImg = new Image();
+canvasBotImg.src = "/bot-blue.svg";
+
 // --- 먹이 로봇 컴포넌트 ---
 const FoodBot = memo(({ x, y, color }) => (
   <motion.img
@@ -32,16 +39,14 @@ const FoodBot = memo(({ x, y, color }) => (
 FoodBot.displayName = "FoodBot";
 
 
-// --- 반응형 물고기 컴포넌트 (해상도 변화 대응 수정) ---
+// --- 반응형 물고기 컴포넌트 (성능 최적화 버전) ---
 const ScaredFish = memo(({
   index,
   isFeeding,
   mousePos,
   allFishRefs,
   isFirstVisit,
-  windowSize, // 부모로부터 실시간 화면 크기를 전달받음
 }) => {
-  // 고정적인 속성만 useMemo로 관리하고, 좌표 계산은 실시간 크기를 반영하도록 분리
   const fishProps = useMemo(() => {
     const totalFish = 25;
     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
@@ -49,7 +54,6 @@ const ScaredFish = memo(({
     const radius = Math.pow(t, 0.6) * 0.5;
     const angle = index * goldenAngle;
 
-    // 중앙 정렬 비율 수치화
     const centerRatioX = 0.75; 
     const centerRatioY = 0.55;  
 
@@ -77,10 +81,10 @@ const ScaredFish = memo(({
     };
   }, [index]);
 
-  // 실시간 윈도우 크기에 기반한 초기 좌표 연산
-  const getInitialPositions = () => {
-    const currentW = Math.max(windowSize.width, 1200);
-    const currentH = Math.max(windowSize.height, 720);
+  // 최초 초기 좌표 연산 (windowSize 의존성 제거를 위해 내부 동적 연산으로 대체)
+  const initialPositions = useMemo(() => {
+    const currentW = Math.max(window.innerWidth, 1200);
+    const currentH = Math.max(window.innerHeight, 720);
 
     const initialX = (fishProps.centerRatioX + Math.cos(fishProps.angle) * fishProps.radius * 0.6) * currentW;
     const initialY = (fishProps.centerRatioY + Math.sin(fishProps.angle) * fishProps.radius) * currentH;
@@ -101,11 +105,8 @@ const ScaredFish = memo(({
     }
 
     return { startX, startY, initialX, initialY };
-  };
+  }, [fishProps]);
 
-  const initialPositions = useMemo(getInitialPositions, [fishProps, windowSize]);
-
-  // Motion Value 초기화
   const mX = useMotionValue(isFirstVisit ? initialPositions.startX : initialPositions.initialX);
   const mY = useMotionValue(isFirstVisit ? initialPositions.startY : initialPositions.initialY);
   const mRotate = useMotionValue(0);
@@ -120,27 +121,27 @@ const ScaredFish = memo(({
   useEffect(() => {
     allFishRefs.current[index] = { x: mX, y: mY };
     let requestRef;
-    const delayTime = isFirstVisit ? 5500 : 0; // 인트로 애니메이션 시간과 동기화
+    const delayTime = isFirstVisit ? 5500 : 0;
     let frameCount = 0;
-    
-    const currentW = Math.max(windowSize.width, 1200);
-    const currentH = Math.max(windowSize.height, 720);
-
-    const centerX = currentW * fishProps.centerRatioX;
-    const centerY = currentH * fishProps.centerRatioY;
-    const limitRadius = currentW * 0.5;
-    const limitRadiusSq = (limitRadius - 50) * (limitRadius - 50);
-
-    let sepX = 0;
-    let sepY = 0;
 
     const animate = (time) => {
+      // 루프 내부에서 window 크기를 실시간 참조하여 루프 리셋 현상을 방지합니다.
+      const currentW = Math.max(window.innerWidth, 1200);
+      const currentH = Math.max(window.innerHeight, 720);
+
+      const centerX = currentW * fishProps.centerRatioX;
+      const centerY = currentH * fishProps.centerRatioY;
+      const limitRadius = currentW * 0.5;
+      const limitRadiusSq = (limitRadius - 50) * (limitRadius - 50);
+
+      const dynamicInitialX = (fishProps.centerRatioX + Math.cos(fishProps.angle) * fishProps.radius * 0.6) * currentW;
+      const dynamicInitialY = (fishProps.centerRatioY + Math.sin(fishProps.angle) * fishProps.radius) * currentH;
+
       const curX = mX.get();
       const curY = mY.get();
 
-      // 실시간 화면 크기가 적용된 타깃 좌표 계산
-      let targetX = initialPositions.initialX + Math.sin(time * fishProps.floatSpeed + fishProps.phase) * fishProps.floatIntensity;
-      let targetY = initialPositions.initialY + Math.cos(time * fishProps.floatSpeed * 0.8 + fishProps.phase) * fishProps.floatIntensity;
+      let targetX = dynamicInitialX + Math.sin(time * fishProps.floatSpeed + fishProps.phase) * fishProps.floatIntensity;
+      let targetY = dynamicInitialY + Math.cos(time * fishProps.floatSpeed * 0.8 + fishProps.phase) * fishProps.floatIntensity;
 
       const mouseX = mousePos.current.x;
       const mouseY = mousePos.current.y;
@@ -166,9 +167,9 @@ const ScaredFish = memo(({
         }
       }
 
+      let sepX = 0;
+      let sepY = 0;
       if (frameCount % 6 === 0) {
-        sepX = 0;
-        sepY = 0;
         const fishRefs = allFishRefs.current;
         for (let i = 0; i < fishRefs.length; i++) {
           if (i === index || !fishRefs[i]) continue;
@@ -214,7 +215,7 @@ const ScaredFish = memo(({
       clearTimeout(timer);
       cancelAnimationFrame(requestRef);
     };
-  }, [fishProps, initialPositions, index, allFishRefs, isFirstVisit, mX, mY, mRotate, mousePos, windowSize]);
+  }, [fishProps, index, allFishRefs, isFirstVisit, mX, mY, mRotate, mousePos]);
 
   return (
     <motion.div
@@ -251,23 +252,13 @@ ScaredFish.displayName = "ScaredFish";
 
 
 
-// --- 지오데식 구 + 배경 네트워크 그래픽 ---
+// --- 지오데식 구 파티클 배경 그래픽 (연결선 연산 제거 버전) ---
 const ParticleNetwork = memo(({ windowSize }) => {
   const canvasRef = useRef(null);
-  const fishImgRef = useRef(null);
-  const botImgRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
-
-    const fishImg = new Image();
-    fishImg.src = "/agami-fish-right.svg";
-    fishImgRef.current = fishImg;
-
-    const botImg = new Image();
-    botImg.src = "/bot-blue.svg";
-    botImgRef.current = botImg;
 
     let sphereParticles = [];
     let bgParticles = [];
@@ -337,10 +328,10 @@ const ParticleNetwork = memo(({ windowSize }) => {
       }
 
       draw() {
-        if (!botImgRef.current.complete) return;
+        if (!canvasBotImg.complete) return;
         ctx.globalAlpha = this.opacity;
         ctx.drawImage(
-          botImgRef.current,
+          canvasBotImg,
           this.x - (this.size >> 1),
           this.y - (this.size >> 1),
           this.size,
@@ -375,11 +366,11 @@ const ParticleNetwork = memo(({ windowSize }) => {
         this.alpha = perspective;
       }
       draw() {
-        if (!fishImgRef.current.complete) return;
+        if (!canvasFishImg.complete) return;
         ctx.globalAlpha = this.alpha;
         const size = this.baseSize * this.alpha;
         ctx.drawImage(
-          fishImgRef.current, 
+          canvasFishImg, 
           this.projectedX - (size / 2), 
           this.projectedY - (size / 2), 
           size, 
@@ -410,33 +401,6 @@ const ParticleNetwork = memo(({ windowSize }) => {
 
     updateCanvasSize();
     
-    const drawSphereLines = () => {
-      ctx.lineWidth = 1.0;
-      const connectionDistSq = 180 * 180;
-      const len = sphereParticles.length;
-      
-      ctx.beginPath();
-      for (let i = 0; i < len; i++) {
-        const p1 = sphereParticles[i];
-        const maxCheck = Math.min(i + 15, len);
-        for (let j = i + 1; j < maxCheck; j++) {
-          const p2 = sphereParticles[j];
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
-          const dz = p1.z - p2.z;
-          const dSq = dx * dx + dy * dy + dz * dz;
-
-          if (dSq < connectionDistSq) {
-            const opacity = Math.min(p1.alpha, p2.alpha) * 0.15;
-            ctx.strokeStyle = `rgba(93, 162, 255, ${opacity})`;
-            ctx.moveTo(p1.projectedX, p1.projectedY);
-            ctx.lineTo(p2.projectedX, p2.projectedY);
-          }
-        }
-      }
-      ctx.stroke();
-    };
-
     const drawBGNetwork = () => {
       ctx.lineWidth = 0.8;
       const bgConnDistSq = 250 * 250;
@@ -468,10 +432,10 @@ const ParticleNetwork = memo(({ windowSize }) => {
       }
       drawBGNetwork();
 
+      // 중첩 루프 구조의 연결선 그리기 함수(drawSphereLines)를 제거하여 드로우콜 및 연산량을 획기적으로 낮춤
       for (let i = 0; i < sphereParticles.length; i++) {
         sphereParticles[i].update(time);
       }
-      drawSphereLines();
       
       for (let i = 0; i < sphereParticles.length; i++) {
         sphereParticles[i].draw();
@@ -484,7 +448,7 @@ const ParticleNetwork = memo(({ windowSize }) => {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [windowSize]); // windowSize 변경 시 캔버스 초기화 및 리사이즈 연동
+  }, [windowSize]); 
 
   return (
     <canvas
@@ -508,7 +472,6 @@ const Home = () => {
   const [hasFed, setHasFed] = useState(false);
   const [foods, setFoods] = useState([]);
   
-  // 브라우저 리사이즈 상태 관리 최적화
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -521,7 +484,6 @@ const Home = () => {
   const [targetFishPos, setTargetFishPos] = useState({ x: 50, y: 50 });
   const [isFound, setIsFound] = useState(false);
 
-  // 리사이즈 이벤트 바인딩 (디바운스/쓰로틀링 적용 가능)
   useEffect(() => {
     let timeoutId = null;
     const handleResize = () => {
@@ -531,7 +493,7 @@ const Home = () => {
           width: window.innerWidth,
           height: window.innerHeight,
         });
-      }, 100); // 잦은 업데이트 방지를 위한 디바운스 처리
+      }, 100); 
     };
 
     window.addEventListener("resize", handleResize, { passive: true });
@@ -559,7 +521,7 @@ const Home = () => {
       const timer = setTimeout(() => {
         sessionStorage.setItem("hasVisitedAgami", "true");
         document.body.classList.remove("no-scroll");
-        setIsFirstVisit(false); // 인트로가 끝나면 명시적으로 상태 변경 구조 확보
+        setIsFirstVisit(false); 
       }, 5500);
       return () => {
         clearTimeout(timer);
@@ -742,7 +704,6 @@ const Home = () => {
               mousePos={mousePos}
               allFishRefs={allFishRefs}
               isFirstVisit={isFirstVisit}
-              windowSize={windowSize} // 실시간 해상도 데이터 바인딩
             />
           ))}
         </div>

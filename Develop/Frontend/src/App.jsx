@@ -22,7 +22,6 @@ import Settings from '@/pages/MyPage/Settings';
 const PublicRoute = ({ children }) => {
   const { user } = useAuth();
   
-  // ✅ 수정된 부분: 존재하지 않는 /mypage/dashboard 대신 기본 시작점인 프로젝트 관리(/mypage/projects)로 리다이렉트합니다.
   if (user) {
     return <Navigate to="/mypage/projects" replace />;
   }
@@ -47,7 +46,18 @@ const Layout = ({ children }) => {
 
 function App() {
   useEffect(() => {
+    // 1. 브라우저 탭 타이틀 전역 고정 (agami-frontend 노출 시간 최소화)
     document.title = "agami - 차세대 지능형 캡챠 서비스";
+
+    // 2. 파비콘(로고 아이콘) 전역 주입 로직을 App.jsx로 이관하여 Home.jsx 종속성 제거
+    const link = document.querySelector("link[rel~='icon']") || document.createElement("link");
+    link.type = "image/svg+xml";
+    link.rel = "icon";
+    link.href = "/agami-home.svg";
+    
+    if (!document.head.contains(link)) {
+      document.head.appendChild(link);
+    }
   }, []);
 
   return (
@@ -64,7 +74,7 @@ function App() {
               <Route path="/test" element={<Test />} />
               <Route path="/auth/:provider/callback" element={<AuthCallback />} />
               
-              {/* ✅ 결제 성공 콜백 라우트 추가 */}
+              {/* 결제 성공 콜백 라우트 */}
               <Route path="/payment/success" element={<PaymentSuccess />} />
 
               {/* 프라이빗 라우트 (로그인 필수) */}
