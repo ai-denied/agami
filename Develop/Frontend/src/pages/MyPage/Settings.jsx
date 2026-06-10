@@ -17,13 +17,9 @@ const Settings = () => {
     }
   }, [user]);
 
-  // 자체 UI 알림 함수
   const showNotification = (message, type = "success") => {
     setNotification({ show: true, message, type });
-    // 3초 후 메시지 자동 숨김
-    setTimeout(() => {
-      setNotification({ show: false, message: "", type: "" });
-    }, 3000);
+    setTimeout(() => setNotification({ show: false, message: "", type: "" }), 3000);
   };
 
   const handleSubmit = async (e) => {
@@ -37,9 +33,7 @@ const Settings = () => {
     }
 
     try {
-      // JSON 페이로드 전송
       const response = await api.patch("/api/auth/me", { nickname });
-
       if (response.data.status === "success") {
         showNotification("닉네임이 성공적으로 업데이트되었습니다.");
         setUser(response.data.user);
@@ -52,56 +46,80 @@ const Settings = () => {
     }
   };
 
+  // 플랜별 설명 매핑
+  const planNames = {
+    Basic: "Basic (월 1,000회 무료)",
+    Pro: "Pro (월 100,000회)",
+    Enterprise: "Enterprise (무제한)"
+  };
+
   return (
-    <div className="settings-container">
-      <h1 className="settings-title">계정 설정</h1>
-      <p className="settings-description">플랫폼에서 사용될 프로필과 닉네임을 관리할 수 있습니다.</p>
+    <div className="settings-page-wrapper">
+      <div className="settings-container">
+        <header className="settings-header">
+          <h1 className="settings-title">계정 설정</h1>
+          <p className="settings-description">플랫폼에서 사용될 프로필과 닉네임, 요금제를 관리합니다.</p>
+        </header>
 
-      <form className="settings-form" onSubmit={handleSubmit}>
-        {/* 읽기 전용 프로필 이미지 */}
-        <div className="form-group profile-readonly-group">
-          <label className="form-label">프로필 사진</label>
-          <div className="image-preview-wrapper">
-            <img 
-              src={user?.profile || "/agami-profile.png"} 
-              alt="Profile" 
-              className="settings-profile-img"
-              onError={(e) => { e.target.src = "/agami-profile.png"; }}
-            />
+        <section className="settings-section">
+          <h2 className="section-label">기본 정보</h2>
+          <form className="nickname-form" onSubmit={handleSubmit}>
+            <div className="form-group profile-readonly-group">
+              <label className="form-label">프로필 사진</label>
+              <div className="image-preview-wrapper">
+                {/* 잃어버렸던 동그라미 프로필 사진 복구 */}
+                <img 
+                  src={user?.profile || "/agami-profile.png"} 
+                  alt="Profile" 
+                  className="settings-profile-img"
+                  onError={(e) => { e.target.src = "/agami-profile.png"; }}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="nickname" className="form-label">닉네임</label>
+              <input 
+                type="text" 
+                id="nickname" 
+                className="form-input" 
+                value={nickname} 
+                onChange={(e) => setNickname(e.target.value)} 
+                placeholder="새로운 닉네임을 입력하세요"
+                required
+                maxLength={20}
+              />
+            </div>
+
+            <div className="form-actions">
+              {notification.show && (
+                <span className={`notification-msg ${notification.type}`}>
+                  {notification.message}
+                </span>
+              )}
+              <button type="submit" className="btn-submit" disabled={isSubmitting}>
+                {isSubmitting ? "저장 중..." : "변경사항 저장"}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <hr className="divider" />
+
+        <section className="settings-section">
+          <h2 className="section-label">구독 정보</h2>
+          <div className="plan-info-box">
+            <span className="plan-label">현재 이용 중인 요금제</span>
+            <span className="plan-value">{planNames[user?.plan || "Basic"]}</span>
+            <button 
+              className="btn-outline-primary" 
+              onClick={() => window.location.href = '/price'}
+            >
+              요금제 변경
+            </button>
           </div>
-        </div>
-
-        {/* 닉네임 수정 영역 */}
-        <div className="form-group">
-          <label htmlFor="nickname" className="form-label">닉네임</label>
-          <input 
-            type="text" 
-            id="nickname" 
-            className="form-input" 
-            value={nickname} 
-            onChange={(e) => setNickname(e.target.value)} 
-            placeholder="새로운 닉네임을 입력하세요"
-            required
-            maxLength={20}
-          />
-        </div>
-
-        {/* 저장 버튼 및 알림 메시지 영역 */}
-        <div className="form-actions">
-          {notification.show && (
-            <span className={`notification-msg ${notification.type}`}>
-              {notification.message}
-            </span>
-          )}
-          <button 
-            type="submit" 
-            className="btn-submit" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "저장 중..." : "변경사항 저장"}
-          </button>
-        </div>
-      </form>
+        </section>
+      </div>
     </div>
   );
 };

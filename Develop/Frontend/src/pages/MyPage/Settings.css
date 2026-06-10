@@ -1,6 +1,8 @@
+/* 화면 전체 너비를 차지하며 정확히 중앙에 배치 */
 .settings-page-wrapper {
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   width: 100%;
   padding: 40px;
   box-sizing: border-box;
@@ -8,11 +10,11 @@
 
 .settings-container {
   width: 100%;
-  max-width: 800px; /* 너무 퍼지지 않게 최적 너비 설정 */
+  max-width: 800px;
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
-  padding: 48px; /* 좌우 패딩을 일정하고 넉넉하게 */
+  padding: 48px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   box-sizing: border-box;
 }
@@ -22,9 +24,19 @@
 .settings-description { font-size: 0.95rem; color: #6b7280; }
 
 .settings-section { display: flex; flex-direction: column; gap: 24px; }
-.section-label { font-size: 1.1rem; font-weight: 700; color: #374151; margin-bottom: 8px; }
+.section-label { font-size: 1.1rem; font-weight: 800; color: #111827; margin-bottom: 8px; }
 
-/* 폼 그룹 및 인풋 공통 속성 */
+/* 프로필 이미지 동그라미 고정 */
+.profile-readonly-group { margin-bottom: 16px; }
+.settings-profile-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+}
+
+/* 폼 인풋 크기 꽉 채우기 */
 .form-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
 .form-label { font-size: 0.95rem; font-weight: 700; color: #374151; }
 
@@ -36,87 +48,60 @@
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
-  box-sizing: border-box; /* 패딩이 너비를 뚫고 나가지 않게 강제 */
+  box-sizing: border-box;
   transition: all 0.2s ease;
 }
 
 .form-input:focus {
   outline: none;
   border-color: #5da2ff;
-  box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.1);
-}
-
-/* 도메인 다중 입력 및 삭제 버튼 디자인 */
-.domain-input-row {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  align-items: center;
-}
-
-.flex-fill {
-  flex: 1; /* 인풋 창이 남은 공간을 꽉 채우도록 */
-}
-
-/* 촌스럽던 X 버튼을 깔끔한 테두리 버튼으로 수정 */
-.btn-remove-domain {
-  width: 48px;
-  height: 48px;
-  background: #ffffff;
-  color: #ef4444;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.2s;
-}
-.btn-remove-domain:hover {
-  background: #fef2f2;
-}
-
-.btn-add-domain {
-  align-self: flex-start;
-  background: transparent;
-  color: #5da2ff;
-  border: none;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  padding: 4px 0;
+  box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.15);
 }
 
 .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 16px; }
-.btn-submit { background-color: #5da2ff; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; }
+
+.notification-msg { font-size: 0.9rem; font-weight: 600; }
+.notification-msg.success { color: #10b981; }
+.notification-msg.error { color: #ef4444; }
+
+.btn-submit {
+  background-color: #5da2ff;
+  color: #ffffff;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
 .btn-submit:hover { background-color: #4a8deb; }
+.btn-submit:disabled { background-color: #9ca3af; cursor: not-allowed; }
 
 .divider { border: 0; height: 1px; background-color: #f3f4f6; margin: 40px 0; }
 
-/* 읽기 전용 연동 키 디스플레이 */
-.key-display-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-.key-display-row {
+/* 요금제(구독 정보) 박스 스타일 */
+.plan-info-box {
   display: flex;
   align-items: center;
-  gap: 16px;
   background: #fcfcfc;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 14px 20px;
-  width: 100%;
-  box-sizing: border-box;
+  padding: 20px;
 }
-.key-display-label { width: 90px; font-weight: 700; font-size: 0.9rem; color: #6b7280; flex-shrink: 0; }
-.key-display-value { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #111827; word-break: break-all; }
-.btn-copy-action {
+.plan-label { width: 150px; font-weight: 700; color: #6b7280; font-size: 0.95rem; }
+.plan-value { flex: 1; font-weight: 800; color: #111827; font-size: 1.1rem; }
+.btn-outline-primary {
   background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid #5da2ff;
+  color: #5da2ff;
   padding: 8px 16px;
-  font-size: 0.9rem;
+  border-radius: 6px;
   font-weight: 700;
-  color: #4b5563;
   cursor: pointer;
-  flex-shrink: 0;
+  transition: all 0.2s;
 }
-.btn-copy-action:hover { background: #f3f4f6; color: #111827; }
+.btn-outline-primary:hover {
+  background: #5da2ff;
+  color: #ffffff;
+}
