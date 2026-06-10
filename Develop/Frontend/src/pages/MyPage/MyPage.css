@@ -6,7 +6,6 @@
   transition: background-color 0.3s ease;
 }
 
-/* 두 번째 코드의 layout-container 배경색과 일치 */
 body.dark-mode .mypage-container {
   background-color: #1a1a1b;
 }
@@ -22,7 +21,6 @@ body.dark-mode .mypage-container {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* 두 번째 코드의 sidebar 다크모드와 일치 */
 body.dark-mode .mypage-sidebar {
   background-color: #141415;
   border-right: 1px solid #28282a;
@@ -35,6 +33,7 @@ body.dark-mode .mypage-sidebar {
   padding-bottom: 24px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border-color, #e5e7eb);
+  transition: border-color 0.3s ease;
 }
 
 body.dark-mode .sidebar-header {
@@ -60,6 +59,7 @@ body.dark-mode .sidebar-header {
 .profile-name {
   font-size: 1.1rem;
   color: var(--text-primary, #111827);
+  transition: color 0.3s ease;
 }
 
 body.dark-mode .profile-name {
@@ -95,13 +95,13 @@ body.dark-mode .profile-name {
 .menu-item {
   padding: 12px 16px;
   text-decoration: none;
-  color: #6b7891; /* 두 번째 코드의 기본 글씨색과 일치 */
+  color: #6b7891; 
   font-weight: 500;
   border-radius: 8px;
-  transition: all 0.2s ease;
+  /* [수정] 0.2s에서 0.3s로 사이드바와 싱크를 맞추고 변환 속성을 명시하여 네모 잔상 제거 */
+  transition: background-color 0.3s ease, color 0.3s ease; 
 }
 
-/* 두 번째 코드의 다크모드 기본 글씨색과 일치 */
 body.dark-mode .menu-item {
   color: #a0aec0;
 }
@@ -111,7 +111,6 @@ body.dark-mode .menu-item {
   color: #5da2ff;
 }
 
-/* 두 번째 코드의 다크모드 호버 색상과 일치 */
 body.dark-mode .menu-item:hover {
   background-color: rgba(93, 162, 255, 0.08); 
   color: #5da2ff;
@@ -123,13 +122,12 @@ body.dark-mode .menu-item:hover {
   font-weight: 600;
 }
 
-/* [핵심 수정] 다크모드에서 이미 활성화된 메뉴는 호버 시에도 색상 고정 */
+/* 다크모드 활성화 상태에서 호버 시 색상 변질 방지 고정 */
 body.dark-mode .menu-item.active:hover {
   background-color: #5da2ff !important;
   color: #ffffff !important;
 }
 
-/* 우측 메인 콘텐츠 */
 .mypage-content {
   flex: 1;
   padding: 40px;
@@ -206,12 +204,14 @@ body.dark-mode .btn-sidebar-back {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
   color: #9ca3af;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 body.dark-mode .btn-sidebar-back:hover {
   background: rgba(93, 162, 255, 0.15);
   border-color: #5da2ff;
   color: #5da2ff;
+  transition: none; /* 호버 응답은 즉각 반응하도록 예외 처리 */
 }
 
 .menu-category-title {
@@ -221,4 +221,5 @@ body.dark-mode .btn-sidebar-back:hover {
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
 }

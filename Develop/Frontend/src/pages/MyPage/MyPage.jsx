@@ -28,8 +28,22 @@ const MyPage = () => {
   };
 
   const handleLogout = async () => {
-    try { await api.post("/api/auth/logout"); } catch (e) { console.error(e); }
-    setUser(null); localStorage.clear(); window.location.href = "/";
+    try { 
+      await api.post("/api/auth/logout"); 
+    } catch (e) { 
+      console.error(e); 
+    }
+    
+    // [핵심 수정] 로그아웃 전 테마 상태 백업 후, clear 이후 재주입하여 홈화면 테마 유지
+    const currentTheme = localStorage.getItem("theme"); 
+    setUser(null); 
+    localStorage.clear(); 
+    
+    if (currentTheme) {
+      localStorage.setItem("theme", currentTheme);
+    }
+    
+    window.location.href = "/";
   };
 
   const projectMatch = location.pathname.match(/\/mypage\/projects\/(\d+)/);
@@ -50,7 +64,6 @@ const MyPage = () => {
             <span className="profile-name"><strong>{user?.nickname}</strong> 님</span>
           </div>
           
-          {/* 정렬용 컨테이너 내부에 원래 규격의 스위치 배치 */}
           <div className="sidebar-theme-container">
             <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
               <div className="switch-content">
