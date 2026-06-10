@@ -1,5 +1,7 @@
 import os
 import requests
+import secrets
+
 from fastapi import FastAPI, Depends, HTTPException, Response, Request
 from sqlalchemy.orm import Session
 from database import SessionLocal
@@ -9,6 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 from jose import jwt
 from pydantic import BaseModel
+
+class ProjectCreate(BaseModel):
+    name: str
+    domains: str
 
 load_dotenv()
 
@@ -84,7 +90,7 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
     
     return {
         "status": "success",
-        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image},
+        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan},
     }
 
 # -----------------------------------------------------------------------------
@@ -130,7 +136,7 @@ async def google_callback(code: str, response: Response, db: Session = Depends(g
     
     return {
         "status": "success",
-        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image},
+        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan},
     }
 
 # -----------------------------------------------------------------------------
@@ -147,7 +153,7 @@ async def get_me(request: Request, db: Session = Depends(get_db)):
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
-        return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image}}
+        return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -179,10 +185,65 @@ async def update_profile(
 
     return {
         "status": "success",
-        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image}
+        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}
     }
     
 @app.post("/api/auth/logout")
 async def logout(response: Response):
     response.delete_cookie(key="accessToken", path="/", httponly=True, secure=True, samesite="lax")
     return {"status": "success"}
+
+
+# --- 기존 인증 API 아래쪽에 프로젝트 API 추가 ---
+@app.post("/api/projects")
+async def create_project(data: ProjectCreate, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("accessToken")
+    if not token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    generated_site_key = f"ag_site_{secrets.token_hex(16)}"
+    generated_secret_key = f"ag_secret_{secrets.token_hex(32)}"
+
+    new_project = models.Project(
+        user_id=user_id,
+        name=data.name,
+        domains=data.domains,
+        site_key=generated_site_key,
+        secret_key=generated_secret_key
+    )
+    db.add(new_project)
+    db.commit()
+    db.refresh(new_project)
+
+    return {"status": "success"}
+
+@app.get("/api/projects")
+async def get_projects(request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("accessToken")
+    if not token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    projects = db.query(models.Project).filter(models.Project.user_id == user_id).all()
+    return {
+        "status": "success",
+        "projects": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "domains": p.domains,
+                "site_key": p.site_key,
+                "secret_key": p.secret_key,
+                "monthly_usage": p.monthly_usage
+            } for p in projects
+        ]
+    }

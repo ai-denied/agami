@@ -66,9 +66,13 @@ function App() {
 
               {/* 프라이빗 라우트 (로그인 필수) */}
               <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>}>
-                <Route index element={<Navigate to="dashboard" replace />} />
+                {/* /mypage 접근 시 프로젝트 관리 화면이 먼저 보이도록 리다이렉트 */}
+                <Route index element={<Navigate to="projects" replace />} />
+                
+                {/* 하위 라우트 등록 */}
+                <Route path="projects" element={<ProjectManager />} />
                 <Route path="dashboard" element={<Dashboard />} />
-                <Route path="settings" element={<Settings />} /> 
+                <Route path="settings" element={<Settings />} />
               </Route>
             </Routes>
           </Layout>
