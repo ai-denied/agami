@@ -12,7 +12,6 @@ const MyPage = () => {
   const location = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // 초기 로드 시 기존 브라우저 테마 상태 동기화
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark" || document.body.classList.contains("dark-mode")) {
@@ -21,7 +20,6 @@ const MyPage = () => {
     }
   }, []);
 
-  // 테마 토글 핸들러 (Navbar 로직과 동일하게 연동)
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
@@ -52,12 +50,14 @@ const MyPage = () => {
             <span className="profile-name"><strong>{user?.nickname}</strong> 님</span>
           </div>
           
-          {/* 테마 스위치 이식 및 디자인 통일 */}
-          <div className={`theme-switch sidebar-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-            <div className="switch-content">
-              <span className="label-light">LIGHT</span>
-              <div className="switch-handle"></div>
-              <span className="label-dark">DARK</span>
+          {/* 정렬용 컨테이너 내부에 원래 규격의 스위치 배치 */}
+          <div className="sidebar-theme-container">
+            <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
+              <div className="switch-content">
+                <span className="label-light">LIGHT</span>
+                <div className="switch-handle"></div>
+                <span className="label-dark">DARK</span>
+              </div>
             </div>
           </div>
 
@@ -67,7 +67,6 @@ const MyPage = () => {
         <nav className="sidebar-menu">
           {isProjectContext ? (
             <>
-              {/* 프로젝트 내부 전용 사이드바: 직관적인 백버튼 UI 디자인 적용 */}
               <button 
                 type="button"
                 className="btn-sidebar-back"
@@ -86,7 +85,6 @@ const MyPage = () => {
             </>
           ) : (
             <>
-              {/* 글로벌 사이드바 */}
               <NavLink to="/mypage/projects" className={({ isActive }) => isActive ? "menu-item active" : "menu-item"} end>
                 프로젝트 관리
               </NavLink>
