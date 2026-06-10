@@ -8,6 +8,7 @@ import Navbar from '@/layouts/Navbar';
 import Home from '@/pages/Home/Home'; 
 import Login from '@/pages/Login/Login'; 
 import Price from '@/pages/Price/Price';
+import PaymentSuccess from '@/pages/Price/PaymentSuccess';
 import Test from '@/pages/Test/Test';
 import AuthCallback from "@/pages/Login/AuthCallback";
 
@@ -62,17 +63,17 @@ function App() {
               <Route path="/price" element={<Price />} />
               <Route path="/test" element={<Test />} />
               <Route path="/auth/:provider/callback" element={<AuthCallback />} />
+              
+              {/* ✅ 결제 성공 콜백 라우트 추가 */}
+              <Route path="/payment/success" element={<PaymentSuccess />} />
 
               {/* 프라이빗 라우트 (로그인 필수) */}
               <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>}>
                 <Route index element={<Navigate to="projects" replace />} />
                 <Route path="projects" element={<ProjectManager />} />
-                
-                {/* 특정 프로젝트 내부 라우트 */}
                 <Route path="projects/:id" element={<Navigate to="info" replace />} />
                 <Route path="projects/:id/info" element={<ProjectDetail />} />
                 <Route path="projects/:id/dashboard" element={<Dashboard />} />
-                
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Routes>
