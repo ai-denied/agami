@@ -28,7 +28,7 @@ const AuthCallback = () => {
         await checkAuth();
         
         // ✅ 수정된 부분: Home("/")이 아닌 대시보드로 이동하도록 변경
-        navigate("/mypage/dashboard", { replace: true });
+        navigate("/mypage/projects", { replace: true });
       })
       .catch((err) => {
         console.error(`${provider} 로그인 처리 실패:`, err);

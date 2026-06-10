@@ -16,6 +16,9 @@ class ProjectCreate(BaseModel):
     name: str
     domains: str
 
+class ProjectUpdate(BaseModel):
+    name: str
+
 load_dotenv()
 
 app = FastAPI()
@@ -266,6 +269,44 @@ async def delete_project(project_id: int, request: Request, db: Session = Depend
 
     # DB에서 삭제
     db.delete(project)
+    db.commit()
+    
+    return {"status": "success"}
+
+# --- 프로젝트 API 영역에 추가 ---
+@app.get("/api/projects/{project_id}")
+async def get_project(project_id: int, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("accessToken")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
+
+    project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
+    if not project: raise HTTPException(status_code=404, detail="Project not found")
+
+    return {
+        "status": "success",
+        "project": {
+            "id": project.id, "name": project.name, "domains": project.domains,
+            "site_key": project.site_key, "secret_key": project.secret_key, "monthly_usage": project.monthly_usage
+        }
+    }
+
+@app.patch("/api/projects/{project_id}")
+async def update_project(project_id: int, data: ProjectUpdate, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("accessToken")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
+
+    project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
+    if not project: raise HTTPException(status_code=404, detail="Project not found")
+
+    project.name = data.name
     db.commit()
     
     return {"status": "success"}

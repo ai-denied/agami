@@ -13,6 +13,7 @@ import AuthCallback from "@/pages/Login/AuthCallback";
 
 import MyPage from '@/pages/MyPage/MyPage'; 
 import ProjectManager from '@/pages/MyPage/ProjectManager';
+import ProjectDetail from '@/pages/MyPage/ProjectDetail';
 import Dashboard from '@/pages/MyPage/Dashboard'; 
 import Settings from '@/pages/MyPage/Settings'; 
 
@@ -64,11 +65,12 @@ function App() {
 
               {/* 프라이빗 라우트 (로그인 필수) */}
               <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>}>
-                {/* 기본 접근 시 프로젝트 관리 리스트로 이동 */}
                 <Route index element={<Navigate to="projects" replace />} />
-                
                 <Route path="projects" element={<ProjectManager />} />
-                {/* 선택한 프로젝트 내부의 대시보드로 진입하는 동적 라우트 */}
+                
+                {/* 특정 프로젝트 내부 라우트 */}
+                <Route path="projects/:id" element={<Navigate to="info" replace />} />
+                <Route path="projects/:id/info" element={<ProjectDetail />} />
                 <Route path="projects/:id/dashboard" element={<Dashboard />} />
                 
                 <Route path="settings" element={<Settings />} />

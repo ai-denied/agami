@@ -58,7 +58,7 @@ const ProjectManager = () => {
   };
 
   const handleProjectClick = (projectId) => {
-    navigate(`/mypage/projects/${projectId}/dashboard`);
+    navigate(`/mypage/projects/${projectId}/info`);
   };
 
   return (
