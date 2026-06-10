@@ -20,6 +20,10 @@ class ProjectUpdate(BaseModel):
     name: str
     domains: str
 
+class PaymentApprove(BaseModel):
+    tid: str
+    pg_token: str
+
 load_dotenv()
 
 app = FastAPI()
@@ -312,3 +316,83 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     db.commit()
     
     return {"status": "success"}
+
+@app.post("/api/payment/ready")
+async def payment_ready(request: Request, db: Session = Depends(get_db)):
+    # 1. 유저 인증
+    token = request.cookies.get("accessToken")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = str(payload.get("sub"))
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
+
+    # 2. 카카오페이 준비 API 호출 (신규 API 주소)
+    url = "https://open-api.kakaopay.com/online/v1/payment/ready"
+    headers = {
+        "Authorization": f"SECRET_KEY {os.getenv('KAKAO_PAY_SECRET_KEY')}",
+        "Content-type": "application/json"
+    }
+    
+    data = {
+        "cid": "TC0ONETIME", # 테스트용 가맹점 코드
+        "partner_order_id": f"ORDER_{user_id}",
+        "partner_user_id": user_id,
+        "item_name": "Agami Pro 요금제",
+        "quantity": 1,
+        "total_amount": 49000,
+        "tax_free_amount": 0,
+        "approval_url": "https://agami-captcha.cloud/payment/success",
+        "cancel_url": "https://agami-captcha.cloud/price",
+        "fail_url": "https://agami-captcha.cloud/price"
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    res_data = response.json()
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=400, detail=f"결제 준비 실패: {res_data}")
+
+    return {
+        "status": "success",
+        "next_redirect_pc_url": res_data.get("next_redirect_pc_url"),
+        "tid": res_data.get("tid")
+    }
+
+@app.post("/api/payment/approve")
+async def payment_approve(data: PaymentApprove, request: Request, db: Session = Depends(get_db)):
+    # 1. 유저 인증
+    token = request.cookies.get("accessToken")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = str(payload.get("sub"))
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
+
+    # 2. 카카오페이 승인 API 호출
+    url = "https://open-api.kakaopay.com/online/v1/payment/approve"
+    headers = {
+        "Authorization": f"SECRET_KEY {os.getenv('KAKAO_PAY_SECRET_KEY')}",
+        "Content-type": "application/json"
+    }
+    
+    payload_data = {
+        "cid": "TC0ONETIME",
+        "tid": data.tid,
+        "partner_order_id": f"ORDER_{user_id}",
+        "partner_user_id": user_id,
+        "pg_token": data.pg_token
+    }
+
+    response = requests.post(url, headers=headers, json=payload_data)
+    
+    if response.status_code != 200:
+        raise HTTPException(status_code=400, detail=f"결제 승인 실패: {response.json()}")
+
+    # 3. 결제 성공 시 유저 플랜 업데이트
+    user = db.query(models.User).filter(models.User.id == int(user_id)).first()
+    if user:
+        user.plan = "Pro"
+        db.commit()
+
+    return {"status": "success", "message": "결제가 완료되었습니다."}
