@@ -8,7 +8,7 @@ const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentia
 const ProjectManager = () => {
   const [projects, setProjects] = useState([]);
   const [name, setName] = useState("");
-  const [domainList, setDomainList] = useState([""]); // 도메인 배열로 상태 관리
+  const [domains, setDomains] = useState("");
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
@@ -21,25 +21,12 @@ const ProjectManager = () => {
 
   useEffect(() => { fetchProjects(); }, []);
 
-  // 도메인 동적 입력 로직
-  const handleDomainChange = (index, value) => {
-    const newList = [...domainList];
-    newList[index] = value;
-    setDomainList(newList);
-  };
-  const addDomainInput = () => setDomainList([...domainList, ""]);
-  const removeDomainInput = (index) => setDomainList(domainList.filter((_, i) => i !== index));
-
   const handleCreateProject = async (e) => {
     e.preventDefault();
-    // 빈 칸 제외하고 쉼표로 병합
-    const domains = domainList.filter(d => d.trim() !== "").join(",");
-    if (!domains) return alert("최소 1개의 도메인을 입력해주세요.");
-
     try {
       const response = await api.post("/api/projects", { name, domains });
       if (response.data.status === "success") {
-        setName(""); setDomainList([""]); setShowModal(false);
+        setName(""); setDomains(""); setShowModal(false);
         fetchProjects();
       }
     } catch (error) { console.error(error); }
@@ -72,33 +59,40 @@ const ProjectManager = () => {
         </header>
 
         <div className="project-list">
-          {projects.map((project) => (
-            <div key={project.id} className="project-card clickable-card" onClick={() => navigate(`/mypage/projects/${project.id}/info`)}>
-              <div className="card-header">
-                <h2 className="project-name">{project.name}</h2>
-                <div className="card-header-right">
-                  <span className="project-usage">이번 달 사용량: {project.monthly_usage}회</span>
-                  <button className="btn-delete-project" onClick={(e) => handleDeleteProject(e, project.id)}>삭제</button>
+          {projects.length === 0 ? (
+            <div className="empty-state">생성된 프로젝트가 없습니다.</div>
+          ) : (
+            projects.map((project) => (
+              <div key={project.id} className="project-card clickable-card" onClick={() => navigate(`/mypage/projects/${project.id}/info`)}>
+                <div className="card-header">
+                  {/* 누락됐던 프로젝트 명칭 명확하게 출력 */}
+                  <h2 className="project-name">{project.name}</h2>
+                  <div className="card-header-right">
+                    <span className="project-usage">이번 달 사용량: {project.monthly_usage}회</span>
+                    <button className="btn-delete-project" onClick={(e) => handleDeleteProject(e, project.id)}>삭제</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <div className="domain-tags">
+                    <strong>허용 도메인:</strong>
+                    {project.domains.split(",").map((d, i) => <span key={i} className="domain-tag">{d}</span>)}
+                  </div>
+                  
+                  {/* 복사 버튼에 명시적인 '복사' 텍스트 삽입 */}
+                  <div className="key-row">
+                    <span className="key-label">Site Key</span>
+                    <span className="key-value">{project.site_key}</span>
+                    <button className="btn-copy-box" onClick={(e) => copyToClipboard(e, project.site_key)}>복사</button>
+                  </div>
+                  <div className="key-row">
+                    <span className="key-label">Secret Key</span>
+                    <span className="key-value">{project.secret_key}</span>
+                    <button className="btn-copy-box" onClick={(e) => copyToClipboard(e, project.secret_key)}>복사</button>
+                  </div>
                 </div>
               </div>
-              <div className="card-body">
-                <div className="domain-tags">
-                  <strong>허용 도메인:</strong>
-                  {project.domains.split(",").map((d, i) => <span key={i} className="domain-tag">{d}</span>)}
-                </div>
-                <div className="key-row">
-                  <span className="key-label">Site Key</span>
-                  <span className="key-value">{project.site_key}</span>
-                  <button className="btn-copy-box" onClick={(e) => copyToClipboard(e, project.site_key)}>복사</button>
-                </div>
-                <div className="key-row">
-                  <span className="key-label">Secret Key</span>
-                  <span className="key-value">{project.secret_key}</span>
-                  <button className="btn-copy-box" onClick={(e) => copyToClipboard(e, project.secret_key)}>복사</button>
-                </div>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -113,15 +107,7 @@ const ProjectManager = () => {
               </div>
               <div className="form-group">
                 <label>허용 도메인</label>
-                {domainList.map((domain, index) => (
-                  <div key={index} className="domain-input-row">
-                    <input type="text" className="clean-input" value={domain} onChange={(e) => handleDomainChange(index, e.target.value)} placeholder="예: example.com" required />
-                    {domainList.length > 1 && (
-                      <button type="button" className="btn-remove-domain" onClick={() => removeDomainInput(index)}>X</button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" className="btn-add-domain" onClick={addDomainInput}>+ 도메인 추가</button>
+                <input type="text" className="clean-input" value={domains} onChange={(e) => setDomains(e.target.value)} placeholder="예: agami-captcha.cloud" required />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>취소</button>

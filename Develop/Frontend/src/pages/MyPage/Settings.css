@@ -1,135 +1,122 @@
 .settings-page-wrapper {
   display: flex;
-  justify-content: flex-start; /* 가운데 정렬 해제하고 자연스럽게 배치 */
+  justify-content: center;
   width: 100%;
-  padding: 20px 40px;
+  padding: 40px;
+  box-sizing: border-box;
 }
 
-/* 컨테이너 넓이를 대폭 상향 */
 .settings-container {
   width: 100%;
-  max-width: 1000px;
+  max-width: 800px; /* 너무 퍼지지 않게 최적 너비 설정 */
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
-  padding: 40px;
+  padding: 48px; /* 좌우 패딩을 일정하고 넉넉하게 */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
 }
 
-.settings-title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text-primary, #1f2937);
-  margin-bottom: 6px;
-}
+.settings-header { margin-bottom: 40px; }
+.settings-title { font-size: 1.5rem; font-weight: 800; color: #111827; margin-bottom: 8px; }
+.settings-description { font-size: 0.95rem; color: #6b7280; }
 
-.settings-description {
-  font-size: 0.9rem;
-  color: var(--text-secondary, #6b7280);
-  margin-bottom: 32px;
-}
+.settings-section { display: flex; flex-direction: column; gap: 24px; }
+.section-label { font-size: 1.1rem; font-weight: 700; color: #374151; margin-bottom: 8px; }
 
-.settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
+/* 폼 그룹 및 인풋 공통 속성 */
+.form-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.form-label { font-size: 0.95rem; font-weight: 700; color: #374151; }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.form-label {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary, #374151);
-}
-
-/* 프로필 이미지 읽기 전용 스타일 */
-.profile-readonly-group {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border-color, #f3f4f6);
-}
-
-.settings-profile-img {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--border-color, #e5e7eb);
-}
-
-/* 텍스트 인풋 스타일 */
 .form-input {
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: #ffffff;
+  color: #111827;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
-  background-color: #f9fafb; /* 첨부 이미지의 연한 회색 배경 느낌 */
-  color: var(--text-primary, #111827);
+  box-sizing: border-box; /* 패딩이 너비를 뚫고 나가지 않게 강제 */
   transition: all 0.2s ease;
 }
 
 .form-input:focus {
   outline: none;
-  background-color: #ffffff;
   border-color: #5da2ff;
-  box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.1);
 }
 
-/* 제출 버튼 및 알림 메시지 영역 */
-.form-actions {
+/* 도메인 다중 입력 및 삭제 버튼 디자인 */
+.domain-input-row {
   display: flex;
-  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+}
+
+.flex-fill {
+  flex: 1; /* 인풋 창이 남은 공간을 꽉 채우도록 */
+}
+
+/* 촌스럽던 X 버튼을 깔끔한 테두리 버튼으로 수정 */
+.btn-remove-domain {
+  width: 48px;
+  height: 48px;
+  background: #ffffff;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.btn-remove-domain:hover {
+  background: #fef2f2;
+}
+
+.btn-add-domain {
+  align-self: flex-start;
+  background: transparent;
+  color: #5da2ff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 16px; }
+.btn-submit { background-color: #5da2ff; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; }
+.btn-submit:hover { background-color: #4a8deb; }
+
+.divider { border: 0; height: 1px; background-color: #f3f4f6; margin: 40px 0; }
+
+/* 읽기 전용 연동 키 디스플레이 */
+.key-display-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.key-display-row {
+  display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 8px;
-}
-
-.notification-msg {
-  font-size: 0.9rem;
-  font-weight: 500;
-  animation: fadeIn 0.3s ease;
-}
-
-.notification-msg.success {
-  color: #10b981;
-}
-
-.notification-msg.error {
-  color: #ef4444;
-}
-
-/* 메인 컬러 적용 버튼 */
-.btn-submit {
-  background-color: #5da2ff;
-  color: white;
-  border: none;
-  padding: 12px 28px;
+  background: #fcfcfc;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 14px 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.key-display-label { width: 90px; font-weight: 700; font-size: 0.9rem; color: #6b7280; flex-shrink: 0; }
+.key-display-value { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: #111827; word-break: break-all; }
+.btn-copy-action {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4b5563;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  flex-shrink: 0;
 }
-
-.btn-submit:hover:not(:disabled) {
-  background-color: #4a8deb;
-}
-
-.btn-submit:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.btn-submit:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+.btn-copy-action:hover { background: #f3f4f6; color: #111827; }

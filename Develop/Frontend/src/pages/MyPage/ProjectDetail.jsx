@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import "./Settings.css";
+import "./Settings.css"; 
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
@@ -9,7 +9,7 @@ const ProjectDetail = () => {
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [name, setName] = useState("");
-  const [domainList, setDomainList] = useState([""]); // 배열 형태 추가
+  const [domainList, setDomainList] = useState([""]); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: "", type: "" });
 
@@ -65,7 +65,7 @@ const ProjectDetail = () => {
     showNotification("키가 클립보드에 복사되었습니다.");
   };
 
-  if (!project) return <div>로딩 중...</div>;
+  if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
 
   return (
     <div className="settings-page-wrapper">
@@ -76,7 +76,6 @@ const ProjectDetail = () => {
         </header>
 
         <section className="settings-section">
-          <h2 className="section-label">기본 설정</h2>
           <form className="nickname-form" onSubmit={handleUpdate}>
             <div className="form-group">
               <label className="form-label">프로젝트 이름</label>
@@ -86,14 +85,14 @@ const ProjectDetail = () => {
             <div className="form-group">
               <label className="form-label">허용 도메인</label>
               {domainList.map((domain, index) => (
-                <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                  <input type="text" className="form-input" value={domain} onChange={(e) => handleDomainChange(index, e.target.value)} required />
+                <div key={index} className="domain-input-row">
+                  <input type="text" className="form-input flex-fill" value={domain} onChange={(e) => handleDomainChange(index, e.target.value)} required />
                   {domainList.length > 1 && (
-                    <button type="button" onClick={() => removeDomainInput(index)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '8px', width: '48px', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
+                    <button type="button" className="btn-remove-domain" onClick={() => removeDomainInput(index)}>✕</button>
                   )}
                 </div>
               ))}
-              <button type="button" onClick={addDomainInput} style={{ alignSelf: 'flex-start', background: 'transparent', color: '#5da2ff', border: 'none', fontWeight: '700', cursor: 'pointer', marginTop: '4px' }}>+ 도메인 추가</button>
+              <button type="button" className="btn-add-domain" onClick={addDomainInput}>+ 도메인 추가</button>
             </div>
 
             <div className="form-actions">
@@ -109,18 +108,17 @@ const ProjectDetail = () => {
           <h2 className="section-label">캡챠 연동 키</h2>
           <p className="settings-description" style={{marginBottom: '16px'}}>이 키를 사용하여 웹사이트에 캡챠를 연동하세요.</p>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* 텍스트 삐져나옴 방지 적용 (word-break) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#fcfcfc', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', boxSizing: 'border-box' }}>
-              <span style={{ width: '90px', fontWeight: '700', fontSize: '0.9rem', color: '#6b7280', flexShrink: 0 }}>Site Key</span>
-              <span style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.95rem', color: '#111827', wordBreak: 'break-all' }}>{project.site_key}</span>
-              <button onClick={() => copyToClipboard(project.site_key)} style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', padding: '8px 16px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', flexShrink: 0 }}>복사</button>
+          <div className="key-display-group">
+            <div className="key-display-row">
+              <span className="key-display-label">Site Key</span>
+              <span className="key-display-value">{project.site_key}</span>
+              <button className="btn-copy-action" onClick={() => copyToClipboard(project.site_key)}>복사</button>
             </div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#fcfcfc', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', boxSizing: 'border-box' }}>
-              <span style={{ width: '90px', fontWeight: '700', fontSize: '0.9rem', color: '#6b7280', flexShrink: 0 }}>Secret Key</span>
-              <span style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.95rem', color: '#111827', wordBreak: 'break-all' }}>{project.secret_key}</span>
-              <button onClick={() => copyToClipboard(project.secret_key)} style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: '6px', padding: '8px 16px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', flexShrink: 0 }}>복사</button>
+            <div className="key-display-row">
+              <span className="key-display-label">Secret Key</span>
+              <span className="key-display-value">{project.secret_key}</span>
+              <button className="btn-copy-action" onClick={() => copyToClipboard(project.secret_key)}>복사</button>
             </div>
           </div>
         </section>
