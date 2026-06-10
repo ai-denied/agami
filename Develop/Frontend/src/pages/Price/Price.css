@@ -18,11 +18,12 @@ body.dark-mode {
   position: relative;
   height: 100vh; 
   height: 100dvh;
-  padding-top: var(--nav-height); /* 네비바 공간 원천 분리 */
   background-color: var(--pricing-bg);
   font-family: 'Pretendard', sans-serif;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
-  overflow: hidden; /* 데스크톱 스크롤 완벽 차단 */
+  overflow: hidden; /* 데스크톱 전체 화면 스크롤 절대 차단 */
   transition: background-color 0.3s ease;
 }
 
@@ -30,10 +31,11 @@ body.dark-mode {
   position: relative;
   z-index: 10;
   width: 100%;
-  height: 100%; /* 남은 공간을 정확히 100% 사용 */
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  /* 네비게이션 높이를 뺀 나머지 공간을 정확히 할당하여 그 안에서 중앙 정렬 */
+  height: calc(100vh - var(--nav-height)); 
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -185,7 +187,7 @@ body.dark-mode .price-card:hover {
     margin-bottom: 15px; 
   }
   .price-card { 
-    padding: 20px 20px; 
+    padding: 20px 20px; /* 패딩 대폭 축소 */
     border-radius: 20px; 
   }
   .plan-name { 
@@ -206,21 +208,20 @@ body.dark-mode .price-card:hover {
   }
   .feature-list li { 
     padding: 5px 0; 
-    font-size: 0.85rem; 
+    font-size: 0.85rem; /* 리스트 높이 감소 */
   }
 }
 
-/* 모바일 및 태블릿 가로 폭 대응 */
+/* 모바일 및 태블릿 가로 폭 대응 (여기서는 불가피하게 스크롤 개방) */
 @media (max-width: 950px) {
   .pricing-wrapper {
     height: auto;
     overflow-y: auto; 
-    padding-top: var(--nav-height);
   }
   .pricing-content {
     height: auto;
     padding: 40px 20px;
-    margin-top: 0;
+    margin-top: var(--nav-height);
   }
   .pricing-container {
     flex-wrap: wrap; 
