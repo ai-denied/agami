@@ -1,257 +1,52 @@
+/* 화면 전체를 쓰도록 확장 */
+.pm-wrapper {
+  width: 100%;
+  padding: 20px 40px;
+}
 .pm-container {
   width: 100%;
-  max-width: 900px;
-  margin: 0;
-  padding: 10px 0;
+  max-width: 1200px; /* 훨씬 넓게 */
 }
+.pm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+.pm-title { font-size: 1.6rem; font-weight: 800; color: #111827; margin-bottom: 8px; }
+.pm-description { font-size: 0.95rem; color: #6b7280; }
+.btn-create-project { background: #5da2ff; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
-.pm-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-}
+.project-list { display: flex; flex-direction: column; gap: 24px; }
+.project-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 32px; transition: all 0.2s; cursor: pointer; }
+.project-card:hover { border-color: #5da2ff; box-shadow: 0 4px 12px rgba(93, 162, 255, 0.1); }
+.card-header { display: flex; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px; }
+.project-name { font-size: 1.4rem; font-weight: 800; }
+.card-header-right { display: flex; align-items: center; gap: 16px; }
+.project-usage { color: #6b7280; font-size: 0.9rem; }
+.btn-delete-project { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; padding: 6px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 
-.pm-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 6px;
-}
+.domain-tags { margin-bottom: 24px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.domain-tag { background: #f3f4f6; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; color: #374151; font-weight: 600; }
 
-.pm-description {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
+/* 텍스트 삐져나옴 방지 (핵심 수정) */
+.key-row { display: flex; align-items: center; gap: 16px; background: #fcfcfc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 20px; margin-bottom: 12px; width: 100%; box-sizing: border-box; }
+.key-label { width: 90px; font-weight: 700; color: #6b7280; flex-shrink: 0; }
+.key-value { flex: 1; font-family: monospace; font-size: 0.95rem; word-break: break-all; color: #111827; }
+.btn-copy-box { background: #fff; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 16px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
 
-.btn-create-project {
-  background-color: #5da2ff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
+/* 모달 및 인풋 검은색 덮어쓰기 방지 */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-box { background: #fff; padding: 40px; border-radius: 16px; width: 100%; max-width: 500px; }
+.form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.form-group label { font-weight: 700; color: #374151; }
 
-.btn-create-project:hover { 
-  background-color: #4a8deb; 
+input.clean-input { 
+  background-color: #ffffff !important; 
+  color: #111827 !important; 
+  border: 1px solid #d1d5db !important; 
+  padding: 14px 16px; border-radius: 8px; font-size: 1rem; width: 100%; box-sizing: border-box; 
 }
+input.clean-input:focus { border-color: #5da2ff !important; outline: none; box-shadow: 0 0 0 3px rgba(93,162,255,0.1); }
 
-.project-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* 카드 기본 스타일 */
-.project-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 30px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.clickable-card {
-  cursor: pointer;
-}
-
-.clickable-card:hover {
-  border-color: #5da2ff;
-  box-shadow: 0 4px 12px rgba(93, 162, 255, 0.1);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.project-name {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #111827;
-}
-
-.card-header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.project-usage {
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-/* 명확하게 보이는 텍스트 삭제 버튼 */
-.btn-delete-project {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #ef4444;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-.btn-delete-project:hover { background: #fee2e2; }
-
-.project-domains {
-  font-size: 0.9rem;
-  color: #4b5563;
-  margin-bottom: 20px;
-}
-.project-domains strong {
-  font-weight: 700;
-  color: #111827;
-}
-
-/* 키 관리 디자인 */
-.key-row {
-  display: flex;
-  align-items: center;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 8px 8px 8px 16px;
-  margin-bottom: 12px;
-  background-color: #fcfcfc;
-}
-
-.key-label {
-  width: 90px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #6b7280;
-}
-
-.key-value {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem;
-  color: #111827;
-  outline: none;
-  cursor: default;
-}
-
-/* 명확하게 보이는 텍스트 복사 버튼 */
-.btn-copy-box {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  width: 54px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4b5563;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-copy-box:hover {
-  background: #f3f4f6;
-  color: #111827;
-}
-
-/* ------------------------------------
-   모달 디자인 (검은색 제거 및 정화)
------------------------------------- */
-.modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-}
-
-.modal-box {
-  background: #ffffff;
-  padding: 32px 40px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 460px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-.modal-box h2 {
-  font-size: 1.3rem;
-  font-weight: 800;
-  margin-bottom: 24px;
-  color: #111827;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #374151;
-}
-
-/* 어두운 색상을 완전히 제거한 깨끗한 입력 폼 */
-.form-group input {
-  padding: 14px 16px;
-  background-color: #ffffff;
-  color: #111827;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-}
-
-.form-group input::placeholder {
-  color: #9ca3af;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #5da2ff;
-  box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.15);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 32px;
-}
-
-.btn-cancel {
-  background: #f3f4f6;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #4b5563;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.btn-cancel:hover { background: #e5e7eb; }
-
-.btn-submit {
-  background: #5da2ff;
-  color: white;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.btn-submit:hover { background: #4a8deb; }
+.domain-input-row { display: flex; gap: 8px; align-items: center; }
+.btn-remove-domain { background: #fee2e2; color: #ef4444; border: none; border-radius: 6px; width: 44px; height: 44px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
+.btn-add-domain { align-self: flex-start; background: transparent; color: #5da2ff; border: none; font-weight: 700; cursor: pointer; padding: 4px 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; }
+.btn-cancel { background: #f3f4f6; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn-submit { background: #5da2ff; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; cursor: pointer; }

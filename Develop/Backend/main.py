@@ -18,6 +18,7 @@ class ProjectCreate(BaseModel):
 
 class ProjectUpdate(BaseModel):
     name: str
+    domains: str
 
 load_dotenv()
 
@@ -307,6 +308,7 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     if not project: raise HTTPException(status_code=404, detail="Project not found")
 
     project.name = data.name
+    project.domains = data.domains # 도메인 업데이트 추가
     db.commit()
     
     return {"status": "success"}

@@ -1,10 +1,19 @@
+.settings-page-wrapper {
+  display: flex;
+  justify-content: flex-start; /* 가운데 정렬 해제하고 자연스럽게 배치 */
+  width: 100%;
+  padding: 20px 40px;
+}
+
+/* 컨테이너 넓이를 대폭 상향 */
 .settings-container {
-  max-width: 680px;
-  background-color: var(--bg-secondary, #ffffff);
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
   padding: 40px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .settings-title {

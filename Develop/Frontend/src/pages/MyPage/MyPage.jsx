@@ -37,9 +37,12 @@ const MyPage = () => {
           {isProjectContext ? (
             <>
               {/* 프로젝트 내부 전용 사이드바 */}
-              <button className="menu-item btn-back" onClick={() => navigate("/mypage/projects")}>
-                <i className="fa-solid fa-arrow-left" style={{marginRight: '8px'}}></i> 프로젝트 목록으로
-              </button>
+              <div 
+                onClick={() => navigate("/mypage/projects")}
+                style={{ padding: '12px 16px', cursor: 'pointer', color: '#6b7280', fontSize: '0.95rem', fontWeight: '600', marginBottom: '10px' }}
+              >
+                <i className="fa-solid fa-arrow-left" style={{marginRight: '8px'}}></i> 프로젝트 목록
+              </div>
               <div style={{ margin: '16px 0 8px 16px', fontSize: '0.8rem', fontWeight: '700', color: '#9ca3af' }}>프로젝트 관리</div>
               <NavLink to={`/mypage/projects/${projectId}/info`} className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}>
                 기본 정보
