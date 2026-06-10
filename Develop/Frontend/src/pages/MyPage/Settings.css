@@ -58,6 +58,52 @@
   box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.15);
 }
 
+.form-input:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* 도메인 다중 입력 및 삭제 버튼 디자인 */
+.domain-input-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+}
+
+.flex-fill {
+  flex: 1; 
+}
+
+.btn-remove-domain {
+  width: 48px;
+  height: 48px;
+  background: #ffffff;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.btn-remove-domain:hover {
+  background: #fef2f2;
+}
+
+.btn-add-domain {
+  align-self: flex-start;
+  background: transparent;
+  color: #5da2ff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
 .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 16px; }
 
 .notification-msg { font-size: 0.9rem; font-weight: 600; }
@@ -105,3 +151,147 @@
   background: #5da2ff;
   color: #ffffff;
 }
+
+/* ---------------------------------------------------
+   캡챠 연동 키 디스플레이 영역 (오류 완벽 수정)
+--------------------------------------------------- */
+.key-display-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+  width: 100%; 
+}
+
+.key-display-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: #fcfcfc !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  padding: 16px 20px !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.key-display-label { 
+  width: 90px; 
+  font-weight: 700; 
+  font-size: 0.9rem; 
+  color: #6b7280; 
+  flex-shrink: 0; 
+}
+
+.key-display-value { 
+  flex: 1; 
+  font-family: 'JetBrains Mono', monospace, Consolas, sans-serif; 
+  font-size: 0.95rem; 
+  color: #111827; 
+  word-break: break-all; 
+}
+
+/* 메인 컬러 적용 확실한 복사 버튼 강제 적용 */
+.btn-copy-action {
+  background-color: #eef2ff !important;
+  color: #5da2ff !important;
+  border: 1px solid #5da2ff !important;
+  border-radius: 6px !important;
+  padding: 8px 16px !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.btn-copy-action:hover { 
+  background-color: #5da2ff !important; 
+  color: #ffffff !important; 
+}
+
+/* ---------------------------------------------------
+   자체 알림창 (Alert & Confirm 커스텀 모달) 공통 스타일
+--------------------------------------------------- */
+.custom-sys-modal-overlay {
+  position: fixed; 
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px); /* 고급스러운 블러 효과 */
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  z-index: 9999;
+}
+
+.custom-sys-modal-box {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  animation: modalPop 0.2s ease-out;
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.custom-sys-modal-text {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 32px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.custom-sys-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn-sys-ok {
+  background: #5da2ff; 
+  color: #ffffff; 
+  border: none; 
+  padding: 12px 32px; 
+  border-radius: 8px; 
+  font-weight: 700; 
+  font-size: 1rem; 
+  cursor: pointer; 
+  transition: all 0.2s;
+  flex: 1;
+}
+.btn-sys-ok:hover { background: #4a8deb; }
+
+.btn-sys-cancel {
+  background: #f3f4f6; 
+  color: #4b5563; 
+  border: none; 
+  padding: 12px 24px; 
+  border-radius: 8px; 
+  font-weight: 700; 
+  font-size: 1rem; 
+  cursor: pointer; 
+  transition: all 0.2s;
+  flex: 1;
+}
+.btn-sys-cancel:hover { background: #e5e7eb; }
+
+.btn-sys-danger {
+  background: #ef4444; 
+  color: #ffffff; 
+  border: none; 
+  padding: 12px 24px; 
+  border-radius: 8px; 
+  font-weight: 700; 
+  font-size: 1rem; 
+  cursor: pointer; 
+  transition: all 0.2s;
+  flex: 1;
+}
+.btn-sys-danger:hover { background: #dc2626; }

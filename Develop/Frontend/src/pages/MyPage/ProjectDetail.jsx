@@ -11,7 +11,9 @@ const ProjectDetail = () => {
   const [name, setName] = useState("");
   const [domainList, setDomainList] = useState([""]); 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: "", type: "" });
+  
+  // 자체 알림 모달 상태
+  const [alertModal, setAlertModal] = useState({ show: false, message: "" });
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -27,10 +29,10 @@ const ProjectDetail = () => {
     fetchProjectDetails();
   }, [id]);
 
-  const showNotification = (message, type = "success") => {
-    setNotification({ show: true, message, type });
-    setTimeout(() => setNotification({ show: false, message: "", type: "" }), 3000);
+  const showAlert = (message) => {
+    setAlertModal({ show: true, message });
   };
+  const closeAlert = () => setAlertModal({ show: false, message: "" });
 
   const handleDomainChange = (index, value) => {
     const newList = [...domainList];
@@ -46,23 +48,23 @@ const ProjectDetail = () => {
     const domains = domainList.filter(d => d.trim() !== "").join(",");
     
     if (name === project.name && domains === project.domains) {
-      showNotification("변경된 내용이 없습니다.", "error");
+      showAlert("변경된 내용이 없습니다.");
       setIsSubmitting(false); return;
     }
 
     try {
       const response = await api.patch(`/api/projects/${id}`, { name, domains });
       if (response.data.status === "success") {
-        showNotification("프로젝트 정보가 수정되었습니다.");
+        showAlert("프로젝트 정보가 성공적으로 수정되었습니다.");
         setProject({ ...project, name, domains });
       }
-    } catch (error) { showNotification("수정 중 오류가 발생했습니다.", "error"); } 
+    } catch (error) { showAlert("수정 중 오류가 발생했습니다."); } 
     finally { setIsSubmitting(false); }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    showNotification("키가 클립보드에 복사되었습니다.");
+    showAlert("키가 클립보드에 복사되었습니다.");
   };
 
   if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
@@ -96,7 +98,6 @@ const ProjectDetail = () => {
             </div>
 
             <div className="form-actions">
-              {notification.show && <span className={`notification-msg ${notification.type}`}>{notification.message}</span>}
               <button type="submit" className="btn-submit" disabled={isSubmitting}>{isSubmitting ? "저장 중..." : "변경사항 저장"}</button>
             </div>
           </form>
@@ -105,7 +106,7 @@ const ProjectDetail = () => {
         <hr className="divider" />
 
         <section className="settings-section">
-          <h2 className="section-label">캡챠 연동 키</h2>
+          <h2 className="section-label">발급 정보</h2>
           <p className="settings-description" style={{marginBottom: '16px'}}>이 키를 사용하여 웹사이트에 캡챠를 연동하세요.</p>
           
           <div className="key-display-group">
@@ -123,6 +124,18 @@ const ProjectDetail = () => {
           </div>
         </section>
       </div>
+
+      {/* 자체 알림 모달창 */}
+      {alertModal.show && (
+        <div className="custom-sys-modal-overlay" onClick={closeAlert}>
+          <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="custom-sys-modal-text">{alertModal.message}</div>
+            <div className="custom-sys-modal-actions">
+              <button className="btn-sys-ok" onClick={closeAlert}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
