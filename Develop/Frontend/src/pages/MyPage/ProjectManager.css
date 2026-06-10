@@ -1,5 +1,6 @@
 .pm-container {
-  max-width: 960px;
+  width: 100%;
+  max-width: 900px;
   margin: 0;
   padding: 10px 0;
 }
@@ -8,7 +9,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
 }
 
 .pm-title {
@@ -34,7 +35,10 @@
   cursor: pointer;
   transition: background-color 0.2s;
 }
-.btn-create-project:hover { background-color: #4a8deb; }
+
+.btn-create-project:hover { 
+  background-color: #4a8deb; 
+}
 
 .project-list {
   display: flex;
@@ -42,13 +46,12 @@
   gap: 24px;
 }
 
-/* 카드 및 클릭 효과 */
+/* 카드 기본 스타일 */
 .project-card {
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 24px 32px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  padding: 30px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -65,15 +68,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f3f4f6;
-  padding-bottom: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .project-name {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: #111827;
+}
+
+.card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .project-usage {
@@ -81,29 +88,41 @@
   color: #6b7280;
 }
 
+.btn-delete-project {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.btn-delete-project:hover { opacity: 1; }
+
 .project-domains {
   font-size: 0.9rem;
-  color: #374151;
-  margin-bottom: 24px;
+  color: #4b5563;
+  margin-bottom: 20px;
 }
 .project-domains strong {
   font-weight: 700;
   color: #111827;
 }
 
-/* 키 관리 디자인 (입력창 스타일) */
+/* 키 관리 디자인 (캡처화면 일치화) */
 .key-row {
   display: flex;
   align-items: center;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 8px 8px 8px 16px;
   margin-bottom: 12px;
-  background-color: #ffffff;
+  background-color: #fcfcfc;
 }
 
 .key-label {
-  width: 100px;
+  width: 90px;
   font-size: 0.85rem;
   font-weight: 700;
   color: #6b7280;
@@ -111,49 +130,114 @@
 
 .key-value {
   flex: 1;
+  border: none;
+  background: transparent;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9rem;
   color: #111827;
+  outline: none;
+  cursor: default;
 }
 
-.btn-copy-icon {
-  background: transparent;
+/* 정사각형 모양의 깔끔한 복사 버튼 */
+.btn-copy-box {
+  background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: #9ca3af;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-copy-icon:hover {
+.btn-copy-box:hover {
   background: #f9fafb;
-  color: #111827;
+  color: #4b5563;
   border-color: #d1d5db;
 }
 
-/* 모달 */
+/* ------------------------------------
+   모달 디자인 (이미지 완벽 대응)
+------------------------------------ */
 .modal-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.5);
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
 }
 
 .modal-box {
-  background: #fff; padding: 32px; border-radius: 12px; width: 400px;
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-.modal-box h2 { font-size: 1.2rem; margin-bottom: 24px; }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
 
-.form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-.form-group label { font-size: 0.85rem; font-weight: 700; color: #374151; }
-.form-group input { padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.9rem; }
+.form-group label {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #374151;
+}
 
-.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
-.btn-cancel { background: #f3f4f6; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; color: #4b5563;}
-.btn-submit { background: #5da2ff; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+.form-group input {
+  padding: 18px 16px;
+  background-color: #3f3f3f; /* 첨부된 이미지의 다크그레이 색상 */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}
+
+.form-group input:focus {
+  outline: 2px solid #5da2ff;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-cancel:hover { background: #e5e7eb; }
+
+.btn-submit {
+  background: #5da2ff;
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-submit:hover { background: #4a8deb; }

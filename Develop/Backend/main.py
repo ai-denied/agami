@@ -247,3 +247,25 @@ async def get_projects(request: Request, db: Session = Depends(get_db)):
             } for p in projects
         ]
     }
+
+@app.delete("/api/projects/{project_id}")
+async def delete_project(project_id: int, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("accessToken")
+    if not token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    # 본인의 프로젝트인지 확인 후 가져오기
+    project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # DB에서 삭제
+    db.delete(project)
+    db.commit()
+    
+    return {"status": "success"}

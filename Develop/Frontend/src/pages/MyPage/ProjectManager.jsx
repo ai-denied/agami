@@ -36,13 +36,28 @@ const ProjectManager = () => {
     }
   };
 
-  const copyToClipboard = (e, text) => {
-    e.stopPropagation(); // 카드 클릭(페이지 이동) 이벤트가 실행되는 것을 막음
-    navigator.clipboard.writeText(text);
-    alert("클립보드에 복사되었습니다."); // 임시 알림창 (추후 커스텀 가능)
+  // 프로젝트 삭제 기능 추가
+  const handleDeleteProject = async (e, projectId) => {
+    e.stopPropagation(); // 부모 엘리먼트의 클릭 이벤트(대시보드 이동) 방지
+    if (!window.confirm("정말로 이 프로젝트를 삭제하시겠습니까? (관련 데이터 모두 삭제됨)")) return;
+
+    try {
+      const response = await api.delete(`/api/projects/${projectId}`);
+      if (response.data.status === "success") {
+        fetchProjects();
+      }
+    } catch (error) {
+      console.error("프로젝트 삭제 실패:", error);
+      alert("프로젝트 삭제 중 오류가 발생했습니다.");
+    }
   };
 
-  // 프로젝트 카드 클릭 시 해당 프로젝트 대시보드로 이동
+  const copyToClipboard = (e, text) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    alert("클립보드에 복사되었습니다.");
+  };
+
   const handleProjectClick = (projectId) => {
     navigate(`/mypage/projects/${projectId}/dashboard`);
   };
@@ -68,7 +83,16 @@ const ProjectManager = () => {
           >
             <div className="card-header">
               <h2 className="project-name">{project.name}</h2>
-              <span className="project-usage">이번 달 사용량: {project.monthly_usage}회</span>
+              <div className="card-header-right">
+                <span className="project-usage">이번 달 사용량: {project.monthly_usage}회</span>
+                <button 
+                  className="btn-delete-project" 
+                  onClick={(e) => handleDeleteProject(e, project.id)}
+                  title="프로젝트 삭제"
+                >
+                  <i className="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
             </div>
             
             <div className="card-body">
@@ -76,16 +100,16 @@ const ProjectManager = () => {
               
               <div className="key-row">
                 <span className="key-label">Site Key</span>
-                <span className="key-value">{project.site_key}</span>
-                <button className="btn-copy-icon" onClick={(e) => copyToClipboard(e, project.site_key)}>
+                <input type="text" className="key-value" value={project.site_key} readOnly />
+                <button className="btn-copy-box" onClick={(e) => copyToClipboard(e, project.site_key)}>
                   <i className="fa-regular fa-copy"></i>
                 </button>
               </div>
               
               <div className="key-row">
                 <span className="key-label">Secret Key</span>
-                <span className="key-value">{project.secret_key}</span>
-                <button className="btn-copy-icon" onClick={(e) => copyToClipboard(e, project.secret_key)}>
+                <input type="text" className="key-value" value={project.secret_key} readOnly />
+                <button className="btn-copy-box" onClick={(e) => copyToClipboard(e, project.secret_key)}>
                   <i className="fa-regular fa-copy"></i>
                 </button>
               </div>
@@ -97,7 +121,6 @@ const ProjectManager = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box">
-            <h2>신규 프로젝트 생성</h2>
             <form onSubmit={handleCreateProject}>
               <div className="form-group">
                 <label>프로젝트 이름</label>
