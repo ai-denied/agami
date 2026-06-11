@@ -1,9 +1,19 @@
+/* [초핵심] 모든 테마 전환 속도를 하나의 변수로 완벽 동기화 */
+:root {
+  --theme-transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* 브라우저 클릭 시 발생하는 회색 깜빡임 잔상(Tap Highlight) 전역 박멸 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .mypage-container {
   display: flex;
   height: 100vh;
   width: 100%;
   background-color: var(--bg-primary, #f9fafb);
-  transition: background-color 0.3s ease;
+  transition: var(--theme-transition) !important;
 }
 
 body.dark-mode .mypage-container {
@@ -18,7 +28,7 @@ body.dark-mode .mypage-container {
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
-  transition: background-color 0.3s ease, border-right-color 0.3s ease;
+  transition: var(--theme-transition) !important;
 }
 
 body.dark-mode .mypage-sidebar {
@@ -27,14 +37,16 @@ body.dark-mode .mypage-sidebar {
 }
 
 /* ---------------------------------------------------
-   [신규] 사이드바 최상단 로고 & 토글 컨테이너
+   사이드바 최상단 로고(좌) & 토글(우) 배치
 --------------------------------------------------- */
 .sidebar-top-bar {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* 양 끝단으로 찢기 */
   align-items: center;
   width: 100%;
   margin-bottom: 30px; 
+  padding: 0 4px; /* 벽에 너무 붙지 않게 여백 */
+  box-sizing: border-box;
 }
 
 .sidebar-logo-btn {
@@ -45,6 +57,7 @@ body.dark-mode .mypage-sidebar {
   display: flex;
   align-items: center;
   text-decoration: none;
+  outline: none;
 }
 
 .sidebar-logo-btn img {
@@ -61,6 +74,7 @@ body.dark-mode .mypage-sidebar {
   width: 70px !important;
   height: 34px !important;
   margin: 0 !important; 
+  outline: none;
 }
 
 .sidebar-top-bar .switch-handle {
@@ -83,7 +97,7 @@ body.dark-mode .mypage-sidebar {
   padding-bottom: 24px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border-color, #e5e7eb);
-  transition: border-bottom-color 0.3s ease;
+  transition: var(--theme-transition) !important;
 }
 
 body.dark-mode .sidebar-header {
@@ -109,7 +123,7 @@ body.dark-mode .sidebar-header {
 .profile-name {
   font-size: 1.1rem;
   color: var(--text-primary, #111827);
-  transition: color 0.3s ease;
+  transition: var(--theme-transition) !important;
 }
 
 body.dark-mode .profile-name {
@@ -129,27 +143,25 @@ body.dark-mode .profile-name {
   color: #6b7891; 
   font-weight: 500;
   border-radius: 8px;
-  
-  /* [핵심 1] 배경색을 투명으로 고정하고, 테마 전환 시 배경 애니메이션 제거 */
   background-color: transparent; 
-  transition: color 0.3s ease; 
+  transition: var(--theme-transition) !important;
 }
 
 body.dark-mode .menu-item {
   color: #a0aec0;
 }
 
+/* 마우스가 올라갈 때만 속도를 빠르게 조정 */
 .menu-item:hover {
   background-color: #f0f7ff;
   color: #5da2ff;
-  /* 호버 시에만 배경 애니메이션 발동 */
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
 }
 
 body.dark-mode .menu-item:hover {
-  background-color: rgba(93, 162, 255, 0.08); 
+  background-color: #1a2332; 
   color: #5da2ff;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
 }
 
 .menu-item.active {
@@ -164,7 +176,7 @@ body.dark-mode .menu-item.active:hover {
 }
 
 /* ---------------------------------------------------
-   개선된 프로젝트 목록 돌아가기 백버튼 UI
+   프로젝트 목록 돌아가기 백버튼 UI
 --------------------------------------------------- */
 .btn-sidebar-back {
   display: flex;
@@ -172,17 +184,16 @@ body.dark-mode .menu-item.active:hover {
   width: calc(100% - 16px);
   margin: 0 8px 20px 8px;
   padding: 12px 16px;
+  background-color: transparent; 
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
+  color: #4b5563;
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   box-sizing: border-box;
-  
-  /* [핵심 2] 배경색 투명 고정. 이제 사이드바 바탕색이 그대로 투과되어 보임 */
-  background-color: transparent; 
-  border: 1px solid #e5e7eb;
-  color: #4b5563;
-  transition: border-color 0.3s ease, color 0.3s ease; 
+  outline: none;
+  transition: var(--theme-transition) !important;
 }
 
 .btn-sidebar-back .arrow-icon {
@@ -195,7 +206,7 @@ body.dark-mode .menu-item.active:hover {
   background-color: #f0f7ff; 
   border-color: #5da2ff;
   color: #5da2ff;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; 
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
 }
 
 .btn-sidebar-back:hover .arrow-icon {
@@ -208,7 +219,7 @@ body.dark-mode .btn-sidebar-back {
 }
 
 body.dark-mode .btn-sidebar-back:hover {
-  background-color: rgba(93, 162, 255, 0.08); 
+  background-color: #1a2332; 
   border-color: #5da2ff;
   color: #5da2ff;
 }
@@ -220,7 +231,7 @@ body.dark-mode .btn-sidebar-back:hover {
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: color 0.3s ease;
+  transition: var(--theme-transition) !important;
 }
 
 .mypage-content {
@@ -228,7 +239,9 @@ body.dark-mode .btn-sidebar-back:hover {
   overflow-y: auto;
 }
 
-/* 로그아웃 버튼 (하단 고정) */
+/* ---------------------------------------------------
+   로그아웃 버튼 (하단 고정)
+--------------------------------------------------- */
 .sidebar-bottom-container {
   margin-top: auto; 
   width: 100%;
@@ -239,8 +252,6 @@ body.dark-mode .btn-sidebar-back:hover {
 .logout-btn {
   width: 100%;
   padding: 8px 0;
-  
-  /* [핵심 3] 로그아웃 버튼도 투명 베이스 유지 */
   background-color: transparent;
   color: #ef4444;
   border: 1px solid #ef4444;
@@ -248,11 +259,12 @@ body.dark-mode .btn-sidebar-back:hover {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.3s ease, border-color 0.3s ease;
+  outline: none;
+  transition: var(--theme-transition) !important;
 }
 
 .logout-btn:hover {
   background-color: #ef4444; 
   color: #ffffff;            
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
 }
