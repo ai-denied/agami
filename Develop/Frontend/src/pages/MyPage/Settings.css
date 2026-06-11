@@ -8,6 +8,9 @@
   box-sizing: border-box;
 }
 
+/* ---------------------------------------------------
+   메인 컨테이너
+--------------------------------------------------- */
 .settings-container {
   width: 100%;
   max-width: 800px;
@@ -17,16 +20,50 @@
   padding: 48px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+body.dark-mode .settings-container {
+  background-color: #141415;
+  border-color: #28282a;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------------------------------------------------
+   헤더 및 텍스트
+--------------------------------------------------- */
 .settings-header { margin-bottom: 40px; }
-.settings-title { font-size: 1.5rem; font-weight: 800; color: #111827; margin-bottom: 8px; }
-.settings-description { font-size: 0.95rem; color: #6b7280; }
+
+.settings-title { 
+  font-size: 1.5rem; 
+  font-weight: 800; 
+  color: #111827; 
+  margin-bottom: 8px; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .settings-title { color: #ffffff; }
+
+.settings-description { 
+  font-size: 0.95rem; 
+  color: #6b7280; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .settings-description { color: #a0aec0; }
 
 .settings-section { display: flex; flex-direction: column; gap: 24px; }
-.section-label { font-size: 1.1rem; font-weight: 800; color: #111827; margin-bottom: 8px; }
 
-/* 프로필 이미지 동그라미 고정 */
+.section-label { 
+  font-size: 1.1rem; 
+  font-weight: 800; 
+  color: #111827; 
+  margin-bottom: 8px; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .section-label { color: #ffffff; }
+
+/* ---------------------------------------------------
+   프로필 이미지
+--------------------------------------------------- */
 .profile-readonly-group { margin-bottom: 16px; }
 .settings-profile-img {
   width: 80px;
@@ -34,11 +71,22 @@
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid #e5e7eb;
+  transition: border-color 0.3s ease;
 }
+body.dark-mode .settings-profile-img { border-color: #28282a; }
 
-/* 폼 인풋 크기 꽉 채우기 */
+/* ---------------------------------------------------
+   폼 입력창 (Input)
+--------------------------------------------------- */
 .form-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.form-label { font-size: 0.95rem; font-weight: 700; color: #374151; }
+
+.form-label { 
+  font-size: 0.95rem; 
+  font-weight: 700; 
+  color: #374151; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .form-label { color: #e2e8f0; }
 
 .form-input {
   width: 100%;
@@ -49,7 +97,13 @@
   border-radius: 8px;
   font-size: 1rem;
   box-sizing: border-box;
-  transition: all 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+}
+
+body.dark-mode .form-input {
+  background-color: #1a1a1b;
+  color: #ffffff;
+  border-color: #334155;
 }
 
 .form-input:focus {
@@ -58,23 +112,27 @@
   box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.15);
 }
 
+body.dark-mode .form-input:focus {
+  box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.3);
+}
+
 .form-input:disabled {
   background-color: #f3f4f6;
   color: #9ca3af;
   cursor: not-allowed;
 }
 
-/* 도메인 다중 입력 및 삭제 버튼 디자인 */
-.domain-input-row {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  align-items: center;
+body.dark-mode .form-input:disabled {
+  background-color: #28282a;
+  color: #6b7280;
+  border-color: #334155;
 }
 
-.flex-fill {
-  flex: 1; 
-}
+/* ---------------------------------------------------
+   도메인 관리 버튼
+--------------------------------------------------- */
+.domain-input-row { display: flex; gap: 12px; width: 100%; align-items: center; }
+.flex-fill { flex: 1; }
 
 .btn-remove-domain {
   width: 48px;
@@ -87,11 +145,17 @@
   font-weight: bold;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
-.btn-remove-domain:hover {
-  background: #fef2f2;
+
+body.dark-mode .btn-remove-domain {
+  background: transparent;
+  color: #f87171;
+  border-color: #7f1d1d;
 }
+
+.btn-remove-domain:hover { background: #fef2f2; }
+body.dark-mode .btn-remove-domain:hover { background: #7f1d1d; color: #ffffff; }
 
 .btn-add-domain {
   align-self: flex-start;
@@ -104,6 +168,9 @@
   padding: 4px 0;
 }
 
+/* ---------------------------------------------------
+   저장 버튼 및 알림 메시지
+--------------------------------------------------- */
 .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 16px; }
 
 .notification-msg { font-size: 0.9rem; font-weight: 600; }
@@ -124,9 +191,20 @@
 .btn-submit:hover { background-color: #4a8deb; }
 .btn-submit:disabled { background-color: #9ca3af; cursor: not-allowed; }
 
-.divider { border: 0; height: 1px; background-color: #f3f4f6; margin: 40px 0; }
+body.dark-mode .btn-submit:disabled { background-color: #4b5563; color: #9ca3af; }
 
-/* 요금제(구독 정보) 박스 스타일 */
+.divider { 
+  border: 0; 
+  height: 1px; 
+  background-color: #f3f4f6; 
+  margin: 40px 0; 
+  transition: background-color 0.3s ease;
+}
+body.dark-mode .divider { background-color: #28282a; }
+
+/* ---------------------------------------------------
+   요금제(구독 정보) 박스 스타일
+--------------------------------------------------- */
 .plan-info-box {
   display: flex;
   align-items: center;
@@ -134,9 +212,32 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 20px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-.plan-label { width: 150px; font-weight: 700; color: #6b7280; font-size: 0.95rem; }
-.plan-value { flex: 1; font-weight: 800; color: #111827; font-size: 1.1rem; }
+
+body.dark-mode .plan-info-box {
+  background: #1a1a1b;
+  border-color: #334155;
+}
+
+.plan-label { 
+  width: 150px; 
+  font-weight: 700; 
+  color: #6b7280; 
+  font-size: 0.95rem; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .plan-label { color: #9ca3af; }
+
+.plan-value { 
+  flex: 1; 
+  font-weight: 800; 
+  color: #111827; 
+  font-size: 1.1rem; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .plan-value { color: #ffffff; }
+
 .btn-outline-primary {
   background: #ffffff;
   border: 1px solid #5da2ff;
@@ -145,15 +246,18 @@
   border-radius: 6px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
+
+body.dark-mode .btn-outline-primary { background: transparent; }
+
 .btn-outline-primary:hover {
   background: #5da2ff;
   color: #ffffff;
 }
 
 /* ---------------------------------------------------
-   캡챠 연동 키 디스플레이 영역 (오류 완벽 수정)
+   캡챠 연동 키 디스플레이 영역 
 --------------------------------------------------- */
 .key-display-group { 
   display: flex; 
@@ -172,6 +276,12 @@
   padding: 16px 20px !important;
   width: 100%;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-mode .key-display-row {
+  background-color: #1a1a1b !important;
+  border-color: #334155 !important;
 }
 
 .key-display-label { 
@@ -180,7 +290,9 @@
   font-size: 0.9rem; 
   color: #6b7280; 
   flex-shrink: 0; 
+  transition: color 0.3s ease;
 }
+body.dark-mode .key-display-label { color: #9ca3af; }
 
 .key-display-value { 
   flex: 1; 
@@ -188,9 +300,11 @@
   font-size: 0.95rem; 
   color: #111827; 
   word-break: break-all; 
+  transition: color 0.3s ease;
 }
+body.dark-mode .key-display-value { color: #e5e7eb; }
 
-/* 메인 컬러 적용 확실한 복사 버튼 강제 적용 */
+/* 메인 컬러 적용 복사 버튼 */
 .btn-copy-action {
   background-color: #eef2ff !important;
   color: #5da2ff !important;
@@ -201,22 +315,26 @@
   font-weight: 700 !important;
   cursor: pointer !important;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.btn-copy-action:hover { 
+body.dark-mode .btn-copy-action {
+  background-color: rgba(93, 162, 255, 0.1) !important;
+}
+
+.btn-copy-action:hover, body.dark-mode .btn-copy-action:hover { 
   background-color: #5da2ff !important; 
   color: #ffffff !important; 
 }
 
 /* ---------------------------------------------------
-   자체 알림창 (Alert & Confirm 커스텀 모달) 공통 스타일
+   자체 알림창 (Alert & Confirm 커스텀 모달) 다크모드 대응
 --------------------------------------------------- */
 .custom-sys-modal-overlay {
   position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(3px); /* 고급스러운 블러 효과 */
+  backdrop-filter: blur(3px); 
   display: flex; 
   align-items: center; 
   justify-content: center;
@@ -232,6 +350,12 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   text-align: center;
   animation: modalPop 0.2s ease-out;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-mode .custom-sys-modal-box {
+  background: #141415;
+  border: 1px solid #28282a;
 }
 
 @keyframes modalPop {
@@ -246,7 +370,10 @@
   margin-bottom: 32px;
   white-space: pre-wrap;
   line-height: 1.5;
+  transition: color 0.3s ease;
 }
+
+body.dark-mode .custom-sys-modal-text { color: #ffffff; }
 
 .custom-sys-modal-actions {
   display: flex;
@@ -263,7 +390,7 @@
   font-weight: 700; 
   font-size: 1rem; 
   cursor: pointer; 
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   flex: 1;
 }
 .btn-sys-ok:hover { background: #4a8deb; }
@@ -277,10 +404,13 @@
   font-weight: 700; 
   font-size: 1rem; 
   cursor: pointer; 
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   flex: 1;
 }
+
+body.dark-mode .btn-sys-cancel { background: #28282a; color: #a0aec0; }
 .btn-sys-cancel:hover { background: #e5e7eb; }
+body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
 
 .btn-sys-danger {
   background: #ef4444; 
@@ -291,7 +421,7 @@
   font-weight: 700; 
   font-size: 1rem; 
   cursor: pointer; 
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   flex: 1;
 }
 .btn-sys-danger:hover { background: #dc2626; }

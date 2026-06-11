@@ -1,7 +1,12 @@
+/* [초핵심] 모든 테마 전환 속도를 하나의 변수로 완벽 동기화하여 잔상 박멸 */
+:root {
+  --pm-transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
 .pm-wrapper {
   width: 100%;
   margin: 40px;
-  padding:40px;
+  padding: 40px;
   box-sizing: border-box;
   display: flex;
   justify-content: center;
@@ -24,12 +29,16 @@
   font-weight: 800;
   color: #111827;
   margin-bottom: 8px;
+  transition: var(--pm-transition);
 }
+body.dark-mode .pm-title { color: #ffffff; }
 
 .pm-description {
   font-size: 0.95rem;
   color: #6b7280;
+  transition: var(--pm-transition);
 }
+body.dark-mode .pm-description { color: #a0aec0; }
 
 .btn-create-project {
   background: #5da2ff;
@@ -39,7 +48,9 @@
   border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
+.btn-create-project:hover { background: #4a8deb; }
 
 .project-list {
   display: flex;
@@ -47,6 +58,9 @@
   gap: 24px;
 }
 
+/* ---------------------------------------------------
+   빈 상태 (Empty State)
+--------------------------------------------------- */
 .empty-state {
   text-align: center;
   padding: 60px;
@@ -55,20 +69,37 @@
   border-radius: 12px; 
   color: #6b7280;
   font-weight: 700;
+  transition: var(--pm-transition);
+}
+body.dark-mode .empty-state {
+  background: #1a1a1b;
+  border-color: #334155;
+  color: #9ca3af;
 }
 
+/* ---------------------------------------------------
+   프로젝트 카드 디자인
+--------------------------------------------------- */
 .project-card {
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 32px;
-  transition: all 0.2s;
   cursor: pointer;
+  transition: var(--pm-transition);
 }
-
+body.dark-mode .project-card {
+  background: #141415;
+  border-color: #28282a;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
 .project-card:hover {
   border-color: #5da2ff;
   box-shadow: 0 4px 12px rgba(93, 162, 255, 0.1);
+}
+body.dark-mode .project-card:hover {
+  border-color: #5da2ff;
+  box-shadow: 0 4px 12px rgba(93, 162, 255, 0.2);
 }
 
 .card-header {
@@ -78,14 +109,18 @@
   margin-bottom: 24px;
   border-bottom: 1px solid #f3f4f6; 
   padding-bottom: 16px;
+  transition: var(--pm-transition);
 }
+body.dark-mode .card-header { border-bottom-color: #28282a; }
 
 .project-name {
   font-size: 1.4rem;
   font-weight: 800;
   color: #111827;
   margin: 0;
+  transition: var(--pm-transition);
 }
+body.dark-mode .project-name { color: #ffffff; }
 
 .card-header-right {
   display: flex;
@@ -97,7 +132,9 @@
   color: #6b7280;
   font-size: 0.9rem;
   font-weight: 600;
+  transition: var(--pm-transition);
 }
+body.dark-mode .project-usage { color: #9ca3af; }
 
 .btn-delete-project {
   background: #fee2e2;
@@ -107,22 +144,21 @@
   border-radius: 6px;
   font-weight: 700;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
-
-.btn-delete-project:hover {
-  background: #fca5a5;
-  color: #fff;
-}
+body.dark-mode .btn-delete-project { background: rgba(239, 68, 68, 0.1); }
+.btn-delete-project:hover, body.dark-mode .btn-delete-project:hover { background: #ef4444; color: #fff; }
 
 .domain-tags {
   color: #111827;
   margin-bottom: 24px;
   display: flex;
   align-items: center;
-  gap: 10px; flex-wrap:
-  wrap;
+  gap: 10px; 
+  flex-wrap: wrap;
+  transition: var(--pm-transition);
 }
+body.dark-mode .domain-tags { color: #e2e8f0; }
 
 .domain-tag {
   background: #f3f4f6;
@@ -131,7 +167,9 @@
   font-size: 0.85rem;
   color: #374151;
   font-weight: 700;
+  transition: var(--pm-transition);
 }
+body.dark-mode .domain-tag { background: #28282a; color: #a0aec0; }
 
 .key-row {
   display: flex;
@@ -144,14 +182,18 @@
   margin-bottom: 12px;
   width: 100%;
   box-sizing: border-box;
+  transition: var(--pm-transition);
 }
+body.dark-mode .key-row { background: #1a1a1b; border-color: #334155; }
 
 .key-label {
   width: 90px;
   font-weight: 700;
   color: #6b7280;
   flex-shrink: 0;
+  transition: var(--pm-transition);
 }
+body.dark-mode .key-label { color: #9ca3af; }
 
 .key-value {
   flex: 1;
@@ -159,9 +201,10 @@
   font-size: 0.95rem;
   word-break: break-all;
   color: #111827;
+  transition: var(--pm-transition);
 }
+body.dark-mode .key-value { color: #e5e7eb; }
 
-/* 메인 컬러 적용 확실한 복사 버튼 */
 .btn-copy-main { 
   background: #eef2ff; 
   color: #5da2ff; 
@@ -172,16 +215,44 @@
   font-size: 0.9rem; 
   cursor: pointer; 
   flex-shrink: 0; 
-  transition: all 0.2s;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
-.btn-copy-main:hover { background: #5da2ff; color: #fff; }
+body.dark-mode .btn-copy-main { background: rgba(93, 162, 255, 0.1); }
+.btn-copy-main:hover, body.dark-mode .btn-copy-main:hover { background: #5da2ff; color: #fff; }
 
-/* 모달 - 흰색/회색 텍스트 증발 방지 강제 적용 */
+/* ---------------------------------------------------
+   신규 생성 모달창 다크모드 대응
+--------------------------------------------------- */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal-box { background: #fff; padding: 40px; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-.modal-box h2 { font-size: 1.4rem; font-weight: 800; color: #111827; margin-bottom: 24px; }
+
+.modal-box { 
+  background: #fff; 
+  padding: 40px; 
+  border-radius: 16px; 
+  width: 100%; 
+  max-width: 500px; 
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+  transition: var(--pm-transition);
+}
+body.dark-mode .modal-box { background: #141415; border: 1px solid #28282a; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+.modal-box h2 { 
+  font-size: 1.4rem; 
+  font-weight: 800; 
+  color: #111827; 
+  margin-bottom: 24px; 
+  transition: var(--pm-transition);
+}
+body.dark-mode .modal-box h2 { color: #ffffff; }
+
 .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
-.form-group label { font-weight: 700; color: #374151; font-size: 0.95rem; }
+.form-group label { 
+  font-weight: 700; 
+  color: #374151; 
+  font-size: 0.95rem; 
+  transition: var(--pm-transition);
+}
+body.dark-mode .form-group label { color: #e2e8f0; }
 
 input.clean-input { 
   background-color: #ffffff !important; 
@@ -192,19 +263,36 @@ input.clean-input {
   font-size: 1rem; 
   width: 100%; 
   box-sizing: border-box; 
+  transition: var(--pm-transition);
 }
+body.dark-mode input.clean-input { background-color: #1a1a1b !important; color: #ffffff !important; border-color: #334155 !important; }
 input.clean-input:focus { border-color: #5da2ff !important; outline: none; box-shadow: 0 0 0 3px rgba(93,162,255,0.1); }
+body.dark-mode input.clean-input:focus { box-shadow: 0 0 0 3px rgba(93,162,255,0.3); }
 
 .domain-input-row { display: flex; gap: 8px; align-items: center; width: 100%; }
 .flex-fill { flex: 1; }
 
-.btn-remove-domain { width: 48px; height: 48px; background: #ffffff; color: #ef4444; border: 1px solid #fecaca; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; flex-shrink: 0; }
+.btn-remove-domain { 
+  width: 48px; 
+  height: 48px; 
+  background: #ffffff; 
+  color: #ef4444; 
+  border: 1px solid #fecaca; 
+  border-radius: 8px; 
+  font-weight: bold; 
+  font-size: 1.1rem; 
+  cursor: pointer; 
+  flex-shrink: 0; 
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+body.dark-mode .btn-remove-domain { background: transparent; border-color: #7f1d1d; color: #f87171; }
 .btn-remove-domain:hover { background: #fef2f2; }
+body.dark-mode .btn-remove-domain:hover { background: #7f1d1d; color: #fff; }
+
 .btn-add-domain { align-self: flex-start; background: transparent; color: #5da2ff; border: none; font-weight: 800; font-size: 0.95rem; cursor: pointer; padding: 8px 0; }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; }
 
-/* 취소 버튼 폰트 강제 어두운색 고정 */
 .btn-cancel { 
   background-color: #f3f4f6 !important; 
   color: #374151 !important; 
@@ -214,8 +302,11 @@ input.clean-input:focus { border-color: #5da2ff !important; outline: none; box-s
   font-weight: 700; 
   font-size: 1rem; 
   cursor: pointer; 
+  transition: background-color 0.2s ease;
 }
+body.dark-mode .btn-cancel { background-color: #28282a !important; color: #a0aec0 !important; }
 .btn-cancel:hover { background-color: #e5e7eb !important; }
+body.dark-mode .btn-cancel:hover { background-color: #334155 !important; color: #ffffff !important; }
 
 .btn-submit { 
   background-color: #5da2ff !important; 
@@ -226,17 +317,18 @@ input.clean-input:focus { border-color: #5da2ff !important; outline: none; box-s
   font-weight: 700; 
   font-size: 1rem; 
   cursor: pointer; 
+  transition: background-color 0.2s ease;
 }
 .btn-submit:hover { background-color: #4a8deb !important; }
 
 /* ---------------------------------------------------
-   자체 알림창 (Alert & Confirm 커스텀 모달) 공통 스타일
+   자체 알림창 (Alert & Confirm 커스텀 모달) 다크모드 대응
 --------------------------------------------------- */
 .custom-sys-modal-overlay {
   position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(3px); /* 고급스러운 블러 효과 */
+  backdrop-filter: blur(3px); 
   display: flex; 
   align-items: center; 
   justify-content: center;
@@ -252,7 +344,9 @@ input.clean-input:focus { border-color: #5da2ff !important; outline: none; box-s
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   text-align: center;
   animation: modalPop 0.2s ease-out;
+  transition: var(--pm-transition);
 }
+body.dark-mode .custom-sys-modal-box { background: #141415; border: 1px solid #28282a; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
 @keyframes modalPop {
   from { opacity: 0; transform: translateY(10px) scale(0.98); }
@@ -266,7 +360,9 @@ input.clean-input:focus { border-color: #5da2ff !important; outline: none; box-s
   margin-bottom: 32px;
   white-space: pre-wrap;
   line-height: 1.5;
+  transition: var(--pm-transition);
 }
+body.dark-mode .custom-sys-modal-text { color: #ffffff; }
 
 .custom-sys-modal-actions {
   display: flex;
@@ -274,44 +370,13 @@ input.clean-input:focus { border-color: #5da2ff !important; outline: none; box-s
   gap: 12px;
 }
 
-.btn-sys-ok {
-  background: #5da2ff; 
-  color: #ffffff; 
-  border: none; 
-  padding: 12px 32px; 
-  border-radius: 8px; 
-  font-weight: 700; 
-  font-size: 1rem; 
-  cursor: pointer; 
-  transition: all 0.2s;
-  flex: 1;
-}
+.btn-sys-ok { background: #5da2ff; color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background-color 0.2s ease; flex: 1; }
 .btn-sys-ok:hover { background: #4a8deb; }
 
-.btn-sys-cancel {
-  background: #f3f4f6; 
-  color: #4b5563; 
-  border: none; 
-  padding: 12px 24px; 
-  border-radius: 8px; 
-  font-weight: 700; 
-  font-size: 1rem; 
-  cursor: pointer; 
-  transition: all 0.2s;
-  flex: 1;
-}
+.btn-sys-cancel { background: #f3f4f6; color: #4b5563; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease; flex: 1; }
+body.dark-mode .btn-sys-cancel { background: #28282a; color: #a0aec0; }
 .btn-sys-cancel:hover { background: #e5e7eb; }
+body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
 
-.btn-sys-danger {
-  background: #ef4444; 
-  color: #ffffff; 
-  border: none; 
-  padding: 12px 24px; 
-  border-radius: 8px; 
-  font-weight: 700; 
-  font-size: 1rem; 
-  cursor: pointer; 
-  transition: all 0.2s;
-  flex: 1;
-}
+.btn-sys-danger { background: #ef4444; color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background-color 0.2s ease; flex: 1; }
 .btn-sys-danger:hover { background: #dc2626; }
