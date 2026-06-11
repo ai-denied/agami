@@ -34,7 +34,6 @@ const MyPage = () => {
       console.error(e); 
     }
     
-    // [핵심 수정] 로그아웃 전 테마 상태 백업 후, clear 이후 재주입하여 홈화면 테마 유지
     const currentTheme = localStorage.getItem("theme"); 
     setUser(null); 
     localStorage.clear(); 
@@ -63,17 +62,6 @@ const MyPage = () => {
             />
             <span className="profile-name"><strong>{user?.nickname}</strong> 님</span>
           </div>
-          
-          <div className="sidebar-theme-container">
-            <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-              <div className="switch-content">
-                <span className="label-light">LIGHT</span>
-                <div className="switch-handle"></div>
-                <span className="label-dark">DARK</span>
-              </div>
-            </div>
-          </div>
-
           <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
         </div>
 
@@ -107,6 +95,17 @@ const MyPage = () => {
             </>
           )}
         </nav>
+
+        {/* 하단 고정용 테마 스위치 래퍼 */}
+        <div className="sidebar-theme-container">
+          <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
+            <div className="switch-content">
+              <span className="label-light">LIGHT</span>
+              <div className="switch-handle"></div>
+              <span className="label-dark">DARK</span>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <main className="mypage-content">
