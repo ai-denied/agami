@@ -53,7 +53,7 @@ const MyPage = () => {
     <div className="mypage-container">
       <aside className="mypage-sidebar">
         
-        {/* [확실한 수정] 최상단 좌측 로고(클릭 시 이동), 우측 토글 스위치 */}
+        {/* 최상단 좌측 로고, 우측 토글 스위치 */}
         <div className="sidebar-top-bar">
           <NavLink to="/mypage/projects" className="sidebar-logo-btn">
             <img src="/agami-home.svg" alt="Agami Home" />
