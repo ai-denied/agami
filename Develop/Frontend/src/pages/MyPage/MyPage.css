@@ -1,4 +1,20 @@
 /* =============================================================================
+   [초핵심] 전역 렌더링 강제 동기화 엔진
+   오른쪽 메인 컨텐츠 내부에 있는 카드(0.2s)나 요소들이 제각각 
+   빨리 어두워지는 시차 오작동을 0.3s로 멱살잡고 완벽히 통일합니다.
+   ============================================================================= */
+.mypage-layout,
+.mypage-sidebar,
+.mypage-main,
+.mypage-main * {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* 화살표 및 토글 스위치 모션은 예외로 살려둡니다 */
+.switch-handle { transition-property: transform !important; transition-duration: 0.3s !important; }
+.arrow-icon, .brand-logo img { transition: transform 0.2s ease !important; }
+
+/* =============================================================================
    [1] 전체 구조 레이아웃 및 여백 제어
    ============================================================================= */
 .mypage-wrapper {
@@ -15,8 +31,6 @@
   padding-top: 0; 
   background-color: #f4f7fb;
   box-sizing: border-box;
-  /* [핵심] background 단축 속성 대신 background-color 명시로 렌더링 틱(Tick) 동기화 */
-  transition: background-color 0.3s ease; 
   overflow-x: auto; 
 }
 
@@ -25,7 +39,7 @@ body.dark-mode .mypage-layout {
 }
 
 /* =============================================================================
-   [2] 사이드바 컴포넌트 
+   [2] 사이드바 컴포넌트
    ============================================================================= */
 .mypage-sidebar {
   width: 260px;
@@ -36,7 +50,6 @@ body.dark-mode .mypage-layout {
   border-right: 1px solid #e0e7f3;
   padding: 30px 20px;
   box-sizing: border-box;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
   overflow-y: auto; 
   display: flex;
   flex-direction: column;
@@ -60,17 +73,16 @@ body.dark-mode .mypage-sidebar {
 .brand-logo img {
   width: 45px;
   height: auto;
-  transition: transform 0.2s ease;
 }
 
 .brand-logo:hover img {
-  transform: scale(1.05);
+  transform: scale(1.05) !important;
 }
 
 .sidebar-top-controls .theme-switch {
-  width: 70px;
-  height: 34px;
-  margin: 0;
+  width: 70px !important;
+  height: 34px !important;
+  margin: 0 !important;
 }
 
 /* ---------------------------------------------------
@@ -83,7 +95,6 @@ body.dark-mode .mypage-sidebar {
   margin-bottom: 24px;
   padding-bottom: 24px;
   border-bottom: 1px solid #e0e7f3;
-  transition: border-color 0.3s ease;
 }
 
 body.dark-mode .sidebar-profile {
@@ -101,7 +112,6 @@ body.dark-mode .sidebar-profile {
 .sidebar-profile .profile-name {
   font-size: 1.1rem;
   color: #111827;
-  transition: color 0.3s ease;
 }
 
 body.dark-mode .sidebar-profile .profile-name {
@@ -130,11 +140,10 @@ body.dark-mode .sidebar-profile .profile-name {
   cursor: pointer;
   color: #6b7891;
   font-weight: 500;
-  /* [핵심] all 0.2s 제거. 부모 컨테이너들과 동일한 0.3s ease 명시 */
-  transition: background-color 0.3s ease, color 0.3s ease;
   background-color: transparent; 
   display: flex;
   align-items: center;
+  transition: background-color 0.3s ease, color 0.3s ease !important;
 }
 
 body.dark-mode .sidebar-menu-list li {
@@ -144,18 +153,16 @@ body.dark-mode .sidebar-menu-list li {
 .sidebar-menu-list li:hover { 
   background-color: #f0f7ff; 
   color: #5da2ff;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body.dark-mode .sidebar-menu-list li:hover { 
   background-color: rgba(93, 162, 255, 0.08); 
   color: #5da2ff;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* 활성화 상태 (NavLink로 들어온 .active 적용) */
+/* 활성화 상태 */
 .sidebar-menu-list a.active li {
-  background-color: #5da2ff;
+  background-color: #5da2ff !important;
   color: white !important;
 }
 
@@ -164,14 +171,8 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   color: white !important;
 }
 
-.arrow-icon {
-  margin-right: 8px;
-  font-weight: 900;
-  transition: transform 0.2s ease;
-}
-
 .back-btn-li:hover .arrow-icon {
-  transform: translateX(-3px);
+  transform: translateX(-3px) !important;
 }
 
 .menu-divider {
@@ -181,7 +182,6 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: color 0.3s ease;
 }
 
 /* ---------------------------------------------------
@@ -202,14 +202,12 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  /* [핵심] 부모 컨테이너들과 동일한 0.3s ease 명시 */
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
 }
 
 .logout-btn:hover {
-  background-color: #ef4444;
-  color: #ffffff;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
 }
 
 /* =============================================================================

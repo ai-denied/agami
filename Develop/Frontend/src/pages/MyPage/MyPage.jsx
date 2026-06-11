@@ -79,7 +79,7 @@ const MyPage = () => {
             <span className="profile-name"><strong>{user?.nickname}</strong> 님</span>
           </div>
 
-          {/* 메뉴 리스트 (Test.jsx 구조 완벽 복제) */}
+          {/* 메뉴 리스트 */}
           <ul className="sidebar-menu-list">
             {isProjectContext ? (
               <>
