@@ -1,5 +1,5 @@
 /* =============================================================================
-   [1] 전체 구조 레이아웃 및 여백 제어 (Test.css 복제)
+   [1] 전체 구조 레이아웃 및 여백 제어
    ============================================================================= */
 .mypage-wrapper {
   height: 100vh;
@@ -12,38 +12,39 @@
   display: flex;
   width: 100%;
   height: 100%; 
-  padding-top: 0; /* 네비바가 없으므로 0 */
-  background: #f4f7fb;
+  padding-top: 0; 
+  background-color: #f4f7fb;
   box-sizing: border-box;
-  transition: background 0.3s ease;
+  /* [핵심] background 단축 속성 대신 background-color 명시로 렌더링 틱(Tick) 동기화 */
+  transition: background-color 0.3s ease; 
   overflow-x: auto; 
 }
 
 body.dark-mode .mypage-layout {
-  background: #1a1a1b; 
+  background-color: #1a1a1b; 
 }
 
 /* =============================================================================
-   [2] 사이드바 컴포넌트 (Test.css 복제)
+   [2] 사이드바 컴포넌트 
    ============================================================================= */
 .mypage-sidebar {
   width: 260px;
   flex-shrink: 0; 
   height: 100%; 
   min-height: 0; 
-  background: #ffffff;
+  background-color: #ffffff;
   border-right: 1px solid #e0e7f3;
   padding: 30px 20px;
   box-sizing: border-box;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
   overflow-y: auto; 
   display: flex;
   flex-direction: column;
 }
 
 body.dark-mode .mypage-sidebar {
-  background: #141415;
-  border-right: 1px solid #28282a;
+  background-color: #141415;
+  border-right-color: #28282a;
 }
 
 /* ---------------------------------------------------
@@ -108,7 +109,7 @@ body.dark-mode .sidebar-profile .profile-name {
 }
 
 /* ---------------------------------------------------
-   [메뉴 리스트] Test.css와 완벽하게 동일한 li 구조
+   [메뉴 리스트]
 --------------------------------------------------- */
 .sidebar-menu-list { 
   list-style: none; 
@@ -122,7 +123,6 @@ body.dark-mode .sidebar-profile .profile-name {
   text-decoration: none;
 }
 
-/* Test.css의 .sidebar li 로직과 100% 일치 */
 .sidebar-menu-list li {
   padding: 15px;
   margin-bottom: 8px;
@@ -130,8 +130,9 @@ body.dark-mode .sidebar-profile .profile-name {
   cursor: pointer;
   color: #6b7891;
   font-weight: 500;
-  transition: all 0.2s ease;
-  background-color: transparent; /* 전환 시 박스 잔상 원천 차단 */
+  /* [핵심] all 0.2s 제거. 부모 컨테이너들과 동일한 0.3s ease 명시 */
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: transparent; 
   display: flex;
   align-items: center;
 }
@@ -141,24 +142,25 @@ body.dark-mode .sidebar-menu-list li {
 }
 
 .sidebar-menu-list li:hover { 
-  background: #f0f7ff; 
+  background-color: #f0f7ff; 
   color: #5da2ff;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body.dark-mode .sidebar-menu-list li:hover { 
-  background: rgba(93, 162, 255, 0.08); 
+  background-color: rgba(93, 162, 255, 0.08); 
   color: #5da2ff;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* 활성화 상태 (NavLink로 들어온 .active 적용) */
 .sidebar-menu-list a.active li {
-  background: #5da2ff;
+  background-color: #5da2ff;
   color: white !important;
 }
 
-/* 다크모드에서 활성화 아이템은 호버 튐 금지 */
 body.dark-mode .sidebar-menu-list a.active li:hover {
-  background: #5da2ff !important;
+  background-color: #5da2ff !important;
   color: white !important;
 }
 
@@ -179,6 +181,7 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
 }
 
 /* ---------------------------------------------------
@@ -192,19 +195,21 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
 .logout-btn {
   width: 100%;
   padding: 12px;
-  background: transparent;
+  background-color: transparent;
   color: #ef4444;
   border: 1px solid #ef4444;
   border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  /* [핵심] 부모 컨테이너들과 동일한 0.3s ease 명시 */
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .logout-btn:hover {
-  background: #ef4444;
+  background-color: #ef4444;
   color: #ffffff;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* =============================================================================
