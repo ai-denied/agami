@@ -3,7 +3,7 @@
   height: 100vh;
   width: 100%;
   background-color: var(--bg-primary, #f9fafb);
-  transition: background-color 0.3s ease;
+  transition: background-color 0.25s linear;
 }
 
 body.dark-mode .mypage-container {
@@ -18,13 +18,62 @@ body.dark-mode .mypage-container {
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
-  transition: background-color 0.3s ease, border-right-color 0.3s ease;
+  transition: background-color 0.25s linear, border-right-color 0.25s linear;
 }
 
 body.dark-mode .mypage-sidebar {
   background-color: #141415;
   border-right-color: #28282a;
 }
+
+/* ---------------------------------------------------
+   [신규] 사이드바 최상단 로고 & 토글 컨테이너
+--------------------------------------------------- */
+.sidebar-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px; /* 프로필 영역과의 간격 */
+}
+
+.sidebar-logo-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-logo-btn img {
+  width: 45px;
+  height: auto;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-logo-btn:hover img {
+  transform: scale(1.05);
+}
+
+.sidebar-top-bar .theme-switch {
+  width: 70px !important;
+  height: 34px !important;
+  margin: 0 !important; 
+}
+
+.sidebar-top-bar .switch-handle {
+  width: 26px !important;
+  height: 26px !important;
+  top: 4px !important;
+  left: 4px !important;
+  transform: none !important;
+}
+
+.sidebar-top-bar .theme-switch.active .switch-handle {
+  transform: translateX(36px) !important; 
+}
+
+/* --------------------------------------------------- */
 
 .sidebar-header {
   display: flex;
@@ -33,7 +82,7 @@ body.dark-mode .mypage-sidebar {
   padding-bottom: 24px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border-color, #e5e7eb);
-  transition: border-bottom-color 0.3s ease;
+  transition: border-bottom-color 0.25s linear;
 }
 
 body.dark-mode .sidebar-header {
@@ -44,7 +93,6 @@ body.dark-mode .sidebar-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 16px;
   width: 100%;
 }
 
@@ -60,41 +108,11 @@ body.dark-mode .sidebar-header {
 .profile-name {
   font-size: 1.1rem;
   color: var(--text-primary, #111827);
-  transition: color 0.3s ease;
+  transition: color 0.25s linear;
 }
 
 body.dark-mode .profile-name {
   color: #ffffff;
-}
-
-/* ---------------------------------------------------
-   사이드바 내 이식된 테마 토글 스위치 (상단 좌측 정렬)
---------------------------------------------------- */
-.sidebar-theme-container {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start; /* 요청하신 왼쪽 정렬 */
-  align-items: center;
-  padding: 0 4px;
-  margin-top: 8px;
-}
-
-.sidebar-theme-container .theme-switch {
-  width: 70px !important;
-  height: 34px !important;
-  margin-right: 0 !important; 
-}
-
-.sidebar-theme-container .switch-handle {
-  width: 26px !important;
-  height: 26px !important;
-  top: 4px !important;
-  left: 4px !important;
-  transform: none !important;
-}
-
-.sidebar-theme-container .theme-switch.active .switch-handle {
-  transform: translateX(36px) !important; 
 }
 
 /* 사이드바 메뉴 */
@@ -110,8 +128,9 @@ body.dark-mode .profile-name {
   color: #6b7891; 
   font-weight: 500;
   border-radius: 8px;
-  background-color: transparent; /* 잔상 렌더링 방지용 명시적 선언 */
-  transition: background-color 0.3s ease, color 0.3s ease; 
+  background-color: transparent; 
+  /* [핵심] 사각형 잔상 제거를 위해 곡선을 linear로 통일 */
+  transition: background-color 0.25s linear, color 0.25s linear; 
 }
 
 body.dark-mode .menu-item {
@@ -125,7 +144,6 @@ body.dark-mode .menu-item {
 }
 
 body.dark-mode .menu-item:hover {
-  /* rgba 제거: 다크모드 배경색(#141415)에 rgba를 섞은 완벽한 불투명 HEX 도출 */
   background-color: #1a2332; 
   color: #5da2ff;
   transition: background-color 0.15s ease, color 0.15s ease;
@@ -142,16 +160,13 @@ body.dark-mode .menu-item.active:hover {
   color: #ffffff !important;
 }
 
-/* ---------------------------------------------------
-   개선된 프로젝트 목록 돌아가기 백버튼 UI
---------------------------------------------------- */
+/* 백버튼 UI */
 .btn-sidebar-back {
   display: flex;
   align-items: center;
   width: calc(100% - 16px);
   margin: 0 8px 20px 8px;
   padding: 12px 16px;
-  /* rgba 제거: 불투명 라이트그레이 적용 */
   background-color: #f7f7f9; 
   border: 1px solid #e5e7eb;
   border-radius: 10px;
@@ -160,7 +175,8 @@ body.dark-mode .menu-item.active:hover {
   font-weight: 700;
   cursor: pointer;
   box-sizing: border-box;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; 
+  /* [핵심] 렌더링 시차 완벽 동기화 (linear) */
+  transition: background-color 0.25s linear, border-color 0.25s linear, color 0.25s linear; 
 }
 
 .btn-sidebar-back .arrow-icon {
@@ -170,7 +186,7 @@ body.dark-mode .menu-item.active:hover {
 }
 
 .btn-sidebar-back:hover {
-  background-color: #e6f0ff; /* rgba 제거 */
+  background-color: #e6f0ff; 
   border-color: #5da2ff;
   color: #5da2ff;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; 
@@ -181,14 +197,13 @@ body.dark-mode .menu-item.active:hover {
 }
 
 body.dark-mode .btn-sidebar-back {
-  /* rgba 제거: 심해 다크모드 배경에 맞는 불투명 챠콜 지정 */
   background-color: #202022; 
   border-color: #28282a;
   color: #9ca3af;
 }
 
 body.dark-mode .btn-sidebar-back:hover {
-  background-color: #1a2738; /* rgba 제거 */
+  background-color: #1a2738; 
   border-color: #5da2ff;
   color: #5da2ff;
 }
@@ -200,7 +215,7 @@ body.dark-mode .btn-sidebar-back:hover {
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: color 0.3s ease;
+  transition: color 0.25s linear;
 }
 
 .mypage-content {
@@ -208,11 +223,9 @@ body.dark-mode .btn-sidebar-back:hover {
   overflow-y: auto;
 }
 
-/* ---------------------------------------------------
-   바닥으로 밀어낸 로그아웃 버튼 컨테이너
---------------------------------------------------- */
+/* 로그아웃 버튼 */
 .sidebar-bottom-container {
-  margin-top: auto; /* 핵심: 상단 요소들 아래의 남은 공간을 모두 확보하여 바닥에 고정 */
+  margin-top: auto; 
   width: 100%;
   display: flex;
   align-items: flex-end;
@@ -228,7 +241,7 @@ body.dark-mode .btn-sidebar-back:hover {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.25s linear, color 0.25s linear, border-color 0.25s linear;
 }
 
 .logout-btn:hover {
