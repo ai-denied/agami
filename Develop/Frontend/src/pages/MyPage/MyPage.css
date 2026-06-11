@@ -3,7 +3,7 @@
   height: 100vh;
   width: 100%;
   background-color: var(--bg-primary, #f9fafb);
-  transition: background-color 0.25s linear;
+  transition: background-color 0.3s ease;
 }
 
 body.dark-mode .mypage-container {
@@ -18,7 +18,7 @@ body.dark-mode .mypage-container {
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
-  transition: background-color 0.25s linear, border-right-color 0.25s linear;
+  transition: background-color 0.3s ease, border-right-color 0.3s ease;
 }
 
 body.dark-mode .mypage-sidebar {
@@ -27,13 +27,28 @@ body.dark-mode .mypage-sidebar {
 }
 
 /* ---------------------------------------------------
-   [신규] 사이드바 최상단 로고 & 토글 컨테이너
+   [개선] 사이드바 헤더 및 최상단 로고/토글 컨테이너
 --------------------------------------------------- */
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  transition: border-bottom-color 0.3s ease;
+}
+
+body.dark-mode .sidebar-header {
+  border-bottom-color: #28282a;
+}
+
 .sidebar-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px; /* 프로필 영역과의 간격 */
+  width: 100%;
+  margin-bottom: 28px; /* 프로필과의 밸런스를 맞추는 여백 */
 }
 
 .sidebar-logo-btn {
@@ -46,7 +61,7 @@ body.dark-mode .mypage-sidebar {
 }
 
 .sidebar-logo-btn img {
-  width: 45px;
+  width: 38px; /* 토글 스위치(34px)와의 크기 밸런스를 위해 축소 */
   height: auto;
   transition: transform 0.2s ease;
 }
@@ -75,20 +90,6 @@ body.dark-mode .mypage-sidebar {
 
 /* --------------------------------------------------- */
 
-.sidebar-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 24px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
-  transition: border-bottom-color 0.25s linear;
-}
-
-body.dark-mode .sidebar-header {
-  border-bottom-color: #28282a;
-}
-
 .profile-section {
   display: flex;
   flex-direction: column;
@@ -108,7 +109,7 @@ body.dark-mode .sidebar-header {
 .profile-name {
   font-size: 1.1rem;
   color: var(--text-primary, #111827);
-  transition: color 0.25s linear;
+  transition: color 0.3s ease;
 }
 
 body.dark-mode .profile-name {
@@ -129,8 +130,8 @@ body.dark-mode .profile-name {
   font-weight: 500;
   border-radius: 8px;
   background-color: transparent; 
-  /* [핵심] 사각형 잔상 제거를 위해 곡선을 linear로 통일 */
-  transition: background-color 0.25s linear, color 0.25s linear; 
+  /* [핵심] 사각형 잔상의 주범인 background-color transition을 원천 박탈 */
+  transition: color 0.3s ease; 
 }
 
 body.dark-mode .menu-item {
@@ -140,6 +141,7 @@ body.dark-mode .menu-item {
 .menu-item:hover {
   background-color: #f0f7ff;
   color: #5da2ff;
+  /* 마우스가 올라갈 때만 배경 전환 효과 부여 */
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -160,14 +162,17 @@ body.dark-mode .menu-item.active:hover {
   color: #ffffff !important;
 }
 
-/* 백버튼 UI */
+/* ---------------------------------------------------
+   개선된 프로젝트 목록 돌아가기 백버튼 UI
+--------------------------------------------------- */
 .btn-sidebar-back {
   display: flex;
   align-items: center;
   width: calc(100% - 16px);
   margin: 0 8px 20px 8px;
   padding: 12px 16px;
-  background-color: #f7f7f9; 
+  /* 배경색 잔상을 막기 위해 기본 상태를 투명으로 처리 */
+  background-color: transparent; 
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   color: #4b5563;
@@ -175,8 +180,8 @@ body.dark-mode .menu-item.active:hover {
   font-weight: 700;
   cursor: pointer;
   box-sizing: border-box;
-  /* [핵심] 렌더링 시차 완벽 동기화 (linear) */
-  transition: background-color 0.25s linear, border-color 0.25s linear, color 0.25s linear; 
+  /* [핵심] 테마 전환 시 어색하게 변하는 배경색 애니메이션 삭제 */
+  transition: border-color 0.3s ease, color 0.3s ease; 
 }
 
 .btn-sidebar-back .arrow-icon {
@@ -189,6 +194,7 @@ body.dark-mode .menu-item.active:hover {
   background-color: #e6f0ff; 
   border-color: #5da2ff;
   color: #5da2ff;
+  /* 호버 시에만 백그라운드 전환 발생 */
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; 
 }
 
@@ -197,7 +203,6 @@ body.dark-mode .menu-item.active:hover {
 }
 
 body.dark-mode .btn-sidebar-back {
-  background-color: #202022; 
   border-color: #28282a;
   color: #9ca3af;
 }
@@ -215,7 +220,7 @@ body.dark-mode .btn-sidebar-back:hover {
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: color 0.25s linear;
+  transition: color 0.3s ease;
 }
 
 .mypage-content {
@@ -223,7 +228,9 @@ body.dark-mode .btn-sidebar-back:hover {
   overflow-y: auto;
 }
 
-/* 로그아웃 버튼 */
+/* ---------------------------------------------------
+   로그아웃 버튼 컨테이너 (하단 고정)
+--------------------------------------------------- */
 .sidebar-bottom-container {
   margin-top: auto; 
   width: 100%;
@@ -241,7 +248,8 @@ body.dark-mode .btn-sidebar-back:hover {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.25s linear, color 0.25s linear, border-color 0.25s linear;
+  /* [핵심] 배경 잔상 방지 */
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .logout-btn:hover {

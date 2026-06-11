@@ -53,21 +53,21 @@ const MyPage = () => {
     <div className="mypage-container">
       <aside className="mypage-sidebar">
         
-        {/* [신규] 최상단 좌측 로고, 우측 토글 스위치 배치 */}
-        <div className="sidebar-top-bar">
-          <button className="sidebar-logo-btn" onClick={() => navigate("/mypage/projects")}>
-            <img src="/agami-home.svg" alt="Agami Home" />
-          </button>
-          <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-            <div className="switch-content">
-              <span className="label-light">LIGHT</span>
-              <div className="switch-handle"></div>
-              <span className="label-dark">DARK</span>
+        {/* 헤더 그룹 내부에 로고, 토글, 프로필을 한데 묶어 자연스럽게 정렬 */}
+        <div className="sidebar-header">
+          <div className="sidebar-top-bar">
+            <button className="sidebar-logo-btn" onClick={() => navigate("/mypage/projects")}>
+              <img src="/agami-home.svg" alt="Agami Home" />
+            </button>
+            <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
+              <div className="switch-content">
+                <span className="label-light">LIGHT</span>
+                <div className="switch-handle"></div>
+                <span className="label-dark">DARK</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="sidebar-header">
           <div className="profile-section">
             <img 
               src={user?.profile || '/agami-profile.png'} 
@@ -110,7 +110,7 @@ const MyPage = () => {
           )}
         </nav>
 
-        {/* 바닥 로그아웃 버튼 래퍼 */}
+        {/* 바닥 로그아웃 버튼 */}
         <div className="sidebar-bottom-container">
           <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
         </div>
