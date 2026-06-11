@@ -50,25 +50,26 @@ const MyPage = () => {
   const isProjectContext = projectId && location.pathname !== "/mypage/projects";
 
   return (
-    <div className="mypage-container">
-      <aside className="mypage-sidebar">
-        
-        {/* 최상단 좌측 로고, 우측 토글 스위치 */}
-        <div className="sidebar-top-bar">
-          <NavLink to="/mypage/projects" className="sidebar-logo-btn">
-            <img src="/agami-home.svg" alt="Agami Home" />
-          </NavLink>
-          <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-            <div className="switch-content">
-              <span className="label-light">LIGHT</span>
-              <div className="switch-handle"></div>
-              <span className="label-dark">DARK</span>
+    <div className="page-wrapper mypage-wrapper">
+      <div className="layout-container mypage-layout">
+        <aside className="sidebar mypage-sidebar">
+          
+          {/* 상단: 로고(왼쪽)와 테마 토글(오른쪽) */}
+          <div className="sidebar-top-controls">
+            <NavLink to="/mypage/projects" className="brand-logo">
+              <img src="/agami-home.svg" alt="Agami Home" />
+            </NavLink>
+            <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
+              <div className="switch-content">
+                <span className="label-light">LIGHT</span>
+                <div className="switch-handle"></div>
+                <span className="label-dark">DARK</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="sidebar-header">
-          <div className="profile-section">
+          {/* 프로필 영역 */}
+          <div className="sidebar-profile">
             <img 
               src={user?.profile || '/agami-profile.png'} 
               alt="profile" 
@@ -77,48 +78,44 @@ const MyPage = () => {
             />
             <span className="profile-name"><strong>{user?.nickname}</strong> 님</span>
           </div>
-        </div>
 
-        <nav className="sidebar-menu">
-          {isProjectContext ? (
-            <>
-              <button 
-                type="button"
-                className="btn-sidebar-back"
-                onClick={() => navigate("/mypage/projects")}
-              >
-                <span className="arrow-icon">←</span> 프로젝트 목록으로
-              </button>
-              
-              <div className="menu-category-title">프로젝트 관리</div>
-              <NavLink to={`/mypage/projects/${projectId}/info`} className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}>
-                기본 정보
-              </NavLink>
-              <NavLink to={`/mypage/projects/${projectId}/dashboard`} className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}>
-                트래픽 대시보드
-              </NavLink>
-            </>
-          ) : (
-            <>
-              <NavLink to="/mypage/projects" className={({ isActive }) => isActive ? "menu-item active" : "menu-item"} end>
-                프로젝트 관리
-              </NavLink>
-              <NavLink to="/mypage/settings" className={({ isActive }) => isActive ? "menu-item active" : "menu-item"}>
-                계정 설정
-              </NavLink>
-            </>
-          )}
-        </nav>
+          {/* 메뉴 리스트 (Test.jsx 구조 완벽 복제) */}
+          <ul className="sidebar-menu-list">
+            {isProjectContext ? (
+              <>
+                <li className="back-btn-li" onClick={() => navigate("/mypage/projects")}>
+                  <span className="arrow-icon">←</span> 프로젝트 목록으로
+                </li>
+                <div className="menu-divider">프로젝트 관리</div>
+                <NavLink to={`/mypage/projects/${projectId}/info`} className={({ isActive }) => isActive ? "active" : ""}>
+                  <li>기본 정보</li>
+                </NavLink>
+                <NavLink to={`/mypage/projects/${projectId}/dashboard`} className={({ isActive }) => isActive ? "active" : ""}>
+                  <li>트래픽 대시보드</li>
+                </NavLink>
+              </>
+            ) : (
+              <>
+                <NavLink to="/mypage/projects" className={({ isActive }) => isActive ? "active" : ""} end>
+                  <li>프로젝트 관리</li>
+                </NavLink>
+                <NavLink to="/mypage/settings" className={({ isActive }) => isActive ? "active" : ""}>
+                  <li>계정 설정</li>
+                </NavLink>
+              </>
+            )}
+          </ul>
 
-        {/* 바닥 로그아웃 버튼 */}
-        <div className="sidebar-bottom-container">
-          <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
-        </div>
-      </aside>
+          {/* 하단 로그아웃 */}
+          <div className="sidebar-footer">
+            <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+          </div>
+        </aside>
 
-      <main className="mypage-content">
-        <Outlet />
-      </main>
+        <main className="main-content mypage-main">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };
