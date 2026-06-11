@@ -62,7 +62,17 @@ const MyPage = () => {
             />
             <span className="profile-name"><strong>{user?.nickname}</strong> 님</span>
           </div>
-          <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+          
+          {/* 상단 좌측으로 위치를 옮긴 테마 스위치 */}
+          <div className="sidebar-theme-container">
+            <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
+              <div className="switch-content">
+                <span className="label-light">LIGHT</span>
+                <div className="switch-handle"></div>
+                <span className="label-dark">DARK</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <nav className="sidebar-menu">
@@ -96,15 +106,9 @@ const MyPage = () => {
           )}
         </nav>
 
-        {/* 하단 고정용 테마 스위치 래퍼 */}
-        <div className="sidebar-theme-container">
-          <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-            <div className="switch-content">
-              <span className="label-light">LIGHT</span>
-              <div className="switch-handle"></div>
-              <span className="label-dark">DARK</span>
-            </div>
-          </div>
+        {/* 바닥으로 고정시킬 로그아웃 버튼 래퍼 */}
+        <div className="sidebar-bottom-container">
+          <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
         </div>
       </aside>
 
