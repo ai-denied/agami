@@ -53,21 +53,21 @@ const MyPage = () => {
     <div className="mypage-container">
       <aside className="mypage-sidebar">
         
-        {/* 헤더 그룹 내부에 로고, 토글, 프로필을 한데 묶어 자연스럽게 정렬 */}
-        <div className="sidebar-header">
-          <div className="sidebar-top-bar">
-            <button className="sidebar-logo-btn" onClick={() => navigate("/mypage/projects")}>
-              <img src="/agami-home.svg" alt="Agami Home" />
-            </button>
-            <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-              <div className="switch-content">
-                <span className="label-light">LIGHT</span>
-                <div className="switch-handle"></div>
-                <span className="label-dark">DARK</span>
-              </div>
+        {/* [요청 반영] 최상단 좌측 로고, 우측 토글 스위치 */}
+        <div className="sidebar-top-bar">
+          <NavLink to="/mypage/projects" className="sidebar-logo-btn">
+            <img src="/agami-home.svg" alt="Agami Home" />
+          </NavLink>
+          <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
+            <div className="switch-content">
+              <span className="label-light">LIGHT</span>
+              <div className="switch-handle"></div>
+              <span className="label-dark">DARK</span>
             </div>
           </div>
+        </div>
 
+        <div className="sidebar-header">
           <div className="profile-section">
             <img 
               src={user?.profile || '/agami-profile.png'} 
