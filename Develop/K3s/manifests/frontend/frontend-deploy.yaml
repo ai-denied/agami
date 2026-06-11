@@ -17,7 +17,7 @@ spec:
         zone: frontend
       containers:
       - name: frontend
-        image: agami-captcha.cloud:8443/agami/frontend:2606111012
+        image: agami-captcha.cloud:8443/agami/frontend:2606111023
         imagePullPolicy: Always
         ports:
         - containerPort: 80
