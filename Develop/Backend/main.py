@@ -1,9 +1,12 @@
 import os
 import requests
 import secrets
+import hmac
+import hashlib
 
 from fastapi import FastAPI, Depends, HTTPException, Response, Request
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
 from database import SessionLocal
 import models
 from dotenv import load_dotenv
@@ -39,6 +42,24 @@ app.add_middleware(
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", 60))
+
+# --- 캡차 DB 세션 설정 (방식 A 적용) ---
+CAPTCHA_DB_URL = os.getenv("CAPTCHA_DB_URL")
+if CAPTCHA_DB_URL:
+    captcha_engine = create_engine(CAPTCHA_DB_URL)
+    CaptchaSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=captcha_engine)
+else:
+    CaptchaSessionLocal = None
+
+def get_captcha_db():
+    if not CaptchaSessionLocal:
+        raise HTTPException(status_code=500, detail="캡차 DB(CAPTCHA_DB_URL) 환경 변수가 설정되지 않았습니다.")
+    db = CaptchaSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+# -------------------------------------
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -201,10 +222,11 @@ async def logout(response: Response):
     response.delete_cookie(key="accessToken", path="/", httponly=True, secure=True, samesite="lax")
     return {"status": "success"}
 
-
-# --- 기존 인증 API 아래쪽에 프로젝트 API 추가 ---
+# -----------------------------------------------------------------------------
+# 프로젝트 API (캡차 동기화 로직 포함)
+# -----------------------------------------------------------------------------
 @app.post("/api/projects")
-async def create_project(data: ProjectCreate, request: Request, db: Session = Depends(get_db)):
+async def create_project(data: ProjectCreate, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -217,6 +239,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
+    # 1. Agami DB에 모델 추가 준비
     new_project = models.Project(
         user_id=user_id,
         name=data.name,
@@ -225,8 +248,61 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         secret_key=generated_secret_key
     )
     db.add(new_project)
-    db.commit()
-    db.refresh(new_project)
+
+    # 2. 캡차 DB 동기화를 위한 해시 계산
+    pepper = os.getenv("API_KEY_HMAC_PEPPER", "")
+    if not pepper:
+        raise HTTPException(status_code=500, detail="API_KEY_HMAC_PEPPER 환경 변수가 설정되지 않았습니다.")
+        
+    secret_hash = hmac.new(
+        pepper.encode("utf-8"), 
+        generated_secret_key.encode("utf-8"), 
+        hashlib.sha256
+    ).hexdigest()
+
+    # 명세서 기준 고정 테넌트
+    tenant_id = "11111111-1111-1111-1111-111111111111" 
+
+    try:
+        # [캡차 DB] api_keys 테이블 INSERT [cite: 19]
+        captcha_db.execute(
+            text("""
+                INSERT INTO api_keys (tenant_id, name, client_key, secret_hash, owner_user_id)
+                VALUES (:tenant_id, :name, :client_key, :secret_hash, :owner_user_id)
+            """),
+            {
+                "tenant_id": tenant_id,
+                "name": data.name,
+                "client_key": generated_site_key,
+                "secret_hash": secret_hash,
+                "owner_user_id": str(user_id)
+            }
+        )
+
+        # [캡차 DB] allowed_origins 테이블 INSERT (도메인 분리) [cite: 31, 32]
+        domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
+        for domain in domain_list:
+            captcha_db.execute(
+                text("""
+                    INSERT INTO allowed_origins (tenant_id, origin, client_key)
+                    VALUES (:tenant_id, :origin, :client_key)
+                """),
+                {
+                    "tenant_id": tenant_id,
+                    "origin": domain,
+                    "client_key": generated_site_key
+                }
+            )
+
+        # 모두 정상 처리되면 양쪽 DB Commit
+        db.commit()
+        captcha_db.commit()
+        db.refresh(new_project)
+
+    except Exception as e:
+        db.rollback()
+        captcha_db.rollback()
+        raise HTTPException(status_code=500, detail=f"프로젝트 생성 동기화 중 오류가 발생했습니다: {str(e)}")
 
     return {"status": "success"}
 
@@ -257,7 +333,7 @@ async def get_projects(request: Request, db: Session = Depends(get_db)):
     }
 
 @app.delete("/api/projects/{project_id}")
-async def delete_project(project_id: int, request: Request, db: Session = Depends(get_db)):
+async def delete_project(project_id: int, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -267,18 +343,30 @@ async def delete_project(project_id: int, request: Request, db: Session = Depend
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 본인의 프로젝트인지 확인 후 가져오기
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    # DB에서 삭제
-    db.delete(project)
-    db.commit()
+    try:
+        # 1. Agami DB에서 삭제
+        db.delete(project)
+        
+        # 2. 캡차 DB: revoked_at 활성화로 소프트 삭제 [cite: 39]
+        captcha_db.execute(
+            text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :client_key"),
+            {"client_key": project.site_key}
+        )
+
+        db.commit()
+        captcha_db.commit()
+
+    except Exception as e:
+        db.rollback()
+        captcha_db.rollback()
+        raise HTTPException(status_code=500, detail=f"프로젝트 삭제 동기화 실패: {str(e)}")
     
     return {"status": "success"}
 
-# --- 프로젝트 API 영역에 추가 ---
 @app.get("/api/projects/{project_id}")
 async def get_project(project_id: int, request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
@@ -291,16 +379,25 @@ async def get_project(project_id: int, request: Request, db: Session = Depends(g
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
     if not project: raise HTTPException(status_code=404, detail="Project not found")
 
+    # 팀원 명세서에 맞춘 정확한 임베드 스니펫 형식 제공 [cite: 43]
+    embed_url = f"https://agami-captcha.cloud/widget/embed?kind=default&difficulty=normal&client_key={project.site_key}"
+    embed_snippet = f'<iframe src="{embed_url}" width="100%" height="500px" frameborder="0"></iframe>'
+
     return {
         "status": "success",
         "project": {
-            "id": project.id, "name": project.name, "domains": project.domains,
-            "site_key": project.site_key, "secret_key": project.secret_key, "monthly_usage": project.monthly_usage
+            "id": project.id, 
+            "name": project.name, 
+            "domains": project.domains,
+            "site_key": project.site_key, 
+            "secret_key": project.secret_key, 
+            "monthly_usage": project.monthly_usage,
+            "embed_snippet": embed_snippet
         }
     }
 
 @app.patch("/api/projects/{project_id}")
-async def update_project(project_id: int, data: ProjectUpdate, request: Request, db: Session = Depends(get_db)):
+async def update_project(project_id: int, data: ProjectUpdate, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
@@ -312,14 +409,51 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     if not project: raise HTTPException(status_code=404, detail="Project not found")
 
     project.name = data.name
-    project.domains = data.domains # 도메인 업데이트 추가
-    db.commit()
+    project.domains = data.domains
+
+    try:
+        # [캡차 DB] api_keys 이름 업데이트
+        captcha_db.execute(
+            text("UPDATE api_keys SET name = :name WHERE client_key = :client_key"),
+            {"name": data.name, "client_key": project.site_key}
+        )
+
+        # [캡차 DB] 도메인 갱신 (기존 삭제 후 재생성)
+        captcha_db.execute(
+            text("DELETE FROM allowed_origins WHERE client_key = :client_key"),
+            {"client_key": project.site_key}
+        )
+
+        tenant_id = "11111111-1111-1111-1111-111111111111"
+        domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
+        for domain in domain_list:
+            captcha_db.execute(
+                text("""
+                    INSERT INTO allowed_origins (tenant_id, origin, client_key)
+                    VALUES (:tenant_id, :origin, :client_key)
+                """),
+                {
+                    "tenant_id": tenant_id,
+                    "origin": domain,
+                    "client_key": project.site_key
+                }
+            )
+
+        db.commit()
+        captcha_db.commit()
+
+    except Exception as e:
+        db.rollback()
+        captcha_db.rollback()
+        raise HTTPException(status_code=500, detail=f"프로젝트 업데이트 동기화 실패: {str(e)}")
     
     return {"status": "success"}
 
+# -----------------------------------------------------------------------------
+# 결제 API
+# -----------------------------------------------------------------------------
 @app.post("/api/payment/ready")
 async def payment_ready(request: Request, db: Session = Depends(get_db)):
-    # 1. 유저 인증
     token = request.cookies.get("accessToken")
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
@@ -327,7 +461,6 @@ async def payment_ready(request: Request, db: Session = Depends(get_db)):
         user_id = str(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 2. 카카오페이 준비 API 호출 (신규 API 주소)
     url = "https://open-api.kakaopay.com/online/v1/payment/ready"
     headers = {
         "Authorization": f"SECRET_KEY {os.getenv('KAKAO_PAY_SECRET_KEY')}",
@@ -335,7 +468,7 @@ async def payment_ready(request: Request, db: Session = Depends(get_db)):
     }
     
     data = {
-        "cid": "TC0ONETIME", # 테스트용 가맹점 코드
+        "cid": "TC0ONETIME", 
         "partner_order_id": f"ORDER_{user_id}",
         "partner_user_id": user_id,
         "item_name": "Agami Pro 요금제",
@@ -361,7 +494,6 @@ async def payment_ready(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/api/payment/approve")
 async def payment_approve(data: PaymentApprove, request: Request, db: Session = Depends(get_db)):
-    # 1. 유저 인증
     token = request.cookies.get("accessToken")
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
@@ -369,7 +501,6 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
         user_id = str(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 2. 카카오페이 승인 API 호출
     url = "https://open-api.kakaopay.com/online/v1/payment/approve"
     headers = {
         "Authorization": f"SECRET_KEY {os.getenv('KAKAO_PAY_SECRET_KEY')}",
@@ -389,10 +520,44 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     if response.status_code != 200:
         raise HTTPException(status_code=400, detail=f"결제 승인 실패: {response.json()}")
 
-    # 3. 결제 성공 시 유저 플랜 업데이트
     user = db.query(models.User).filter(models.User.id == int(user_id)).first()
     if user:
         user.plan = "Pro"
         db.commit()
 
     return {"status": "success", "message": "결제가 완료되었습니다."}
+
+# -----------------------------------------------------------------------------
+# 모델 정의 
+# -----------------------------------------------------------------------------
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from database import Base
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    kakao_id = Column(String, unique=True, index=True, nullable=True) 
+    google_id = Column(String, unique=True, index=True, nullable=True)
+    nickname = Column(String, nullable=True)
+    profile_image = Column(String, nullable=True)
+    
+    plan = Column(String, default="Basic") 
+    
+    projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
+
+class Project(Base):
+    __tablename__ = "projects"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String, nullable=False)
+    domains = Column(String, nullable=False)
+    site_key = Column(String, unique=True, index=True, nullable=False)
+    secret_key = Column(String, unique=True, nullable=False)
+    monthly_usage = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    owner = relationship("User", back_populates="projects")

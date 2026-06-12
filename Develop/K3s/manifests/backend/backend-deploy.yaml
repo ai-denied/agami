@@ -57,6 +57,16 @@ spec:
           value: "HS256"
         - name: JWT_EXPIRE_MINUTES
           value: "60"
+        - name: CAPTCHA_DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: captcha-app-secret
+              key: CAPTCHA_DB_URL_SYNC
+        - name: API_KEY_HMAC_PEPPER
+          valueFrom:
+            secretKeyRef:
+              name: captcha-app-secret
+              key: API_KEY_HMAC_PEPPER
         volumeMounts:
         - name: tls-certs
           mountPath: /etc/letsencrypt/live/agami-captcha.cloud
