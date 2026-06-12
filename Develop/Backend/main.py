@@ -239,6 +239,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
+    # 1. Agami DB에 모델 추가 준비
     new_project = models.Project(
         user_id=user_id,
         name=data.name,
@@ -248,6 +249,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     )
     db.add(new_project)
 
+    # 2. 캡차 DB 동기화를 위한 해시 계산
     pepper = os.getenv("API_KEY_HMAC_PEPPER", "")
     if not pepper:
         raise HTTPException(status_code=500, detail="API_KEY_HMAC_PEPPER 미설정")
@@ -333,7 +335,7 @@ async def delete_project(project_id: int, request: Request, db: Session = Depend
         # 1. Agami DB에서 삭제
         db.delete(project)
         
-        # 2. 캡차 DB: revoked_at 활성화로 소프트 삭제 [cite: 39]
+        # 2. 캡차 DB: revoked_at 활성화로 소프트 삭제
         captcha_db.execute(
             text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :client_key"),
             {"client_key": project.site_key}
@@ -361,7 +363,7 @@ async def get_project(project_id: int, request: Request, db: Session = Depends(g
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
     if not project: raise HTTPException(status_code=404, detail="Project not found")
 
-    # 팀원 명세서에 맞춘 정확한 임베드 스니펫 형식 제공 [cite: 43]
+    # 팀원 명세서에 맞춘 정확한 임베드 스니펫 형식 제공
     embed_url = f"https://agami-captcha.cloud/widget/embed?kind=default&difficulty=normal&client_key={project.site_key}"
     embed_snippet = f'<iframe src="{embed_url}" width="100%" height="500px" frameborder="0"></iframe>'
 
