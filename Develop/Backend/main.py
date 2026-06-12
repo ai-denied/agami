@@ -239,7 +239,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
-    # 1. Agami DB에 모델 추가 준비
     new_project = models.Project(
         user_id=user_id,
         name=data.name,
@@ -249,52 +248,33 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     )
     db.add(new_project)
 
-    # 2. 캡차 DB 동기화를 위한 해시 계산
     pepper = os.getenv("API_KEY_HMAC_PEPPER", "")
     if not pepper:
-        raise HTTPException(status_code=500, detail="API_KEY_HMAC_PEPPER 환경 변수가 설정되지 않았습니다.")
+        raise HTTPException(status_code=500, detail="API_KEY_HMAC_PEPPER 미설정")
         
-    secret_hash = hmac.new(
-        pepper.encode("utf-8"), 
-        generated_secret_key.encode("utf-8"), 
-        hashlib.sha256
-    ).hexdigest()
-
-    # 명세서 기준 고정 테넌트
-    tenant_id = "11111111-1111-1111-1111-111111111111" 
+    secret_hash = hmac.new(pepper.encode("utf-8"), generated_secret_key.encode("utf-8"), hashlib.sha256).hexdigest()
+    tenant_id = "11111111-1111-1111-1111-111111111111"
 
     try:
-        # [캡차 DB] api_keys 테이블 INSERT [cite: 19]
+        # [캡차 DB] api_keys 테이블 INSERT - created_at 추가
         captcha_db.execute(
             text("""
-                INSERT INTO api_keys (tenant_id, name, client_key, secret_hash, owner_user_id)
-                VALUES (:tenant_id, :name, :client_key, :secret_hash, :owner_user_id)
+                INSERT INTO api_keys (tenant_id, name, client_key, secret_hash, owner_user_id, created_at)
+                VALUES (:t, :n, :ck, :sh, :uid, NOW())
             """),
-            {
-                "tenant_id": tenant_id,
-                "name": data.name,
-                "client_key": generated_site_key,
-                "secret_hash": secret_hash,
-                "owner_user_id": str(user_id)
-            }
+            {"t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": str(user_id)}
         )
 
-        # [캡차 DB] allowed_origins 테이블 INSERT (도메인 분리) [cite: 31, 32]
         domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
         for domain in domain_list:
             captcha_db.execute(
                 text("""
-                    INSERT INTO allowed_origins (tenant_id, origin, client_key)
-                    VALUES (:tenant_id, :origin, :client_key)
+                    INSERT INTO allowed_origins (tenant_id, origin, client_key, created_at)
+                    VALUES (:t, :o, :ck, NOW())
                 """),
-                {
-                    "tenant_id": tenant_id,
-                    "origin": domain,
-                    "client_key": generated_site_key
-                }
+                {"t": tenant_id, "o": domain, "ck": generated_site_key}
             )
 
-        # 모두 정상 처리되면 양쪽 DB Commit
         db.commit()
         captcha_db.commit()
         db.refresh(new_project)
@@ -302,7 +282,9 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     except Exception as e:
         db.rollback()
         captcha_db.rollback()
-        raise HTTPException(status_code=500, detail=f"프로젝트 생성 동기화 중 오류가 발생했습니다: {str(e)}")
+        # 원인 분석을 위해 에러 내용을 로그에 상세히 찍음
+        print(f"!!! DB INSERT ERROR !!!: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"DB 작업 실패: {str(e)}")
 
     return {"status": "success"}
 
