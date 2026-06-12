@@ -3,6 +3,7 @@ import requests
 import secrets
 import hmac
 import hashlib
+import uuid  # UUID 생성용 라이브러리 추가
 
 from fastapi import FastAPI, Depends, HTTPException, Response, Request
 from sqlalchemy import create_engine, text
@@ -43,7 +44,7 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", 60))
 
-# --- 캡차 DB 세션 설정 (방식 A 적용) ---
+# --- 캡차 DB 세션 설정 ---
 CAPTCHA_DB_URL = os.getenv("CAPTCHA_DB_URL")
 if CAPTCHA_DB_URL:
     captcha_engine = create_engine(CAPTCHA_DB_URL)
@@ -74,12 +75,11 @@ def get_db():
     finally:
         db.close()
 
-# --- 클라이언트 요청 모델 ---
 class ProfileUpdate(BaseModel):
     nickname: str
 
 # -----------------------------------------------------------------------------
-# 카카오 로그인 콜백 API
+# 인증 API
 # -----------------------------------------------------------------------------
 @app.get("/api/auth/kakao/callback")
 async def kakao_callback(code: str, response: Response, db: Session = Depends(get_db)):
@@ -101,7 +101,6 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
     kakao_id = str(user_res.get("id"))
     properties = user_res.get("properties", {})
     
-    # 미동의 시 기본 이미지 할당
     profile_img = properties.get("profile_image") or "/agami-profile.png"
     
     user = db.query(models.User).filter(models.User.kakao_id == kakao_id).first()
@@ -122,9 +121,6 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
         "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan},
     }
 
-# -----------------------------------------------------------------------------
-# 구글 로그인 콜백 API
-# -----------------------------------------------------------------------------
 @app.get("/api/auth/google/callback")
 async def google_callback(code: str, response: Response, db: Session = Depends(get_db)):
     token_url = "https://oauth2.googleapis.com/token"
@@ -147,7 +143,6 @@ async def google_callback(code: str, response: Response, db: Session = Depends(g
     google_id = str(user_res.get("id"))
     name = user_res.get("name", "구글 유저")
     
-    # 미동의 시 기본 이미지 할당
     profile_img = user_res.get("picture") or "/agami-profile.png"
     
     user = db.query(models.User).filter(models.User.google_id == google_id).first()
@@ -168,9 +163,6 @@ async def google_callback(code: str, response: Response, db: Session = Depends(g
         "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan},
     }
 
-# -----------------------------------------------------------------------------
-# 공통 인증 및 프로필 수정/로그아웃 API
-# -----------------------------------------------------------------------------
 @app.get("/api/auth/me")
 async def get_me(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
@@ -187,15 +179,10 @@ async def get_me(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @app.patch("/api/auth/me")
-async def update_profile(
-    data: ProfileUpdate, 
-    request: Request, 
-    db: Session = Depends(get_db)
-):
+async def update_profile(data: ProfileUpdate, request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
     if not token:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
@@ -208,14 +195,9 @@ async def update_profile(
 
     if data.nickname:
         user.nickname = data.nickname
-
     db.commit()
     db.refresh(user)
-
-    return {
-        "status": "success",
-        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}
-    }
+    return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
     
 @app.post("/api/auth/logout")
 async def logout(response: Response):
@@ -223,7 +205,7 @@ async def logout(response: Response):
     return {"status": "success"}
 
 # -----------------------------------------------------------------------------
-# 프로젝트 API (캡차 동기화 로직 포함)
+# 프로젝트 API (캡차 동기화 로직 전면 수정 - 에러 해결)
 # -----------------------------------------------------------------------------
 @app.post("/api/projects")
 async def create_project(data: ProjectCreate, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
@@ -239,7 +221,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
-    # 1. Agami DB에 모델 추가 준비
     new_project = models.Project(
         user_id=user_id,
         name=data.name,
@@ -249,7 +230,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     )
     db.add(new_project)
 
-    # 2. 캡차 DB 동기화를 위한 해시 계산
     pepper = os.getenv("API_KEY_HMAC_PEPPER", "")
     if not pepper:
         raise HTTPException(status_code=500, detail="API_KEY_HMAC_PEPPER 미설정")
@@ -258,24 +238,34 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     tenant_id = "11111111-1111-1111-1111-111111111111"
 
     try:
-        # [캡차 DB] api_keys 테이블 INSERT - created_at 추가
+        # [캡차 DB] api_keys 테이블 INSERT (UUID 명시적 생성 및 owner_user_id 정수 캐스팅)
+        api_key_id = str(uuid.uuid4())
         captcha_db.execute(
             text("""
-                INSERT INTO api_keys (tenant_id, name, client_key, secret_hash, owner_user_id, created_at)
-                VALUES (:t, :n, :ck, :sh, :uid, NOW())
+                INSERT INTO api_keys (id, tenant_id, name, client_key, secret_hash, owner_user_id, created_at)
+                VALUES (:id, :t, :n, :ck, :sh, :uid, NOW())
             """),
-            {"t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": str(user_id)}
+            {"id": api_key_id, "t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": int(user_id)}
         )
 
+        # [캡차 DB] allowed_origins 테이블 INSERT (client_key 제거, 중복 검사 로직 추가)
         domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
         for domain in domain_list:
-            captcha_db.execute(
-                text("""
-                    INSERT INTO allowed_origins (tenant_id, origin, client_key, created_at)
-                    VALUES (:t, :o, :ck, NOW())
-                """),
-                {"t": tenant_id, "o": domain, "ck": generated_site_key}
-            )
+            # 해당 도메인이 이미 테넌트 내에 존재하는지 확인
+            exists = captcha_db.execute(
+                text("SELECT id FROM allowed_origins WHERE origin = :o AND tenant_id = :t"),
+                {"o": domain, "t": tenant_id}
+            ).scalar()
+            
+            if not exists:
+                origin_id = str(uuid.uuid4())
+                captcha_db.execute(
+                    text("""
+                        INSERT INTO allowed_origins (id, tenant_id, origin, created_at)
+                        VALUES (:id, :t, :o, NOW())
+                    """),
+                    {"id": origin_id, "t": tenant_id, "o": domain}
+                )
 
         db.commit()
         captcha_db.commit()
@@ -284,7 +274,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     except Exception as e:
         db.rollback()
         captcha_db.rollback()
-        # 원인 분석을 위해 에러 내용을 로그에 상세히 찍음
         print(f"!!! DB INSERT ERROR !!!: {str(e)}") 
         raise HTTPException(status_code=500, detail=f"DB 작업 실패: {str(e)}")
 
@@ -363,7 +352,6 @@ async def get_project(project_id: int, request: Request, db: Session = Depends(g
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
     if not project: raise HTTPException(status_code=404, detail="Project not found")
 
-    # 팀원 명세서에 맞춘 정확한 임베드 스니펫 형식 제공
     embed_url = f"https://agami-captcha.cloud/widget/embed?kind=default&difficulty=normal&client_key={project.site_key}"
     embed_snippet = f'<iframe src="{embed_url}" width="100%" height="500px" frameborder="0"></iframe>'
 
@@ -402,26 +390,24 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
             {"name": data.name, "client_key": project.site_key}
         )
 
-        # [캡차 DB] 도메인 갱신 (기존 삭제 후 재생성)
-        captcha_db.execute(
-            text("DELETE FROM allowed_origins WHERE client_key = :client_key"),
-            {"client_key": project.site_key}
-        )
-
+        # [캡차 DB] 도메인 갱신 (allowed_origins에 client_key가 없으므로 삭제는 안하고 중복 확인 후 추가만 진행)
         tenant_id = "11111111-1111-1111-1111-111111111111"
         domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
         for domain in domain_list:
-            captcha_db.execute(
-                text("""
-                    INSERT INTO allowed_origins (tenant_id, origin, client_key)
-                    VALUES (:tenant_id, :origin, :client_key)
-                """),
-                {
-                    "tenant_id": tenant_id,
-                    "origin": domain,
-                    "client_key": project.site_key
-                }
-            )
+            exists = captcha_db.execute(
+                text("SELECT id FROM allowed_origins WHERE origin = :o AND tenant_id = :t"),
+                {"o": domain, "t": tenant_id}
+            ).scalar()
+            
+            if not exists:
+                origin_id = str(uuid.uuid4())
+                captcha_db.execute(
+                    text("""
+                        INSERT INTO allowed_origins (id, tenant_id, origin, created_at)
+                        VALUES (:id, :t, :o, NOW())
+                    """),
+                    {"id": origin_id, "t": tenant_id, "o": domain}
+                )
 
         db.commit()
         captcha_db.commit()
