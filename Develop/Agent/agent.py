@@ -2,6 +2,7 @@ import os
 import time
 import json
 import smtplib
+import glob
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import psycopg2
