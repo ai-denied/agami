@@ -131,12 +131,12 @@ def send_alert_email(ip, fail_count, analysis_content):
         return
 
     msg = MIMEMultipart()
-    msg['Subject'] = f"🚨 [Agami 보안경보] 비정상 캡챠 트래픽 감지 (IP: {ip})"
+    msg['Subject'] = f"[agami 보안경보] 비정상 캡챠 트래픽 감지 (IP: {ip})"
     msg['From'] = SMTP_EMAIL
     msg['To'] = TEAM_RECEIVER_EMAIL
     
     body = f"""
-    <h2>Agami Captcha 보안 위협 알림</h2>
+    <h2>agami Captcha 보안 위협 알림</h2>
     <p><b>탐지된 IP:</b> {ip}</p>
     <p><b>단기 실패 횟수:</b> {fail_count}회</p>
     <hr>
@@ -158,7 +158,7 @@ def send_alert_email(ip, fail_count, analysis_content):
 
 if __name__ == "__main__":
     print("========================================")
-    print("🛡️ Agami Security Agent 가동 시작")
+    print("🛡️ agami Security Agent 가동 시작")
     print(f"DB 타겟: {DB_HOST}:{DB_PORT} / {DB_NAME}")
     print("========================================")
     
