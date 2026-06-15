@@ -30,11 +30,12 @@ const PublicRoute = ({ children }) => {
 };
 
 // 네비바 렌더링 제어 컴포넌트
+// 네비바 렌더링 제어 컴포넌트
 const Layout = ({ children }) => {
   const location = useLocation();
-  const { user } = useAuth();
   
-  const isHideNavbar = location.pathname.startsWith('/auth/') || user;
+  // user 조건 제거: 콜백 등 특정 인증 라우트가 아닌 이상 네비바를 항상 출력합니다.
+  const isHideNavbar = location.pathname.startsWith('/auth/');
   
   return (
     <>
