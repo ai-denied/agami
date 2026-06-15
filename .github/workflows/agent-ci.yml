@@ -33,4 +33,4 @@ jobs:
           file: ./Develop/Agent/Dockerfile
           push: true
           # 백엔드와 동일한 네임스페이스(agami) 아래에 security-agent 이미지 생성
-          tags: ${{ secrets.HARBOR_URL }}/agami/security-agent:${{ env.IMAGE_TAG }}
+          tags: ${{ secrets.HARBOR_URL }}/agami/agent:${{ env.IMAGE_TAG }}
