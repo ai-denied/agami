@@ -14,8 +14,15 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 1. 방문 기록 확인
     const hasVisited = sessionStorage.getItem("hasVisitedAgami");
     setIsFirstVisit(!hasVisited);
+
+    // 2. 방문 기록이 없다면 현재 방문을 기록하여 다음 렌더링부터 지연을 없앰
+    if (!hasVisited) {
+      sessionStorage.setItem("hasVisitedAgami", "true");
+    }
+
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       setIsDarkMode(true);
@@ -63,7 +70,6 @@ const Navbar = () => {
             <img src="/agami-home.svg" alt="Home" />
           </button>
           
-          {/* 로그인 시 로고 바로 옆에 마이페이지 버튼 표시 */}
           {user && (
             <button className="nav-item" onClick={() => navigate("/mypage/projects")}>
               마이페이지
@@ -85,7 +91,6 @@ const Navbar = () => {
             </div>
           </div>
           
-          {/* 로그인 상태에 따른 버튼 분기 처리 */}
           {user ? (
             <button className="nav-item login-btn" onClick={handleLogout}>로그아웃</button>
           ) : (
