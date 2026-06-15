@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
 import "./Navbar.css";
@@ -12,6 +12,7 @@ const Navbar = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const hasVisited = sessionStorage.getItem("hasVisitedAgami");
@@ -40,20 +41,38 @@ const Navbar = () => {
 
   if (isFirstVisit === null) return null;
 
+  // 홈 화면(/)이면서 첫 방문일 때만 애니메이션 적용
+  const isHome = location.pathname === "/";
+  const shouldAnimate = isFirstVisit && isHome;
+
   return (
-    <motion.nav className="menu-bar" initial={isFirstVisit ? { opacity: 0, y: -100 } : { opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: isFirstVisit ? 4 : 0, duration: 1 }}>
+    <motion.nav 
+      className="menu-bar" 
+      initial={shouldAnimate ? { opacity: 0, y: -100 } : { opacity: 1, y: 0 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ delay: shouldAnimate ? 4 : 0, duration: 1 }}
+    >
       <div className="nav-container">
         <div className="nav-group left">
-          <button className="home-logo-btn" onClick={() => navigate("/")}><img src="/agami-home.svg" alt="Home" /></button>
+          <button className="home-logo-btn" onClick={() => navigate("/")}>
+            <img src="/agami-home.svg" alt="Home" />
+          </button>
           <div className="nav-links">
-            <button className="nav-item" onClick={() => navigate("/platform")}>대쉬보드</button>
+            {/* 로그인 상태일 때만 '마이페이지' 노출 (대쉬보드 제거) */}
+            {user && (
+              <button className="nav-item" onClick={() => navigate("/mypage")}>마이페이지</button>
+            )}
             <button className="nav-item" onClick={() => navigate("/price")}>가격</button>
             <button className="nav-item" onClick={() => navigate("/test")}>테스트</button>
           </div>
         </div>
         <div className="nav-group right">
           <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-            <div className="switch-content"><span className="label-light">LIGHT</span><div className="switch-handle"></div><span className="label-dark">DARK</span></div>
+            <div className="switch-content">
+              <span className="label-light">LIGHT</span>
+              <div className="switch-handle"></div>
+              <span className="label-dark">DARK</span>
+            </div>
           </div>
           {user ? (
             <div className="user-profile-wrapper">
@@ -71,4 +90,5 @@ const Navbar = () => {
     </motion.nav>
   );
 };
+
 export default Navbar;
