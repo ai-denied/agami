@@ -1,49 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import axios from "axios";
 import "./MyPage.css";
 
-const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
-
 const MyPage = () => {
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark" || document.body.classList.contains("dark-mode")) {
-      setIsDarkMode(true);
-      document.body.classList.add("dark-mode");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-    document.body.classList.toggle("dark-mode", newTheme);
-    localStorage.setItem("theme", newTheme ? "dark" : "light");
-  };
-
-  const handleLogout = async () => {
-    try { 
-      await api.post("/api/auth/logout"); 
-    } catch (e) { 
-      console.error(e); 
-    }
-    
-    const currentTheme = localStorage.getItem("theme"); 
-    setUser(null); 
-    localStorage.clear(); 
-    
-    if (currentTheme) {
-      localStorage.setItem("theme", currentTheme);
-    }
-    
-    window.location.href = "/";
-  };
 
   const projectMatch = location.pathname.match(/\/mypage\/projects\/(\d+)/);
   const projectId = projectMatch ? projectMatch[1] : null;
@@ -54,20 +17,6 @@ const MyPage = () => {
       <div className="layout-container mypage-layout">
         <aside className="sidebar mypage-sidebar">
           
-          {/* 상단: 로고(왼쪽)와 테마 토글(오른쪽) */}
-          <div className="sidebar-top-controls">
-            <NavLink to="/mypage/projects" className="brand-logo">
-              <img src="/agami-home.svg" alt="Agami Home" />
-            </NavLink>
-            <div className={`theme-switch ${isDarkMode ? "active" : ""}`} onClick={toggleTheme}>
-              <div className="switch-content">
-                <span className="label-light">LIGHT</span>
-                <div className="switch-handle"></div>
-                <span className="label-dark">DARK</span>
-              </div>
-            </div>
-          </div>
-
           {/* 프로필 영역 */}
           <div className="sidebar-profile">
             <img 
@@ -105,11 +54,6 @@ const MyPage = () => {
               </>
             )}
           </ul>
-
-          {/* 하단 로그아웃 */}
-          <div className="sidebar-footer">
-            <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
-          </div>
         </aside>
 
         <main className="main-content mypage-main">

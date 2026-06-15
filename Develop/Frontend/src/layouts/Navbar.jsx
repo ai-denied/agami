@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import axios from "axios";
 import "./Navbar.css";
 
+const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
+
 const Navbar = () => {
+  const { user, setUser } = useAuth();
   const [isFirstVisit, setIsFirstVisit] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
@@ -25,6 +30,24 @@ const Navbar = () => {
     localStorage.setItem("theme", newTheme ? "dark" : "light");
   };
 
+  const handleLogout = async () => {
+    try { 
+      await api.post("/api/auth/logout"); 
+    } catch (e) { 
+      console.error(e); 
+    }
+    
+    const currentTheme = localStorage.getItem("theme"); 
+    setUser(null); 
+    localStorage.clear(); 
+    
+    if (currentTheme) {
+      localStorage.setItem("theme", currentTheme);
+    }
+    
+    window.location.href = "/";
+  };
+
   if (isFirstVisit === null) return null;
 
   return (
@@ -39,6 +62,13 @@ const Navbar = () => {
           <button className="home-logo-btn" onClick={() => navigate("/")}>
             <img src="/agami-home.svg" alt="Home" />
           </button>
+          
+          {/* 로그인 시 로고 바로 옆에 마이페이지 버튼 표시 */}
+          {user && (
+            <button className="nav-item" onClick={() => navigate("/mypage/projects")}>
+              마이페이지
+            </button>
+          )}
           
           <div className="nav-links">
             <button className="nav-item" onClick={() => navigate("/test")}>테스트</button>
@@ -55,7 +85,12 @@ const Navbar = () => {
             </div>
           </div>
           
-          <button className="nav-item login-btn" onClick={() => navigate("/login")}>로그인</button>
+          {/* 로그인 상태에 따른 버튼 분기 처리 */}
+          {user ? (
+            <button className="nav-item login-btn" onClick={handleLogout}>로그아웃</button>
+          ) : (
+            <button className="nav-item login-btn" onClick={() => navigate("/login")}>로그인</button>
+          )}
         </div>
       </div>
     </motion.nav>
