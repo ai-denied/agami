@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import "./Navbar.css";
@@ -9,17 +9,17 @@ const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentia
 
 const Navbar = () => {
   const { user, setUser } = useAuth();
-  const [isFirstVisit, setIsFirstVisit] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // 1. null 상태를 거치지 않고 마운트 시점에 즉시 동기적으로 방문 여부 확인
+  const [isFirstVisit, setIsFirstVisit] = useState(() => {
+    return !sessionStorage.getItem("hasVisitedAgami");
+  });
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    // 1. 방문 기록 확인
-    const hasVisited = sessionStorage.getItem("hasVisitedAgami");
-    setIsFirstVisit(!hasVisited);
-
-    // 2. 방문 기록이 없다면 현재 방문을 기록하여 다음 렌더링부터 지연을 없앰
-    if (!hasVisited) {
+    if (isFirstVisit) {
       sessionStorage.setItem("hasVisitedAgami", "true");
     }
 
@@ -28,7 +28,7 @@ const Navbar = () => {
       setIsDarkMode(true);
       document.body.classList.add("dark-mode");
     }
-  }, []);
+  }, [isFirstVisit]);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -55,14 +55,16 @@ const Navbar = () => {
     window.location.href = "/";
   };
 
-  if (isFirstVisit === null) return null;
+  // 2. 홈 화면("/")이 아닌 마이페이지 등에서는 4초 딜레이를 강제로 0으로 설정하여 즉시 표시
+  const isHome = location.pathname === "/";
+  const delayTime = (isFirstVisit && isHome) ? 4 : 0;
 
   return (
     <motion.nav 
       className="menu-bar" 
-      initial={isFirstVisit ? { opacity: 0, y: -100 } : { opacity: 1, y: 0 }} 
+      initial={isFirstVisit && isHome ? { opacity: 0, y: -100 } : { opacity: 1, y: 0 }} 
       animate={{ opacity: 1, y: 0 }} 
-      transition={{ delay: isFirstVisit ? 4 : 0, duration: 1 }}
+      transition={{ delay: delayTime, duration: 1 }}
     >
       <div className="nav-container">
         <div className="nav-group left">
