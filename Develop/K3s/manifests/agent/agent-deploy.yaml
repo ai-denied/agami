@@ -56,8 +56,9 @@ spec:
           readOnly: true
           
       volumes:
-      # [중요 3] GPU 노드의 실제 로컬 스토리지를 파드와 연결
+      # [중요 3] GPU 노드의 실제 물리적 경로를 파드와 연결
       - name: behavior-logs-volume
         hostPath:
-          path: /data/behavior_logs # GPU 노드에 행동 로그 JSON 파일이 쌓이는 실제 경로
-          type: DirectoryOrCreate
+          # 확인된 실제 우분투 홈 디렉토리의 절대 경로로 수정
+          path: /home/ubuntu/data/flashlight/raw/mouse_logs/static
+          type: Directory

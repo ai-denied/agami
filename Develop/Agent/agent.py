@@ -65,17 +65,26 @@ def check_security_threats():
 
 def process_threat(ip, fail_count, challenge_id):
     # ==========================================
-    # 2. 로컬 볼륨에서 행동 로그 JSON 읽기
+    # 2. 로컬 볼륨에서 실제 행동 로그 JSON 찾기
     # ==========================================
-    json_path = f"/data/behavior_logs/{challenge_id}.json"
-    behavior_data = "행동 로그 파일을 찾을 수 없습니다."
+    # DB의 challenge_id 앞 8자리 추출 (예: '7wCM5PBb')
+    prefix = challenge_id[:8] if challenge_id else ""
     
-    if os.path.exists(json_path):
+    # 마운트된 디렉토리 내부를 재귀적으로 검색 (human, bot 폴더 모두 포함)
+    search_pattern = f"/data/behavior_logs/**/sess_*_{prefix}_*.json"
+    matched_files = glob.glob(search_pattern, recursive=True)
+    
+    behavior_data = "해당 챌린지의 행동 로그 파일을 찾을 수 없습니다."
+    
+    if matched_files:
+        # 여러 파트로 나뉜 경우(_0, _1) 가장 첫 번째 파일 기준으로 파싱 (데모용)
+        target_file = matched_files[0]
+        print(f"📄 매칭된 로그 파일 발견: {target_file}")
         try:
-            with open(json_path, "r", encoding="utf-8") as f:
-                # 전체 JSON을 넘기면 너무 길 수 있으므로, 핵심 데이터만 자르거나 그대로 사용
+            with open(target_file, "r", encoding="utf-8") as f:
                 raw_data = json.load(f)
-                behavior_data = json.dumps(raw_data, ensure_ascii=False)[:1000] # LLM 컨텍스트 한도 고려 최대 1000자
+                # LLM 컨텍스트 한도를 고려하여 최대 1000자까지만 문자열로 변환
+                behavior_data = json.dumps(raw_data, ensure_ascii=False)[:1000]
         except Exception as e:
             behavior_data = f"JSON 파싱 에러: {e}"
 
