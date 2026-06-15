@@ -32,7 +32,27 @@ body.dark-mode .settings-container {
 /* ---------------------------------------------------
    헤더 및 텍스트
 --------------------------------------------------- */
-.settings-header { margin-bottom: 40px; }
+/* 수정된 헤더 스타일 */
+.settings-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 40px; 
+}
+
+/* 추가된 삭제 버튼 스타일 */
+.btn-delete-project {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+body.dark-mode .btn-delete-project { background: rgba(239, 68, 68, 0.1); }
+.btn-delete-project:hover, body.dark-mode .btn-delete-project:hover { background: #ef4444; color: #fff; }
 
 .settings-title { 
   font-size: 1.5rem; 

@@ -90,7 +90,7 @@ body.dark-mode {
 }
 
 .logout-btn:hover {
-  color: var(--main-blue);
+  color: red;
   background: none;
 }
 

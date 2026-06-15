@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // useNavigate 추가
 import "./Settings.css"; 
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
 const ProjectDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate(); // 추가
   const [project, setProject] = useState(null);
   const [name, setName] = useState("");
   const [domainList, setDomainList] = useState([""]); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // 자체 알림 모달 상태
+  // 알림 및 삭제 확인 모달 상태
   const [alertModal, setAlertModal] = useState({ show: false, message: "" });
+  const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -29,11 +31,26 @@ const ProjectDetail = () => {
     fetchProjectDetails();
   }, [id]);
 
-  const showAlert = (message) => {
-    setAlertModal({ show: true, message });
-  };
+  const showAlert = (message) => setAlertModal({ show: true, message });
   const closeAlert = () => setAlertModal({ show: false, message: "" });
+  const closeConfirm = () => setConfirmModal({ show: false, message: "", onConfirm: null });
 
+  // 삭제 로직
+  const handleDeleteProject = () => {
+    setConfirmModal({
+      show: true,
+      message: "정말로 이 프로젝트를 삭제하시겠습니까?\n관련 데이터가 모두 삭제되며 복구할 수 없습니다.",
+      onConfirm: async () => {
+        closeConfirm();
+        try {
+          await api.delete(`/api/projects/${id}`);
+          navigate("/mypage/projects"); // 삭제 후 목록 페이지로 이동
+        } catch (error) { showAlert("프로젝트 삭제 중 오류가 발생했습니다."); }
+      }
+    });
+  };
+
+  // ... (handleDomainChange, handleUpdate, copyToClipboard 로직은 동일)
   const handleDomainChange = (index, value) => {
     const newList = [...domainList];
     newList[index] = value;
@@ -73,10 +90,15 @@ const ProjectDetail = () => {
     <div className="settings-page-wrapper">
       <div className="settings-container">
         <header className="settings-header">
-          <h1 className="settings-title">프로젝트 기본 정보</h1>
-          <p className="settings-description">프로젝트 이름과 허용 도메인을 수정하고 연동 키를 확인합니다.</p>
+          <div>
+            <h1 className="settings-title">프로젝트 기본 정보</h1>
+            <p className="settings-description">프로젝트 이름과 허용 도메인을 수정하고 연동 키를 확인합니다.</p>
+          </div>
+          {/* 추가된 삭제 버튼 */}
+          <button className="btn-delete-project" onClick={handleDeleteProject}>프로젝트 삭제</button>
         </header>
 
+        {/* ... (하단 본문 내용은 기존과 동일) ... */}
         <section className="settings-section">
           <form className="nickname-form" onSubmit={handleUpdate}>
             <div className="form-group">
@@ -125,13 +147,26 @@ const ProjectDetail = () => {
         </section>
       </div>
 
-      {/* 자체 알림 모달창 */}
+      {/* 모달 영역 추가 */}
       {alertModal.show && (
         <div className="custom-sys-modal-overlay" onClick={closeAlert}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
             <div className="custom-sys-modal-text">{alertModal.message}</div>
             <div className="custom-sys-modal-actions">
               <button className="btn-sys-ok" onClick={closeAlert}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 확인 모달 */}
+      {confirmModal.show && (
+        <div className="custom-sys-modal-overlay" onClick={closeConfirm}>
+          <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="custom-sys-modal-text">{confirmModal.message}</div>
+            <div className="custom-sys-modal-actions">
+              <button className="btn-sys-cancel" onClick={closeConfirm}>취소</button>
+              <button className="btn-sys-danger" onClick={confirmModal.onConfirm}>삭제</button>
             </div>
           </div>
         </div>
