@@ -3,7 +3,7 @@ import requests
 import secrets
 import hmac
 import hashlib
-import uuid  # UUID 생성용 라이브러리 추가
+import uuid
 
 from fastapi import FastAPI, Depends, HTTPException, Response, Request
 from sqlalchemy import create_engine, text
@@ -27,6 +27,9 @@ class ProjectUpdate(BaseModel):
 class PaymentApprove(BaseModel):
     tid: str
     pg_token: str
+
+class ProfileUpdate(BaseModel):
+    nickname: str
 
 load_dotenv()
 
@@ -60,7 +63,6 @@ def get_captcha_db():
         yield db
     finally:
         db.close()
-# -------------------------------------
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -74,9 +76,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-class ProfileUpdate(BaseModel):
-    nickname: str
 
 # -----------------------------------------------------------------------------
 # 인증 API
@@ -205,7 +204,7 @@ async def logout(response: Response):
     return {"status": "success"}
 
 # -----------------------------------------------------------------------------
-# 프로젝트 API (캡차 동기화 로직 전면 수정 - 에러 해결)
+# 프로젝트 API (완전한 동기화 및 동적 테넌트 로직)
 # -----------------------------------------------------------------------------
 @app.post("/api/projects")
 async def create_project(data: ProjectCreate, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
@@ -214,7 +213,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
+        user_id = int(payload.get("sub"))
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -235,37 +234,56 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         raise HTTPException(status_code=500, detail="API_KEY_HMAC_PEPPER 미설정")
         
     secret_hash = hmac.new(pepper.encode("utf-8"), generated_secret_key.encode("utf-8"), hashlib.sha256).hexdigest()
-    tenant_id = "11111111-1111-1111-1111-111111111111"
 
     try:
-        # [캡차 DB] api_keys 테이블 INSERT (UUID 명시적 생성 및 owner_user_id 정수 캐스팅)
+        # 1. 사용자의 테넌트(조직)가 캡차 DB에 존재하는지 확인, 없으면 동적 생성
+        tenant_id_record = captcha_db.execute(
+            text("SELECT id FROM tenants WHERE owner_user_id = :uid"),
+            {"uid": user_id}
+        ).scalar()
+
+        if not tenant_id_record:
+            tenant_id = str(uuid.uuid4())
+            # 테넌트 생성
+            captcha_db.execute(
+                text("""
+                    INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) 
+                    VALUES (:id, :n, 'free', true, :uid, NOW(), NOW())
+                """),
+                {"id": tenant_id, "n": f"User_{user_id}_Tenant", "uid": user_id}
+            )
+            # 기본 설정값 주입
+            captcha_db.execute(
+                text("""
+                    INSERT INTO tenant_settings (tenant_id, default_difficulty, enabled_kinds, max_attempts, rate_limit_per_min, updated_at)
+                    VALUES (:tid, 'medium', '["flashlight"]'::jsonb, 3, 60, NOW())
+                """),
+                {"tid": tenant_id}
+            )
+        else:
+            tenant_id = str(tenant_id_record)
+
+        # 2. api_keys 테이블 INSERT
         api_key_id = str(uuid.uuid4())
         captcha_db.execute(
             text("""
                 INSERT INTO api_keys (id, tenant_id, name, client_key, secret_hash, owner_user_id, created_at)
                 VALUES (:id, :t, :n, :ck, :sh, :uid, NOW())
             """),
-            {"id": api_key_id, "t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": int(user_id)}
+            {"id": api_key_id, "t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": user_id}
         )
 
-        # [캡차 DB] allowed_origins 테이블 INSERT (client_key 제거, 중복 검사 로직 추가)
+        # 3. allowed_origins 테이블 INSERT (api_key_id 매핑 추가)
         domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
         for domain in domain_list:
-            # 해당 도메인이 이미 테넌트 내에 존재하는지 확인
-            exists = captcha_db.execute(
-                text("SELECT id FROM allowed_origins WHERE origin = :o AND tenant_id = :t"),
-                {"o": domain, "t": tenant_id}
-            ).scalar()
-            
-            if not exists:
-                origin_id = str(uuid.uuid4())
-                captcha_db.execute(
-                    text("""
-                        INSERT INTO allowed_origins (id, tenant_id, origin, created_at)
-                        VALUES (:id, :t, :o, NOW())
-                    """),
-                    {"id": origin_id, "t": tenant_id, "o": domain}
-                )
+            origin_id = str(uuid.uuid4())
+            captcha_db.execute(
+                text("""
+                    INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at)
+                    VALUES (:id, :t, :ak, :o, NOW())
+                """),
+                {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain}
+            )
 
         db.commit()
         captcha_db.commit()
@@ -324,11 +342,18 @@ async def delete_project(project_id: int, request: Request, db: Session = Depend
         # 1. Agami DB에서 삭제
         db.delete(project)
         
-        # 2. 캡차 DB: revoked_at 활성화로 소프트 삭제
-        captcha_db.execute(
-            text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :client_key"),
+        # 2. 캡차 DB: API 키 식별 및 소프트 삭제 (revoked_at 갱신)
+        api_key_record = captcha_db.execute(
+            text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :client_key RETURNING id"),
             {"client_key": project.site_key}
-        )
+        ).scalar()
+
+        # 도메인 정보도 함께 삭제 (옵션, 클린한 관리를 위해 실행)
+        if api_key_record:
+            captcha_db.execute(
+                text("DELETE FROM allowed_origins WHERE api_key_id = :ak"),
+                {"ak": api_key_record}
+            )
 
         db.commit()
         captcha_db.commit()
@@ -384,29 +409,31 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     project.domains = data.domains
 
     try:
-        # [캡차 DB] api_keys 이름 업데이트
-        captcha_db.execute(
-            text("UPDATE api_keys SET name = :name WHERE client_key = :client_key"),
+        # [캡차 DB] api_keys 이름 업데이트 및 대상 API 키의 고유 ID, 테넌트 ID 조회
+        api_info = captcha_db.execute(
+            text("UPDATE api_keys SET name = :name WHERE client_key = :client_key RETURNING id, tenant_id"),
             {"name": data.name, "client_key": project.site_key}
-        )
+        ).fetchone()
 
-        # [캡차 DB] 도메인 갱신 (allowed_origins에 client_key가 없으므로 삭제는 안하고 중복 확인 후 추가만 진행)
-        tenant_id = "11111111-1111-1111-1111-111111111111"
-        domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
-        for domain in domain_list:
-            exists = captcha_db.execute(
-                text("SELECT id FROM allowed_origins WHERE origin = :o AND tenant_id = :t"),
-                {"o": domain, "t": tenant_id}
-            ).scalar()
-            
-            if not exists:
+        if api_info:
+            api_key_id = api_info[0]
+            tenant_id = api_info[1]
+
+            # [캡차 DB] 기존 도메인 목록 초기화 후 재삽입 (완전 덮어쓰기 논리)
+            captcha_db.execute(
+                text("DELETE FROM allowed_origins WHERE api_key_id = :ak"),
+                {"ak": api_key_id}
+            )
+
+            domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
+            for domain in domain_list:
                 origin_id = str(uuid.uuid4())
                 captcha_db.execute(
                     text("""
-                        INSERT INTO allowed_origins (id, tenant_id, origin, created_at)
-                        VALUES (:id, :t, :o, NOW())
+                        INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at)
+                        VALUES (:id, :t, :ak, :o, NOW())
                     """),
-                    {"id": origin_id, "t": tenant_id, "o": domain}
+                    {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain}
                 )
 
         db.commit()
@@ -463,12 +490,12 @@ async def payment_ready(request: Request, db: Session = Depends(get_db)):
     }
 
 @app.post("/api/payment/approve")
-async def payment_approve(data: PaymentApprove, request: Request, db: Session = Depends(get_db)):
+async def payment_approve(data: PaymentApprove, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = str(payload.get("sub"))
+        user_id = int(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
     url = "https://open-api.kakaopay.com/online/v1/payment/approve"
@@ -481,7 +508,7 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
         "cid": "TC0ONETIME",
         "tid": data.tid,
         "partner_order_id": f"ORDER_{user_id}",
-        "partner_user_id": user_id,
+        "partner_user_id": str(user_id),
         "pg_token": data.pg_token
     }
 
@@ -490,9 +517,23 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     if response.status_code != 200:
         raise HTTPException(status_code=400, detail=f"결제 승인 실패: {response.json()}")
 
-    user = db.query(models.User).filter(models.User.id == int(user_id)).first()
-    if user:
-        user.plan = "Pro"
+    try:
+        # 웹 DB 유저 플랜 업데이트
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user:
+            user.plan = "Pro"
+            
+        # 캡차 DB 테넌트 플랜 동기화 업데이트
+        captcha_db.execute(
+            text("UPDATE tenants SET billing_plan = 'pro', updated_at = NOW() WHERE owner_user_id = :uid"),
+            {"uid": user_id}
+        )
+        
         db.commit()
+        captcha_db.commit()
+    except Exception as e:
+        db.rollback()
+        captcha_db.rollback()
+        raise HTTPException(status_code=500, detail=f"결제 후 DB 동기화 실패: {str(e)}")
 
     return {"status": "success", "message": "결제가 완료되었습니다."}
