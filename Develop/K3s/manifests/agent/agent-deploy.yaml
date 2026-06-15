@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agami-agent
+  namespace: agami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agami-agent
+  template:
+    metadata:
+      labels:
+        app: agami-agent
+    spec:
+      # [중요 1] GPU 노드에만 배포되도록 라벨 지정 (실제 GPU 노드의 zone이나 라벨로 변경 필수)
+      nodeSelector:
+        zone: gpu 
+
+      # [중요 2] 파드 내부에서 GPU 노드의 localhost(로컬 LLM)를 호출하기 위한 네트워크 설정
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet # hostNetwork 사용 시 쿠버네티스 내부 DB 주소(svc.cluster.local)를 찾기 위해 필수
+
+      containers:
+      - name: agent
+        # ArgoCD가 감지할 이미지 경로 (태그는 ArgoCD 또는 Kustomize에서 주입)
+        image: agami-captcha.cloud:8443/agami/agent:latest
+        imagePullPolicy: Always
+        # Service를 연결할 필요가 없으므로 ports 항목은 생략합니다.
+
+        env:
+        # DB 연결 정보 (기존 백엔드 Secret 재사용)
+        - name: DB_HOST
+          value: "postgres-db-postgresql.default.svc.cluster.local"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: "admin"
+        - name: DB_NAME
+          value: "captcha_db" # 행동 로그 및 검증 기록이 있는 DB
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: agami-env-secret
+              key: DB_PASSWORD
+              
+        # 메일 발송용 환경 변수 (agami-env-secret에 추가하시거나 직접 입력)
+        - name: SMTP_EMAIL
+          value: "agami.captcha@gmail.com"
+        - name: SMTP_PASSWORD
+          value: "admin12345*!" # 가급적 Secret으로 관리하는 것을 권장
+
+        volumeMounts:
+        - name: behavior-logs-volume
+          mountPath: /data/behavior_logs # 파드 내부의 파이썬 코드가 읽을 경로
+          readOnly: true
+          
+      volumes:
+      # [중요 3] GPU 노드의 실제 로컬 스토리지를 파드와 연결
+      - name: behavior-logs-volume
+        hostPath:
+          path: /data/behavior_logs # GPU 노드에 행동 로그 JSON 파일이 쌓이는 실제 경로
+          type: DirectoryOrCreate
