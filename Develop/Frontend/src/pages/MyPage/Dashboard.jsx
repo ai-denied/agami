@@ -53,36 +53,8 @@ export default function Dashboard() {
   if (loading || !dashboardData) return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   if (!user) return null;
 
-  // --- API 데이터를 UI 컴포넌트 형식에 맞게 변환 (Data Mapping) ---
-  const { summary, attacks, risks, logs, traffic } = dashboardData;
-
-  // 요약 통계 계산 (안전한 숫자 형변환 추가)
-  const totalRequests = Number(summary?.total_sessions) || 0;
-  
-  const passRate = (summary?.human_pass_rate && !isNaN(Number(summary.human_pass_rate)))
-    ? (Number(summary.human_pass_rate) * 100).toFixed(1) 
-    : (Number(summary?.total_sessions) > 0 && !isNaN(Number(summary?.human_total))) 
-      ? ((Number(summary.human_total) / Number(summary.total_sessions)) * 100).toFixed(1) : "0.0";
-  
-  const botDetectRate = (!isNaN(Number(summary?.bot_detect_rate))) ? Number(summary.bot_detect_rate) : 0.8;
-  const blockedAttacks = Math.floor((Number(summary?.bot_total) || 0) * botDetectRate);
-
-  // 파이 차트 (UI 규격에 맞춰 2개로 압축)
-  const pieData = [
-    { name: '정상 탐지', value: Number((summary?.pie_chart?.find(i => i.label === 'Human Passed')?.ratio * 100 || 94.2).toFixed(1)) },
-    { name: '보안 차단', value: Number((summary?.pie_chart?.find(i => i.label === 'Bot Detected')?.ratio * 100 || 5.8).toFixed(1)) }
-  ];
-
-  // 행동 신뢰도 바
-  const safeBand = (risks?.bands?.find(b => b.band === 'low_risk')?.ratio * 100 || 0).toFixed(1);
-  const suspBand = (risks?.bands?.find(b => b.band === 'suspicious')?.ratio * 100 || 0).toFixed(1);
-  const critBand = (risks?.bands?.find(b => b.band === 'high_risk')?.ratio * 100 || 0).toFixed(1);
-
-  // 공격 유형 차트
-  const attackTypeData = attacks?.top_types?.map(type => ({
-    name: type.display_name,
-    value: Number(type.count) || 0
-  })) || [];
+  // 백엔드 프록시 서버에서 실제 JSON 정밀 통계 기반으로 정제되어 넘어온 정답 데이터 세트
+  const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
   return (
     <div className="dashboard-container">
@@ -104,17 +76,17 @@ export default function Dashboard() {
           <section className="summary-grid">
             <div className="summary-card">
               <span className="card-label">오늘 총 요청 수</span>
-              <div className="card-value">{totalRequests.toLocaleString()}</div>
+              <div className="card-value">{display.total_today.toLocaleString()}</div>
               <span className="card-sub up">+12.4% vs 어제</span>
             </div>
             <div className="summary-card">
               <span className="card-label">평균 정상 통과율</span>
-              <div className="card-value">{passRate}%</div>
+              <div className="card-value">{display.pass_rate}%</div>
               <span className="card-sub up">0.3%p 상승</span>
             </div>
             <div className="summary-card">
               <span className="card-label">금일 공격 차단 건수</span>
-              <div className="card-value danger-text">{blockedAttacks.toLocaleString()}</div>
+              <div className="card-value danger-text">{display.blocked_today.toLocaleString()}</div>
               <span className="card-sub stable">안정적인 차단 상태</span>
             </div>
           </section>
@@ -123,9 +95,9 @@ export default function Dashboard() {
             <div className="left-analytics">
               <div className="chart-card">
                 <h3>실시간 인증/차단 트래픽 추이</h3>
-                <div className="chart-wrapper">
+                <div className="chart-wrapper" style={{ minHeight: 250 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    {/* DB에서 가져온 traffic 데이터 매핑 */}
+                    {/* 조원분 파드의 /traffic API에서 수집한 실제 True/False 카운트 셋 매핑 */}
                     <LineChart data={traffic} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
                       <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -142,8 +114,8 @@ export default function Dashboard() {
                 <div className="sub-card">
                   <h3>인입 트래픽 검증 분석</h3>
                   <div className="pie-container-layout">
-                    <div className="pie-wrapper">
-                      <ResponsiveContainer width="100%" height={140}>
+                    <div className="pie-wrapper" style={{ minHeight: 140 }}>
+                      <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie data={pieData} innerRadius={48} outerRadius={62} paddingAngle={5} dataKey="value" startAngle={90} endAngle={-270}>
                             <Cell fill="var(--brand-color)" />
@@ -164,16 +136,16 @@ export default function Dashboard() {
                   <h3>종합 행동 신뢰도 분포</h3>
                   <div className="behavior-stats">
                     <div className="metric-bar-group">
-                      <div className="metric-bar-label"><span>안전 요인 (Safe)</span><strong>{safeBand}%</strong></div>
-                      <div className="metric-bar-track"><div className="metric-bar-fill safe" style={{ width: `${safeBand}%` }} /></div>
+                      <div className="metric-bar-label"><span>안전 요인 (Safe)</span><strong>{behavior.safe}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill safe" style={{ width: `${behavior.safe}%` }} /></div>
                     </div>
                     <div className="metric-bar-group">
-                      <div className="metric-bar-label"><span>의심 탐지 (Suspicious)</span><strong>{suspBand}%</strong></div>
-                      <div className="metric-bar-track"><div className="metric-bar-fill suspicious" style={{ width: `${suspBand}%` }} /></div>
+                      <div className="metric-bar-label"><span>의심 탐지 (Suspicious)</span><strong>{behavior.suspicious}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill suspicious" style={{ width: `${behavior.suspicious}%` }} /></div>
                     </div>
                     <div className="metric-bar-group">
-                      <div className="metric-bar-label"><span>위험 수위 (Critical)</span><strong>{critBand}%</strong></div>
-                      <div className="metric-bar-track"><div className="metric-bar-fill critical" style={{ width: `${critBand}%` }} /></div>
+                      <div className="metric-bar-label"><span>위험 수위 (Critical)</span><strong>{behavior.critical}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill critical" style={{ width: `${behavior.critical}%` }} /></div>
                     </div>
                   </div>
                 </div>
@@ -183,9 +155,9 @@ export default function Dashboard() {
             <div className="right-analytics">
               <div className="chart-card">
                 <h3>주요 우회 공격 유형 Top 5</h3>
-                <div className="chart-wrapper">
+                <div className="chart-wrapper" style={{ minHeight: 200 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={attackTypeData} margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
+                    <BarChart layout="vertical" data={attacks} margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
                       <XAxis type="number" hide />
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '13px' }} width={115} />
                       <Tooltip content={<CustomTooltip />} cursor={false} />
@@ -197,13 +169,15 @@ export default function Dashboard() {
               <div className="log-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
                 <div className="log-list">
-                  {logs?.sessions?.map((log, idx) => (
+                  {logs && logs.length > 0 ? logs.map((log, idx) => (
                     <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log'}`}>
                       <span className="log-ip">{log.file?.split('_')[1] || "Unknown"}</span>
                       <span className="log-reason">{log.bot_type || log.source_type}</span>
                       <span className="risk-score">{log.bot_risk_score ? Number(log.bot_risk_score).toFixed(2) : "N/A"}</span>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>이상 징후가 탐지되지 않았습니다.</div>
+                  )}
                 </div>
               </div>
             </div>
