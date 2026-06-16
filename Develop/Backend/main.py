@@ -406,122 +406,63 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
 # -----------------------------------------------------------------------------
 # 대시보드 API (프록시) - 실제 DB 조회 및 ML 포맷 정밀 매핑 (K8s Service DNS 적용)
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 대시보드 API (프록시) - PostgreSQL 실 데이터 기반 집계
+# -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
 async def get_combined_dashboard_data(request: Request, kind: str = "all", captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
-
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        user_id = int(payload.get("sub"))
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 1. PostgreSQL DB에서 '오늘 발생한' 캡챠 발급 건수 확실히 조회
-    real_total_sessions = 0
-    try:
-        cnt = captcha_db.execute(
-            text("SELECT COUNT(*) FROM challenges WHERE owner_user_id = :uid AND issued_at >= CURRENT_DATE"),
-            {"uid": int(user_id)}
-        ).scalar()
-        real_total_sessions = cnt or 0
-    except Exception as e:
-        captcha_db.rollback()
-        logger.error(f"[DB Error] 대시보드 카운트 조회 실패: {e}")
+    # kind 필터 조건 (전체일 경우 필터링 없음)
+    kind_filter = "" if kind == "all" else " AND kind = :kind"
+    params = {"uid": user_id, "kind": kind}
 
-    # 2. 내부 ML 파드 API 호출 (K8s 내부 DNS 사용)
-    # 10.3.7.10 대신 정확한 K8s 서비스 명칭을 사용하여 방화벽/네트워크 격리를 우회합니다.
-    DASHBOARD_POD_URL = os.getenv("DASHBOARD_POD_URL", "http://dashboard-api-svc:80/api/v1/dashboard")
+    # 1. 지표 조회 (DB 집계)
+    # 총 요청 수
+    total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges WHERE owner_user_id = :uid {kind_filter}"), params).scalar() or 0
     
-    def fetch_api(endpoint: str, default_data: dict):
-        separator = "&" if "?" in endpoint else "?"
-        url = f"{DASHBOARD_POD_URL}{endpoint}{separator}kind={kind}"
-        try:
-            logger.info(f"[API Request] ML 파드 호출 시도: {url}")
-            res = requests.get(url, timeout=5)
-            if res.status_code == 200:
-                return res.json()
-            else:
-                logger.error(f"[API Error] ML 파드 HTTP 에러 상태코드: {res.status_code}")
-        except Exception as e:
-            logger.error(f"[API Failed] ML 파드 통신 실패. URL: {url} | 에러: {e}")
-        return default_data
-
-    def safe_float(val, default=0.0):
-        try: return float(val)
-        except: return default
-            
-    def safe_int(val, default=0):
-        try: return int(val)
-        except: return default
-
-    summary_res = fetch_api("/summary", {})
-    attacks_res = fetch_api("/attack_types?top_n=5", {}) 
-    risks_res = fetch_api("/risk_distribution", {})
-    sessions_res = fetch_api("/sessions?is_blocked=true&limit=10", {})
-    traffic_res = fetch_api("/traffic", {})
-
-    pie_chart = summary_res.get("pie_chart", [])
+    # 정상/차단 (success 컬럼 이용)
+    stats = captcha_db.execute(text(f"SELECT success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} GROUP BY success"), params).fetchall()
+    stats_dict = {row[0]: row[1] for row in stats}
+    human_passed = stats_dict.get(True, 0)
+    bot_blocked = stats_dict.get(False, 0)
     
-    # ML API에서 가져온 실제 탐지 결과 데이터
-    bot_detected_count = next((safe_int(p.get("count", 0)) for p in pie_chart if p.get("label") == "Bot Detected"), 0)
-    human_passed_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Human Passed"), 0.0)
-    bot_detected_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Bot Detected"), 0.0)
-    human_suspicious_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Human Suspicious"), 0.0)
-    human_blocked_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Human Blocked"), 0.0)
-    bot_missed_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Bot Missed"), 0.0)
-    
-    other_ratio = human_suspicious_ratio + human_blocked_ratio + bot_missed_ratio
+    # 차단 유형 Top 5
+    attacks = captcha_db.execute(text(f"SELECT attack_type, COUNT(*) as cnt FROM verifications WHERE success = false AND owner_user_id = :uid {kind_filter} GROUP BY attack_type ORDER BY cnt DESC LIMIT 5"), params).fetchall()
+    attacks_list = [{"name": row[0] or "Unknown", "value": row[1]} for row in attacks]
 
-    # 3. 트래픽 차트 24시간 정규화 (시간대 맵핑)
-    raw_traffic_data = traffic_res.get("traffic", [])
-    traffic_dict = {item["time"]: item for item in raw_traffic_data}
-    
-    traffic_data = []
-    for i in range(24):
-        hour_str = f"{i:02d}:00"
-        if hour_str in traffic_dict:
-            traffic_data.append({
-                "time": hour_str,
-                "success": traffic_dict[hour_str].get("success", 0),
-                "attack": traffic_dict[hour_str].get("attack", 0)
-            })
-        else:
-            traffic_data.append({"time": hour_str, "success": 0, "attack": 0})
+    # 위험도 분포 (verifications의 verdict 컬럼 활용 가능하면 활용, 여기선 기본값 0)
+    # 세션 로그
+    logs = captcha_db.execute(text(f"SELECT challenge_id as file, verdict as bot_type, 0 as bot_risk_score, 'high_risk' as risk_band FROM verifications WHERE owner_user_id = :uid {kind_filter} ORDER BY created_at DESC LIMIT 10"), params).fetchall()
+    logs_list = [{"file": row[0], "bot_type": row[1], "bot_risk_score": row[2], "risk_band": row[3]} for row in logs]
 
-    # 지표 바인딩
-    pass_rate = human_passed_ratio * 100
-    blocked_today = bot_detected_count
-    
-    bands = risks_res.get("bands", [])
-    safe_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "low_risk"), 0)
-    susp_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "suspicious"), 0)
-    crit_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "high_risk"), 0)
+    # 트래픽 데이터 (시간대별)
+    traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(created_at, 'HH24:00') as time, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} GROUP BY time ORDER BY time"), params).fetchall()
+    traffic_dict = {row[0]: row[1] for row in traffic_res}
+    traffic_data = [{"time": f"{i:02d}:00", "success": traffic_dict.get(f"{i:02d}:00", 0), "attack": 0} for i in range(24)]
 
-    top_types = attacks_res.get("top_types", [])
-    attacks_list = [{"name": t.get("display_name", "Unknown"), "value": safe_int(t.get("count", 0))} for t in top_types]
-
-    logs_list = sessions_res.get("sessions", [])
+    pass_rate = (human_passed / total_sessions * 100) if total_sessions > 0 else 0
 
     return {
         "status": "success",
         "data": {
             "display": {
-                "total_today": real_total_sessions,
+                "total_today": total_sessions,
                 "pass_rate": round(pass_rate, 1),
-                "blocked_today": blocked_today
+                "blocked_today": bot_blocked
             },
             "traffic": traffic_data,
             "pieData": [
-                {"name": "정상 탐지", "value": round(human_passed_ratio * 100, 1)},
-                {"name": "보안 차단", "value": round(bot_detected_ratio * 100, 1)},
-                {"name": "기타 의심/오탐", "value": round(other_ratio * 100, 1)}
+                {"name": "정상 탐지", "value": round((human_passed / total_sessions * 100) if total_sessions > 0 else 0, 1)},
+                {"name": "보안 차단", "value": round((bot_blocked / total_sessions * 100) if total_sessions > 0 else 0, 1)},
+                {"name": "기타", "value": 0}
             ],
-            "behavior": {
-                "safe": round(safe_float(safe_val) * 100, 1),
-                "suspicious": round(safe_float(susp_val) * 100, 1),
-                "critical": round(safe_float(crit_val) * 100, 1)
-            },
+            "behavior": {"safe": 100, "suspicious": 0, "critical": 0},
             "attacks": attacks_list,
             "logs": logs_list
         }
