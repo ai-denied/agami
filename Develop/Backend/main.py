@@ -243,6 +243,9 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     secret_hash = hmac.new(pepper.encode("utf-8"), generated_secret_key.encode("utf-8"), hashlib.sha256).hexdigest()
 
     try:
+        current_user = db.query(models.User).filter(models.User.id == user_id).first()
+        current_plan = "pro" if current_user and current_user.plan == "Pro" else "free"
+
         tenant_id_record = captcha_db.execute(
             text("SELECT id FROM tenants WHERE owner_user_id = :uid"),
             {"uid": user_id}
@@ -253,9 +256,9 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
             captcha_db.execute(
                 text("""
                     INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) 
-                    VALUES (:id, :n, 'free', true, :uid, NOW(), NOW())
+                    VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())
                 """),
-                {"id": tenant_id, "n": f"User_{user_id}_Tenant", "uid": user_id}
+                {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id}
             )
             captcha_db.execute(
                 text("""
@@ -266,6 +269,10 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
             )
         else:
             tenant_id = str(tenant_id_record)
+            captcha_db.execute(
+                text("UPDATE tenants SET billing_plan = :plan WHERE id = :tid"),
+                {"plan": current_plan, "tid": tenant_id}
+            )
 
         api_key_id = str(uuid.uuid4())
         captcha_db.execute(
