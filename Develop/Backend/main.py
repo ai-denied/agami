@@ -566,7 +566,7 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     return {"status": "success", "message": "결제가 완료되었습니다."}
 
 # -----------------------------------------------------------------------------
-# 대시보드 API (프록시 및 가공 일원화) - True/False 실제 연동 규격
+# 대시보드 API (프록시) - 프론트엔드 포맷 완벽 매핑
 # -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
 async def get_combined_dashboard_data(request: Request, kind: str = "all"):
@@ -602,26 +602,43 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all"):
         try: return int(val)
         except: return default
 
-    # 1. GPU 서버에서 수집 완료된 실제 True/False 통계 지표 호출
+    # 1. GPU 서버에서 가공된 모든 실제 데이터를 가져옵니다.
     summary_res = fetch_api("/summary", {})
     attacks_res = fetch_api("/attack_types?top_n=5", {}) 
     risks_res = fetch_api("/risk_distribution", {})
     sessions_res = fetch_api("/sessions?is_blocked=true&limit=10", {})
-    traffic_res = fetch_api("/traffic", {})  # 새로 정의된 /traffic 엔드포인트 수집
+    traffic_res = fetch_api("/traffic", {})
 
-    # 2. 요약 지표 매핑 데이터 처리
+    # 2. 요약 지표
     total_sessions = safe_int(summary_res.get("total_sessions", 0))
     bot_total = safe_int(summary_res.get("bot_total", 0))
     bot_detect_rate = safe_float(summary_res.get("bot_detect_rate", 0))
     blocked_today = int(bot_total * bot_detect_rate)
     pass_rate = safe_float(summary_res.get("human_pass_rate", 0)) * 100
 
-    # 3. 시간대별 차트 가공 트래픽 연동
+    # 3. 시간대별 차트 데이터
     traffic_data = traffic_res.get("traffic", [])
     if not traffic_data:
         traffic_data = [{"time": "12:00", "success": 0, "attack": 0}]
 
-    # 4. 종합 UI 서빙 딕셔너리 가공
+    # 4. 파이 차트 데이터 가공
+    pie_chart = summary_res.get("pie_chart", [])
+    human_passed = next((p.get("ratio", 0) for p in pie_chart if p.get("label") == "Human Passed"), 0)
+    bot_detected = next((p.get("ratio", 0) for p in pie_chart if p.get("label") == "Bot Detected"), 0)
+
+    # 5. 공격 유형 데이터 가공
+    top_types = attacks_res.get("top_types", [])
+    attacks_list = [{"name": t.get("display_name", "Unknown"), "value": safe_int(t.get("count", 0))} for t in top_types]
+
+    # 6. 위험도 분포 가공
+    bands = risks_res.get("bands", [])
+    safe_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "low_risk"), 0)
+    susp_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "suspicious"), 0)
+    crit_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "high_risk"), 0)
+
+    # 7. 세션 로그 가공
+    logs_list = sessions_res.get("sessions", [])
+
     return {
         "status": "success",
         "data": {
@@ -630,10 +647,17 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all"):
                 "pass_rate": round(pass_rate, 1) if pass_rate > 0 else 97.8,
                 "blocked_today": blocked_today
             },
-            "summary": summary_res,
-            "attacks": attacks_res,
-            "risks": risks_res,
-            "logs": sessions_res,
-            "traffic": traffic_data
+            "traffic": traffic_data,
+            "pieData": [
+                {"name": "정상 탐지", "value": round(safe_float(human_passed) * 100, 1)},
+                {"name": "보안 차단", "value": round(safe_float(bot_detected) * 100, 1)}
+            ],
+            "behavior": {
+                "safe": round(safe_float(safe_val) * 100, 1),
+                "suspicious": round(safe_float(susp_val) * 100, 1),
+                "critical": round(safe_float(crit_val) * 100, 1)
+            },
+            "attacks": attacks_list,
+            "logs": logs_list
         }
     }
