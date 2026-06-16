@@ -76,17 +76,14 @@ export default function Dashboard() {
             <div className="summary-card">
               <span className="card-label">오늘 총 요청 수</span>
               <div className="card-value">{display.total_today.toLocaleString()}</div>
-              <span className="card-sub up">+12.4% vs 어제</span>
             </div>
             <div className="summary-card">
               <span className="card-label">평균 정상 통과율</span>
               <div className="card-value">{display.pass_rate}%</div>
-              <span className="card-sub up">0.3%p 상승</span>
             </div>
             <div className="summary-card">
               <span className="card-label">금일 공격 차단 건수</span>
               <div className="card-value danger-text">{display.blocked_today.toLocaleString()}</div>
-              <span className="card-sub stable">안정적인 차단 상태</span>
             </div>
           </section>
 

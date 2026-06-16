@@ -566,7 +566,7 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     return {"status": "success", "message": "결제가 완료되었습니다."}
 
 # -----------------------------------------------------------------------------
-# 대시보드 API (프록시) - 실제 DB 조회 및 ML 포맷 매핑
+# 대시보드 API (프록시) - 실제 DB 조회 및 ML 포맷 정밀 매핑
 # -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
 async def get_combined_dashboard_data(request: Request, kind: str = "all", captcha_db: Session = Depends(get_captcha_db)):
@@ -579,26 +579,19 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 1. 회원님의 실제 DB(captcha_db) 사용량 조회 (대시보드와 프로젝트 관리 동기화)
+    # 1. PostgreSQL DB에서 '오늘 발생한' 실제 캡챠 발급 건수만 정확히 조회
     real_total_sessions = 0
     try:
-        api_keys = captcha_db.execute(
-            text("SELECT id FROM api_keys WHERE owner_user_id = :uid"),
+        cnt = captcha_db.execute(
+            text("SELECT COUNT(*) FROM challenges WHERE owner_user_id = :uid AND issued_at >= CURRENT_DATE"),
             {"uid": int(user_id)}
-        ).fetchall()
-        
-        for row in api_keys:
-            ak_id = str(row[0])
-            cnt = captcha_db.execute(
-                text("SELECT COUNT(*) FROM challenges WHERE api_key_id = :ak"),
-                {"ak": ak_id}
-            ).scalar() or 0
-            real_total_sessions += cnt
+        ).scalar()
+        real_total_sessions = cnt or 0
     except Exception as e:
         captcha_db.rollback()
         print(f"DB Error: {e}")
 
-    # 2. 내부 ML 파드 API 호출
+    # 2. 내부 ML 파드 API 호출 (실제 JSON 데이터 기반 결과 로드)
     DASHBOARD_POD_URL = os.getenv("DASHBOARD_POD_URL", "http://10.3.7.10:8080/api/v1/dashboard")
     
     def fetch_api(endpoint: str, default_data: dict):
@@ -629,11 +622,10 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
     sessions_res = fetch_api("/sessions?is_blocked=true&limit=10", {})
     traffic_res = fetch_api("/traffic", {})
 
-    ml_total_sessions = safe_int(summary_res.get("total_sessions", 0))
     pie_chart = summary_res.get("pie_chart", [])
     
+    # ML API에서 가져온 실제 탐지 결과 데이터
     bot_detected_count = next((safe_int(p.get("count", 0)) for p in pie_chart if p.get("label") == "Bot Detected"), 0)
-    
     human_passed_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Human Passed"), 0.0)
     bot_detected_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Bot Detected"), 0.0)
     human_suspicious_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Human Suspicious"), 0.0)
@@ -642,31 +634,30 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
     
     other_ratio = human_suspicious_ratio + human_blocked_ratio + bot_missed_ratio
 
-    # 실제 DB의 사용량을 대시보드 총 요청 수로 강제 할당 (가장 확실한 실제 값)
-    display_total = real_total_sessions if real_total_sessions > 0 else ml_total_sessions
+    # 3. 트래픽 차트 24시간 정규화 (시간대 맵핑)
+    raw_traffic_data = traffic_res.get("traffic", [])
+    traffic_dict = {item["time"]: item for item in raw_traffic_data}
     
-    # ML 파드 통신 실패 또는 데이터 없음 상황일 경우, DB의 실제 수치 기반으로 0% 출력 방지 (Fallback)
-    if ml_total_sessions == 0 and real_total_sessions > 0:
-        pass_rate = 100.0
-        blocked_today = 0
-        human_passed_ratio = 1.0
-        bot_detected_ratio = 0.0
-        other_ratio = 0.0
-        safe_val = 1.0
-        susp_val = 0.0
-        crit_val = 0.0
-    else:
-        pass_rate = human_passed_ratio * 100
-        blocked_today = bot_detected_count
-        
-        bands = risks_res.get("bands", [])
-        safe_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "low_risk"), 0)
-        susp_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "suspicious"), 0)
-        crit_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "high_risk"), 0)
+    traffic_data = []
+    for i in range(24):
+        hour_str = f"{i:02d}:00"
+        if hour_str in traffic_dict:
+            traffic_data.append({
+                "time": hour_str,
+                "success": traffic_dict[hour_str].get("success", 0),
+                "attack": traffic_dict[hour_str].get("attack", 0)
+            })
+        else:
+            traffic_data.append({"time": hour_str, "success": 0, "attack": 0})
 
-    traffic_data = traffic_res.get("traffic", [])
-    if not traffic_data:
-        traffic_data = [{"time": datetime.now().strftime("%H:00"), "success": display_total, "attack": 0}]
+    # 지표 바인딩
+    pass_rate = human_passed_ratio * 100
+    blocked_today = bot_detected_count
+    
+    bands = risks_res.get("bands", [])
+    safe_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "low_risk"), 0)
+    susp_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "suspicious"), 0)
+    crit_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "high_risk"), 0)
 
     top_types = attacks_res.get("top_types", [])
     attacks_list = [{"name": t.get("display_name", "Unknown"), "value": safe_int(t.get("count", 0))} for t in top_types]
@@ -677,7 +668,7 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
         "status": "success",
         "data": {
             "display": {
-                "total_today": display_total,
+                "total_today": real_total_sessions,
                 "pass_rate": round(pass_rate, 1),
                 "blocked_today": blocked_today
             },
