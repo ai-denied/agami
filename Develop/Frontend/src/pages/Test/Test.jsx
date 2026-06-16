@@ -12,7 +12,7 @@ const Test = () => {
   const [selectedType, setSelectedType] = useState(CAPTCHA_TYPES[0]);
 
   // 임시 테스트용 클라이언트 키 (테스트가 끝나면 백엔드 API에서 동적으로 받아오도록 수정하세요)
-  const TEST_CLIENT_KEY = "agami_site_bfb5a03f15950c0d5754d4ec37827f1e";
+  const TEST_CLIENT_KEY = "agami_site_98376a2a377e26ff9ce15a91b1ef2fd8";
 
   return (
     <div className="page-wrapper">
