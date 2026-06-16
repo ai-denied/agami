@@ -53,7 +53,6 @@ export default function Dashboard() {
   if (loading || !dashboardData) return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   if (!user) return null;
 
-  // 백엔드 프록시 서버에서 실제 JSON 정밀 통계 기반으로 정제되어 넘어온 정답 데이터 세트
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
   return (
@@ -67,7 +66,7 @@ export default function Dashboard() {
             </div>
             <div className="model-tab-container">
               <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
-              <button className={`tab-btn ${activeModel === 'handlight' ? 'active' : ''}`} onClick={() => setActiveModel('handlight')}>손전등</button>
+              <button className={`tab-btn ${activeModel === 'flashlight' ? 'active' : ''}`} onClick={() => setActiveModel('flashlight')}>손전등</button>
               <button className={`tab-btn ${activeModel === 'facial' ? 'active' : ''}`} onClick={() => setActiveModel('facial')}>안면 인식</button>
               <button className={`tab-btn ${activeModel === 'emotion' ? 'active' : ''}`} onClick={() => setActiveModel('emotion')}>감정 기반</button>
             </div>
@@ -97,7 +96,6 @@ export default function Dashboard() {
                 <h3>실시간 인증/차단 트래픽 추이</h3>
                 <div className="chart-wrapper" style={{ minHeight: 250 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    {/* 조원분 파드의 /traffic API에서 수집한 실제 True/False 카운트 셋 매핑 */}
                     <LineChart data={traffic} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
                       <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -120,6 +118,7 @@ export default function Dashboard() {
                           <Pie data={pieData} innerRadius={48} outerRadius={62} paddingAngle={5} dataKey="value" startAngle={90} endAngle={-270}>
                             <Cell fill="var(--brand-color)" />
                             <Cell fill="var(--danger-color)" />
+                            <Cell fill="#e0e0e0" />
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>

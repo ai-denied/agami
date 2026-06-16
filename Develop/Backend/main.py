@@ -581,8 +581,10 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all"):
 
     DASHBOARD_POD_URL = os.getenv("DASHBOARD_POD_URL", "http://10.3.7.10:8080/api/v1/dashboard")
     
+    # 내부 백엔드에 필터 조건 파라미터를 명확히 전달
     def fetch_api(endpoint: str, default_data: dict):
-        url = f"{DASHBOARD_POD_URL}{endpoint}"
+        separator = "&" if "?" in endpoint else "?"
+        url = f"{DASHBOARD_POD_URL}{endpoint}{separator}kind={kind}"
         try:
             res = requests.get(url, timeout=3)
             if res.status_code == 200:
@@ -602,41 +604,49 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all"):
         try: return int(val)
         except: return default
 
-    # 1. GPU 서버에서 가공된 모든 실제 데이터를 가져옵니다.
+    # 내부 GPU API 호출
     summary_res = fetch_api("/summary", {})
     attacks_res = fetch_api("/attack_types?top_n=5", {}) 
     risks_res = fetch_api("/risk_distribution", {})
     sessions_res = fetch_api("/sessions?is_blocked=true&limit=10", {})
     traffic_res = fetch_api("/traffic", {})
 
-    # 2. 요약 지표
+    # 총 지표 및 파이차트의 실제 데이터를 추출
     total_sessions = safe_int(summary_res.get("total_sessions", 0))
-    bot_total = safe_int(summary_res.get("bot_total", 0))
-    bot_detect_rate = safe_float(summary_res.get("bot_detect_rate", 0))
-    blocked_today = int(bot_total * bot_detect_rate)
-    pass_rate = safe_float(summary_res.get("human_pass_rate", 0)) * 100
+    pie_chart = summary_res.get("pie_chart", [])
+    
+    # Pie 데이터에서 비율과 카운트를 명확하게 가져옴
+    human_passed_count = next((safe_int(p.get("count", 0)) for p in pie_chart if p.get("label") == "Human Passed"), 0)
+    bot_detected_count = next((safe_int(p.get("count", 0)) for p in pie_chart if p.get("label") == "Bot Detected"), 0)
+    
+    human_passed_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Human Passed"), 0.0)
+    bot_detected_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Bot Detected"), 0.0)
+    human_suspicious_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Human Suspicious"), 0.0)
+    human_blocked_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Human Blocked"), 0.0)
+    bot_missed_ratio = next((safe_float(p.get("ratio", 0)) for p in pie_chart if p.get("label") == "Bot Missed"), 0.0)
+    
+    # 비율 합계 유지를 위한 기타 데이터 병합
+    other_ratio = human_suspicious_ratio + human_blocked_ratio + bot_missed_ratio
 
-    # 3. 시간대별 차트 데이터
+    blocked_today = bot_detected_count
+    pass_rate = human_passed_ratio * 100
+
+    # 시간대별 차트 데이터
     traffic_data = traffic_res.get("traffic", [])
     if not traffic_data:
         traffic_data = [{"time": "12:00", "success": 0, "attack": 0}]
 
-    # 4. 파이 차트 데이터 가공
-    pie_chart = summary_res.get("pie_chart", [])
-    human_passed = next((p.get("ratio", 0) for p in pie_chart if p.get("label") == "Human Passed"), 0)
-    bot_detected = next((p.get("ratio", 0) for p in pie_chart if p.get("label") == "Bot Detected"), 0)
-
-    # 5. 공격 유형 데이터 가공
+    # 공격 유형 데이터
     top_types = attacks_res.get("top_types", [])
     attacks_list = [{"name": t.get("display_name", "Unknown"), "value": safe_int(t.get("count", 0))} for t in top_types]
 
-    # 6. 위험도 분포 가공
+    # 위험도 분포
     bands = risks_res.get("bands", [])
     safe_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "low_risk"), 0)
     susp_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "suspicious"), 0)
     crit_val = next((b.get("ratio", 0) for b in bands if b.get("band") == "high_risk"), 0)
 
-    # 7. 세션 로그 가공
+    # 세션 로그
     logs_list = sessions_res.get("sessions", [])
 
     return {
@@ -644,13 +654,14 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all"):
         "data": {
             "display": {
                 "total_today": total_sessions,
-                "pass_rate": round(pass_rate, 1) if pass_rate > 0 else 97.8,
+                "pass_rate": round(pass_rate, 1),
                 "blocked_today": blocked_today
             },
             "traffic": traffic_data,
             "pieData": [
-                {"name": "정상 탐지", "value": round(safe_float(human_passed) * 100, 1)},
-                {"name": "보안 차단", "value": round(safe_float(bot_detected) * 100, 1)}
+                {"name": "정상 탐지", "value": round(human_passed_ratio * 100, 1)},
+                {"name": "보안 차단", "value": round(bot_detected_ratio * 100, 1)},
+                {"name": "기타 의심/오탐", "value": round(other_ratio * 100, 1)}
             ],
             "behavior": {
                 "safe": round(safe_float(safe_val) * 100, 1),
