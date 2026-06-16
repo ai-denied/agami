@@ -322,7 +322,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     return {"status": "success"}
 
 @app.get("/api/projects")
-async def get_projects(request: Request, db: Session = Depends(get_db)):
+async def get_projects(request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -332,19 +332,37 @@ async def get_projects(request: Request, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+    # 웹 DB에서 유저의 프로젝트 목록 조회
     projects = db.query(models.Project).filter(models.Project.user_id == user_id).all()
+    
+    project_list = []
+    for p in projects:
+        # 캡차 DB에서 해당 프로젝트(Site Key)의 api_key_id를 찾음
+        api_key_record = captcha_db.execute(
+            text("SELECT id FROM api_keys WHERE client_key = :ck"),
+            {"ck": p.site_key}
+        ).scalar()
+
+        total_usage = 0
+        if api_key_record:
+            # 해당 api_key_id로 발행된 모든 캡차 도전(challenges) 횟수를 카운트 (유형/성공 무관)
+            total_usage = captcha_db.execute(
+                text("SELECT COUNT(*) FROM challenges WHERE api_key_id = :ak"),
+                {"ak": api_key_record}
+            ).scalar() or 0
+
+        project_list.append({
+            "id": p.id,
+            "name": p.name,
+            "domains": p.domains,
+            "site_key": p.site_key,
+            "secret_key": p.secret_key,
+            "total_usage": total_usage # 계산된 총 호출 수 반환
+        })
+
     return {
         "status": "success",
-        "projects": [
-            {
-                "id": p.id,
-                "name": p.name,
-                "domains": p.domains,
-                "site_key": p.site_key,
-                "secret_key": p.secret_key,
-                "monthly_usage": p.monthly_usage
-            } for p in projects
-        ]
+        "projects": project_list
     }
 
 @app.delete("/api/projects/{project_id}")

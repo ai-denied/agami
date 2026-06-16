@@ -98,7 +98,7 @@ const ProjectManager = () => {
                 <div className="card-header">
                   <h2 className="project-name">{project.name || "이름 없는 프로젝트"}</h2>
                   <div className="card-header-right">
-                    <span className="project-usage">이번 달 사용량: {project.monthly_usage}회</span>
+                    <span className="project-usage">이번 달 사용량: {project.total_usage}회</span>
                     <button className="btn-delete-project" onClick={(e) => handleDeleteProject(e, project.id)}>삭제</button>
                   </div>
                 </div>
@@ -107,7 +107,7 @@ const ProjectManager = () => {
                     <strong>허용 도메인:</strong>
                     {project.domains.split(",").map((d, i) => <span key={i} className="domain-tag">{d}</span>)}
                   </div>
-                  
+
                   <div className="key-row">
                     <span className="key-label">Site Key</span>
                     <span className="key-value">{project.site_key}</span>
