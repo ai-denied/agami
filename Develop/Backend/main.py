@@ -170,7 +170,7 @@ async def google_callback(code: str, response: Response, db: Session = Depends(g
     }
 
 @app.get("/api/auth/me")
-async def get_me(request: Request, db: Session = Depends(get_db)):
+async def get_me(request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -180,6 +180,22 @@ async def get_me(request: Request, db: Session = Depends(get_db)):
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
+
+        # --- [추가된 로직] 유저가 접속할 때마다 백그라운드에서 조용히 플랜 동기화 ---
+        try:
+            current_plan = "pro" if user.plan == "Pro" else "free"
+            # 테넌트가 이미 존재한다면 agamidb의 최신 플랜으로 업데이트 (없으면 무시됨)
+            captcha_db.execute(
+                text("UPDATE tenants SET billing_plan = :plan, updated_at = NOW() WHERE owner_user_id = :uid"),
+                {"plan": current_plan, "uid": int(user_id)}
+            )
+            captcha_db.commit()
+        except Exception as e:
+            captcha_db.rollback()
+            # 동기화에 실패하더라도 유저의 로그인/접속 자체를 막으면 안 되므로 에러만 기록하고 넘깁니다.
+            print(f"Background Sync Error: {str(e)}")
+        # ----------------------------------------------------------------------
+
         return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
