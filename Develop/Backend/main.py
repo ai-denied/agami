@@ -4,6 +4,7 @@ import secrets
 import hmac
 import hashlib
 import uuid
+import logging
 
 from fastapi import FastAPI, Depends, HTTPException, Response, Request
 from sqlalchemy import create_engine, text
@@ -15,6 +16,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 from jose import jwt
 from pydantic import BaseModel
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # --- 유틸리티 함수 ---
 def normalize_domain(domain: str) -> str:
@@ -122,10 +127,7 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
     jwt_token = create_access_token({"sub": str(user.id), "nickname": user.nickname})
     response.set_cookie(key="accessToken", value=jwt_token, httponly=True, secure=True, samesite="lax", path="/")
     
-    return {
-        "status": "success",
-        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan},
-    }
+    return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
 
 @app.get("/api/auth/google/callback")
 async def google_callback(code: str, response: Response, db: Session = Depends(get_db)):
@@ -164,33 +166,25 @@ async def google_callback(code: str, response: Response, db: Session = Depends(g
     jwt_token = create_access_token({"sub": str(user.id), "nickname": user.nickname})
     response.set_cookie(key="accessToken", value=jwt_token, httponly=True, secure=True, samesite="lax", path="/")
     
-    return {
-        "status": "success",
-        "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan},
-    }
+    return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
 
 @app.get("/api/auth/me")
 async def get_me(request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
-    if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         user = db.query(models.User).filter(models.User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=401, detail="User not found")
+        if not user: raise HTTPException(status_code=401, detail="User not found")
 
         try:
             current_plan = "pro" if user.plan == "Pro" else "free"
-            captcha_db.execute(
-                text("UPDATE tenants SET billing_plan = :plan, updated_at = NOW() WHERE owner_user_id = :uid"),
-                {"plan": current_plan, "uid": int(user_id)}
-            )
+            captcha_db.execute(text("UPDATE tenants SET billing_plan = :plan, updated_at = NOW() WHERE owner_user_id = :uid"), {"plan": current_plan, "uid": int(user_id)})
             captcha_db.commit()
         except Exception as e:
             captcha_db.rollback()
-            print(f"Background Sync Error: {str(e)}")
+            logger.error(f"Background Sync Error: {str(e)}")
 
         return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
     except Exception:
@@ -199,20 +193,16 @@ async def get_me(request: Request, db: Session = Depends(get_db), captcha_db: Se
 @app.patch("/api/auth/me")
 async def update_profile(data: ProfileUpdate, request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
-    if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
     user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not user: raise HTTPException(status_code=404, detail="User not found")
 
-    if data.nickname:
-        user.nickname = data.nickname
+    if data.nickname: user.nickname = data.nickname
     db.commit()
     db.refresh(user)
     return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
@@ -228,88 +218,47 @@ async def logout(response: Response):
 @app.post("/api/projects")
 async def create_project(data: ProjectCreate, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
-    if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
-    new_project = models.Project(
-        user_id=user_id,
-        name=data.name,
-        domains=data.domains,
-        site_key=generated_site_key,
-        secret_key=generated_secret_key
-    )
+    new_project = models.Project(user_id=user_id, name=data.name, domains=data.domains, site_key=generated_site_key, secret_key=generated_secret_key)
     db.add(new_project)
 
     pepper = os.getenv("API_KEY_HMAC_PEPPER", "")
-    if not pepper:
-        raise HTTPException(status_code=500, detail="API_KEY_HMAC_PEPPER 미설정")
+    if not pepper: raise HTTPException(status_code=500, detail="API_KEY_HMAC_PEPPER 미설정")
         
     secret_hash = hmac.new(pepper.encode("utf-8"), generated_secret_key.encode("utf-8"), hashlib.sha256).hexdigest()
 
     try:
         current_user = db.query(models.User).filter(models.User.id == user_id).first()
         current_plan = "pro" if current_user and current_user.plan == "Pro" else "free"
-
-        tenant_id_record = captcha_db.execute(
-            text("SELECT id FROM tenants WHERE owner_user_id = :uid"),
-            {"uid": user_id}
-        ).scalar()
+        tenant_id_record = captcha_db.execute(text("SELECT id FROM tenants WHERE owner_user_id = :uid"), {"uid": user_id}).scalar()
 
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
-            captcha_db.execute(
-                text("""
-                    INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) 
-                    VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())
-                """),
-                {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id}
-            )
-            captcha_db.execute(
-                text("""
-                    INSERT INTO tenant_settings (tenant_id, default_difficulty, enabled_kinds, max_attempts, rate_limit_per_min, updated_at)
-                    VALUES (:tid, 'medium', '["flashlight"]'::jsonb, 3, 60, NOW())
-                """),
-                {"tid": tenant_id}
-            )
+            captcha_db.execute(text("""INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())"""), {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id})
+            captcha_db.execute(text("""INSERT INTO tenant_settings (tenant_id, default_difficulty, enabled_kinds, max_attempts, rate_limit_per_min, updated_at) VALUES (:tid, 'medium', '["flashlight"]'::jsonb, 3, 60, NOW())"""), {"tid": tenant_id})
         else:
             tenant_id = str(tenant_id_record)
-            captcha_db.execute(
-                text("UPDATE tenants SET billing_plan = :plan WHERE id = :tid"),
-                {"plan": current_plan, "tid": tenant_id}
-            )
+            captcha_db.execute(text("UPDATE tenants SET billing_plan = :plan WHERE id = :tid"), {"plan": current_plan, "tid": tenant_id})
 
         api_key_id = str(uuid.uuid4())
-        captcha_db.execute(
-            text("""
-                INSERT INTO api_keys (id, tenant_id, name, client_key, secret_hash, owner_user_id, created_at)
-                VALUES (:id, :t, :n, :ck, :sh, :uid, NOW())
-            """),
-            {"id": api_key_id, "t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": user_id}
-        )
+        captcha_db.execute(text("""INSERT INTO api_keys (id, tenant_id, name, client_key, secret_hash, owner_user_id, created_at) VALUES (:id, :t, :n, :ck, :sh, :uid, NOW())"""), {"id": api_key_id, "t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": user_id})
 
         domain_list = [normalize_domain(d) for d in data.domains.split(",") if d.strip()]
         for domain in domain_list:
             origin_id = str(uuid.uuid4())
-            captcha_db.execute(
-                text("""
-                    INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at)
-                    VALUES (:id, :t, :ak, :o, NOW())
-                """),
-                {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain}
-            )
+            captcha_db.execute(text("""INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at) VALUES (:id, :t, :ak, :o, NOW())"""), {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain})
 
         db.commit()
         captcha_db.commit()
         db.refresh(new_project)
-
     except Exception as e:
         db.rollback()
         captcha_db.rollback()
@@ -320,80 +269,46 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
 @app.get("/api/projects")
 async def get_projects(request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
-    if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
     projects = db.query(models.Project).filter(models.Project.user_id == user_id).all()
-    
     project_list = []
     for p in projects:
-        api_key_record = captcha_db.execute(
-            text("SELECT id FROM api_keys WHERE client_key = :ck"),
-            {"ck": p.site_key}
-        ).scalar()
-
+        api_key_record = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": p.site_key}).scalar()
         total_usage = 0
         if api_key_record:
-            total_usage = captcha_db.execute(
-                text("SELECT COUNT(*) FROM challenges WHERE api_key_id = :ak"),
-                {"ak": api_key_record}
-            ).scalar() or 0
+            total_usage = captcha_db.execute(text("SELECT COUNT(*) FROM challenges WHERE api_key_id = :ak"), {"ak": api_key_record}).scalar() or 0
 
-        project_list.append({
-            "id": p.id,
-            "name": p.name,
-            "domains": p.domains,
-            "site_key": p.site_key,
-            "secret_key": p.secret_key,
-            "total_usage": total_usage 
-        })
-
-    return {
-        "status": "success",
-        "projects": project_list
-    }
+        project_list.append({"id": p.id, "name": p.name, "domains": p.domains, "site_key": p.site_key, "secret_key": p.secret_key, "total_usage": total_usage})
+    return {"status": "success", "projects": project_list}
 
 @app.delete("/api/projects/{project_id}")
 async def delete_project(project_id: int, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
-    if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
+    if not project: raise HTTPException(status_code=404, detail="Project not found")
 
     try:
         db.delete(project)
-        api_key_record = captcha_db.execute(
-            text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :client_key RETURNING id"),
-            {"client_key": project.site_key}
-        ).scalar()
-
+        api_key_record = captcha_db.execute(text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :client_key RETURNING id"), {"client_key": project.site_key}).scalar()
         if api_key_record:
-            captcha_db.execute(
-                text("DELETE FROM allowed_origins WHERE api_key_id = :ak"),
-                {"ak": api_key_record}
-            )
-
+            captcha_db.execute(text("DELETE FROM allowed_origins WHERE api_key_id = :ak"), {"ak": api_key_record})
         db.commit()
         captcha_db.commit()
-
     except Exception as e:
         db.rollback()
         captcha_db.rollback()
-        raise HTTPException(status_code=500, detail=f"프로젝트 삭제 동기화 실패: {str(e)}")
-    
+        raise HTTPException(status_code=500, detail=f"프로젝트 삭제 실패: {str(e)}")
     return {"status": "success"}
 
 @app.get("/api/projects/{project_id}")
@@ -411,18 +326,7 @@ async def get_project(project_id: int, request: Request, kind: str = "default", 
     embed_url = f"https://agami-captcha.cloud/widget/embed?kind={kind}&difficulty=normal&client_key={project.site_key}"
     embed_snippet = f'<iframe src="{embed_url}" width="100%" height="500px" frameborder="0"></iframe>'
 
-    return {
-        "status": "success",
-        "project": {
-            "id": project.id, 
-            "name": project.name, 
-            "domains": project.domains,
-            "site_key": project.site_key, 
-            "secret_key": project.secret_key, 
-            "monthly_usage": project.monthly_usage,
-            "embed_snippet": embed_snippet
-        }
-    }
+    return {"status": "success", "project": {"id": project.id, "name": project.name, "domains": project.domains, "site_key": project.site_key, "secret_key": project.secret_key, "monthly_usage": project.monthly_usage, "embed_snippet": embed_snippet}}
 
 @app.patch("/api/projects/{project_id}")
 async def update_project(project_id: int, data: ProjectUpdate, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
@@ -440,44 +344,23 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     project.domains = data.domains
 
     try:
-        api_info = captcha_db.execute(
-            text("UPDATE api_keys SET name = :name WHERE client_key = :client_key RETURNING id, tenant_id"),
-            {"name": data.name, "client_key": project.site_key}
-        ).fetchone()
-
+        api_info = captcha_db.execute(text("UPDATE api_keys SET name = :name WHERE client_key = :client_key RETURNING id, tenant_id"), {"name": data.name, "client_key": project.site_key}).fetchone()
         if api_info:
             api_key_id = api_info[0]
             tenant_id = api_info[1]
-
-            captcha_db.execute(
-                text("DELETE FROM allowed_origins WHERE api_key_id = :ak"),
-                {"ak": api_key_id}
-            )
-
+            captcha_db.execute(text("DELETE FROM allowed_origins WHERE api_key_id = :ak"), {"ak": api_key_id})
             domain_list = [normalize_domain(d) for d in data.domains.split(",") if d.strip()]
             for domain in domain_list:
                 origin_id = str(uuid.uuid4())
-                captcha_db.execute(
-                    text("""
-                        INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at)
-                        VALUES (:id, :t, :ak, :o, NOW())
-                    """),
-                    {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain}
-                )
-
+                captcha_db.execute(text("""INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at) VALUES (:id, :t, :ak, :o, NOW())"""), {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain})
         db.commit()
         captcha_db.commit()
-
     except Exception as e:
         db.rollback()
         captcha_db.rollback()
-        raise HTTPException(status_code=500, detail=f"프로젝트 업데이트 동기화 실패: {str(e)}")
-    
+        raise HTTPException(status_code=500, detail=f"프로젝트 업데이트 실패: {str(e)}")
     return {"status": "success"}
 
-# -----------------------------------------------------------------------------
-# 결제 API
-# -----------------------------------------------------------------------------
 @app.post("/api/payment/ready")
 async def payment_ready(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
@@ -488,35 +371,11 @@ async def payment_ready(request: Request, db: Session = Depends(get_db)):
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
     url = "https://open-api.kakaopay.com/online/v1/payment/ready"
-    headers = {
-        "Authorization": f"SECRET_KEY {os.getenv('KAKAO_PAY_SECRET_KEY')}",
-        "Content-type": "application/json"
-    }
-    
-    data = {
-        "cid": "TC0ONETIME", 
-        "partner_order_id": f"ORDER_{user_id}",
-        "partner_user_id": user_id,
-        "item_name": "Agami Pro 요금제",
-        "quantity": 1,
-        "total_amount": 49000,
-        "tax_free_amount": 0,
-        "approval_url": "https://agami-captcha.cloud/payment/success",
-        "cancel_url": "https://agami-captcha.cloud/price",
-        "fail_url": "https://agami-captcha.cloud/price"
-    }
-
+    headers = {"Authorization": f"SECRET_KEY {os.getenv('KAKAO_PAY_SECRET_KEY')}", "Content-type": "application/json"}
+    data = {"cid": "TC0ONETIME", "partner_order_id": f"ORDER_{user_id}", "partner_user_id": user_id, "item_name": "Agami Pro 요금제", "quantity": 1, "total_amount": 49000, "tax_free_amount": 0, "approval_url": "https://agami-captcha.cloud/payment/success", "cancel_url": "https://agami-captcha.cloud/price", "fail_url": "https://agami-captcha.cloud/price"}
     response = requests.post(url, headers=headers, json=data)
-    res_data = response.json()
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=400, detail=f"결제 준비 실패: {res_data}")
-
-    return {
-        "status": "success",
-        "next_redirect_pc_url": res_data.get("next_redirect_pc_url"),
-        "tid": res_data.get("tid")
-    }
+    if response.status_code != 200: raise HTTPException(status_code=400, detail=f"결제 준비 실패: {response.json()}")
+    return {"status": "success", "next_redirect_pc_url": response.json().get("next_redirect_pc_url"), "tid": response.json().get("tid")}
 
 @app.post("/api/payment/approve")
 async def payment_approve(data: PaymentApprove, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
@@ -528,45 +387,24 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
     url = "https://open-api.kakaopay.com/online/v1/payment/approve"
-    headers = {
-        "Authorization": f"SECRET_KEY {os.getenv('KAKAO_PAY_SECRET_KEY')}",
-        "Content-type": "application/json"
-    }
-    
-    payload_data = {
-        "cid": "TC0ONETIME",
-        "tid": data.tid,
-        "partner_order_id": f"ORDER_{user_id}",
-        "partner_user_id": str(user_id),
-        "pg_token": data.pg_token
-    }
-
+    headers = {"Authorization": f"SECRET_KEY {os.getenv('KAKAO_PAY_SECRET_KEY')}", "Content-type": "application/json"}
+    payload_data = {"cid": "TC0ONETIME", "tid": data.tid, "partner_order_id": f"ORDER_{user_id}", "partner_user_id": str(user_id), "pg_token": data.pg_token}
     response = requests.post(url, headers=headers, json=payload_data)
-    
-    if response.status_code != 200:
-        raise HTTPException(status_code=400, detail=f"결제 승인 실패: {response.json()}")
-
+    if response.status_code != 200: raise HTTPException(status_code=400, detail=f"결제 승인 실패: {response.json()}")
     try:
         user = db.query(models.User).filter(models.User.id == user_id).first()
-        if user:
-            user.plan = "Pro"
-            
-        captcha_db.execute(
-            text("UPDATE tenants SET billing_plan = 'pro', updated_at = NOW() WHERE owner_user_id = :uid"),
-            {"uid": user_id}
-        )
-        
+        if user: user.plan = "Pro"
+        captcha_db.execute(text("UPDATE tenants SET billing_plan = 'pro', updated_at = NOW() WHERE owner_user_id = :uid"), {"uid": user_id})
         db.commit()
         captcha_db.commit()
     except Exception as e:
         db.rollback()
         captcha_db.rollback()
-        raise HTTPException(status_code=500, detail=f"결제 후 DB 동기화 실패: {str(e)}")
-
+        raise HTTPException(status_code=500, detail=f"결제 동기화 실패: {str(e)}")
     return {"status": "success", "message": "결제가 완료되었습니다."}
 
 # -----------------------------------------------------------------------------
-# 대시보드 API (프록시) - 실제 DB 조회 및 ML 포맷 정밀 매핑
+# 대시보드 API (프록시) - 실제 DB 조회 및 ML 포맷 정밀 매핑 (K8s Service DNS 적용)
 # -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
 async def get_combined_dashboard_data(request: Request, kind: str = "all", captcha_db: Session = Depends(get_captcha_db)):
@@ -579,7 +417,7 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 1. PostgreSQL DB에서 '오늘 발생한' 실제 캡챠 발급 건수만 정확히 조회
+    # 1. PostgreSQL DB에서 '오늘 발생한' 캡챠 발급 건수 확실히 조회
     real_total_sessions = 0
     try:
         cnt = captcha_db.execute(
@@ -589,23 +427,24 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
         real_total_sessions = cnt or 0
     except Exception as e:
         captcha_db.rollback()
-        print(f"DB Error: {e}")
+        logger.error(f"[DB Error] 대시보드 카운트 조회 실패: {e}")
 
-    # 2. 내부 ML 파드 API 호출 (실제 JSON 데이터 기반 결과 로드)
-    DASHBOARD_POD_URL = os.getenv("DASHBOARD_POD_URL", "http://10.3.7.10:8080/api/v1/dashboard")
+    # 2. 내부 ML 파드 API 호출 (K8s 내부 DNS 사용)
+    # 10.3.7.10 대신 정확한 K8s 서비스 명칭을 사용하여 방화벽/네트워크 격리를 우회합니다.
+    DASHBOARD_POD_URL = os.getenv("DASHBOARD_POD_URL", "http://dashboard-api-svc:80/api/v1/dashboard")
     
     def fetch_api(endpoint: str, default_data: dict):
         separator = "&" if "?" in endpoint else "?"
         url = f"{DASHBOARD_POD_URL}{endpoint}{separator}kind={kind}"
         try:
+            logger.info(f"[API Request] ML 파드 호출 시도: {url}")
             res = requests.get(url, timeout=5)
             if res.status_code == 200:
-                try:
-                    return res.json()
-                except:
-                    pass
-        except Exception:
-            pass
+                return res.json()
+            else:
+                logger.error(f"[API Error] ML 파드 HTTP 에러 상태코드: {res.status_code}")
+        except Exception as e:
+            logger.error(f"[API Failed] ML 파드 통신 실패. URL: {url} | 에러: {e}")
         return default_data
 
     def safe_float(val, default=0.0):
