@@ -11,10 +11,17 @@ from sqlalchemy.orm import Session, sessionmaker
 from database import SessionLocal
 import models
 from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.middleware import CORSMiddleware
 from datetime import datetime, timedelta
 from jose import jwt
 from pydantic import BaseModel
+
+# --- 유틸리티 함수 ---
+def normalize_domain(domain: str) -> str:
+    domain = domain.strip()
+    if not domain.startswith("http://") and not domain.startswith("https://"):
+        return f"https://{domain}"
+    return domain
 
 class ProjectCreate(BaseModel):
     name: str
@@ -204,7 +211,7 @@ async def logout(response: Response):
     return {"status": "success"}
 
 # -----------------------------------------------------------------------------
-# 프로젝트 API (완전한 동기화 및 동적 테넌트 로직)
+# 프로젝트 API
 # -----------------------------------------------------------------------------
 @app.post("/api/projects")
 async def create_project(data: ProjectCreate, request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
@@ -236,7 +243,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     secret_hash = hmac.new(pepper.encode("utf-8"), generated_secret_key.encode("utf-8"), hashlib.sha256).hexdigest()
 
     try:
-        # 1. 사용자의 테넌트(조직)가 캡차 DB에 존재하는지 확인, 없으면 동적 생성
         tenant_id_record = captcha_db.execute(
             text("SELECT id FROM tenants WHERE owner_user_id = :uid"),
             {"uid": user_id}
@@ -244,7 +250,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
 
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
-            # 테넌트 생성
             captcha_db.execute(
                 text("""
                     INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) 
@@ -252,7 +257,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
                 """),
                 {"id": tenant_id, "n": f"User_{user_id}_Tenant", "uid": user_id}
             )
-            # 기본 설정값 주입
             captcha_db.execute(
                 text("""
                     INSERT INTO tenant_settings (tenant_id, default_difficulty, enabled_kinds, max_attempts, rate_limit_per_min, updated_at)
@@ -263,7 +267,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         else:
             tenant_id = str(tenant_id_record)
 
-        # 2. api_keys 테이블 INSERT
         api_key_id = str(uuid.uuid4())
         captcha_db.execute(
             text("""
@@ -273,8 +276,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
             {"id": api_key_id, "t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": user_id}
         )
 
-        # 3. allowed_origins 테이블 INSERT (api_key_id 매핑 추가)
-        domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
+        domain_list = [normalize_domain(d) for d in data.domains.split(",") if d.strip()]
         for domain in domain_list:
             origin_id = str(uuid.uuid4())
             captcha_db.execute(
@@ -292,7 +294,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     except Exception as e:
         db.rollback()
         captcha_db.rollback()
-        print(f"!!! DB INSERT ERROR !!!: {str(e)}") 
         raise HTTPException(status_code=500, detail=f"DB 작업 실패: {str(e)}")
 
     return {"status": "success"}
@@ -339,16 +340,12 @@ async def delete_project(project_id: int, request: Request, db: Session = Depend
         raise HTTPException(status_code=404, detail="Project not found")
 
     try:
-        # 1. Agami DB에서 삭제
         db.delete(project)
-        
-        # 2. 캡차 DB: API 키 식별 및 소프트 삭제 (revoked_at 갱신)
         api_key_record = captcha_db.execute(
             text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :client_key RETURNING id"),
             {"client_key": project.site_key}
         ).scalar()
 
-        # 도메인 정보도 함께 삭제 (옵션, 클린한 관리를 위해 실행)
         if api_key_record:
             captcha_db.execute(
                 text("DELETE FROM allowed_origins WHERE api_key_id = :ak"),
@@ -409,7 +406,6 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     project.domains = data.domains
 
     try:
-        # [캡차 DB] api_keys 이름 업데이트 및 대상 API 키의 고유 ID, 테넌트 ID 조회
         api_info = captcha_db.execute(
             text("UPDATE api_keys SET name = :name WHERE client_key = :client_key RETURNING id, tenant_id"),
             {"name": data.name, "client_key": project.site_key}
@@ -419,13 +415,12 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
             api_key_id = api_info[0]
             tenant_id = api_info[1]
 
-            # [캡차 DB] 기존 도메인 목록 초기화 후 재삽입 (완전 덮어쓰기 논리)
             captcha_db.execute(
                 text("DELETE FROM allowed_origins WHERE api_key_id = :ak"),
                 {"ak": api_key_id}
             )
 
-            domain_list = [d.strip() for d in data.domains.split(",") if d.strip()]
+            domain_list = [normalize_domain(d) for d in data.domains.split(",") if d.strip()]
             for domain in domain_list:
                 origin_id = str(uuid.uuid4())
                 captcha_db.execute(
@@ -518,12 +513,10 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
         raise HTTPException(status_code=400, detail=f"결제 승인 실패: {response.json()}")
 
     try:
-        # 웹 DB 유저 플랜 업데이트
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if user:
             user.plan = "Pro"
             
-        # 캡차 DB 테넌트 플랜 동기화 업데이트
         captcha_db.execute(
             text("UPDATE tenants SET billing_plan = 'pro', updated_at = NOW() WHERE owner_user_id = :uid"),
             {"uid": user_id}
