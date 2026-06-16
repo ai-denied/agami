@@ -11,6 +11,9 @@ const CAPTCHA_TYPES = [
 const Test = () => {
   const [selectedType, setSelectedType] = useState(CAPTCHA_TYPES[0]);
 
+  // 임시 테스트용 클라이언트 키 (테스트가 끝나면 백엔드 API에서 동적으로 받아오도록 수정하세요)
+  const TEST_CLIENT_KEY = "agami_site_bfb5a03f15950c0d5754d4ec37827f1e";
+
   return (
     <div className="page-wrapper">
       <div className="layout-container">
@@ -31,16 +34,24 @@ const Test = () => {
         <main className="main-content">
           {/* 조건부 렌더링 로직 */}
           {selectedType.id === 'flashlight' ? (
+            // 기존 손전등 캡챠 (직접 렌더링)
             <Flashlight 
               kind="flashlight" 
               difficulty="easy" 
               onComplete={(token) => console.log('인증 토큰:', token)} 
             />
           ) : (
-            <div className="ready-state">
-              <span className="emoji">🚧</span>
-              <h3>현재 준비 중입니다</h3>
-              <p>더 나은 캡챠 서비스를 위해 개발 중이니 조금만 기다려 주세요!</p>
+            // 안면인식 & 감정추론 캡챠 (iframe 방식)
+            // 백엔드 업데이트에 맞춰 kind 파라미터가 동적으로 들어갑니다. (현재는 모두 손전등 위젯이 뜰 것입니다)
+            <div className="iframe-wrapper" style={{ width: '100%', margin: '20px 0', display: 'flex', justifyContent: 'center' }}>
+              <iframe 
+                src={`https://agami-captcha.cloud/widget/embed?kind=${selectedType.id}&difficulty=easy&client_key=${TEST_CLIENT_KEY}`}
+                width="100%" 
+                height="500px" 
+                frameBorder="0"
+                title={`${selectedType.title} 위젯`}
+                scrolling="no"
+              ></iframe>
             </div>
           )}
 

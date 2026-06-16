@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from database import SessionLocal
 import models
 from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware  # 이 부분입니다!
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 from jose import jwt
 from pydantic import BaseModel
@@ -363,7 +363,7 @@ async def delete_project(project_id: int, request: Request, db: Session = Depend
     return {"status": "success"}
 
 @app.get("/api/projects/{project_id}")
-async def get_project(project_id: int, request: Request, db: Session = Depends(get_db)):
+async def get_project(project_id: int, request: Request, kind: str = "default", db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
@@ -374,7 +374,7 @@ async def get_project(project_id: int, request: Request, db: Session = Depends(g
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
     if not project: raise HTTPException(status_code=404, detail="Project not found")
 
-    embed_url = f"https://agami-captcha.cloud/widget/embed?kind=default&difficulty=normal&client_key={project.site_key}"
+    embed_url = f"https://agami-captcha.cloud/widget/embed?kind={kind}&difficulty=normal&client_key={project.site_key}"
     embed_snippet = f'<iframe src="{embed_url}" width="100%" height="500px" frameborder="0"></iframe>'
 
     return {
