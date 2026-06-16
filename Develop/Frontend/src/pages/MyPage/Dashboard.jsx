@@ -1,78 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Dashboard.css';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
-
-const modelData = {
-  all: {
-    summary: { total: '184,392', rate: '97.8%', attack: '1,247' },
-    traffic: [
-      { time: '14:00', success: 14200, attack: 800 },
-      { time: '17:00', success: 17100, attack: 900 },
-      { time: '20:00', success: 21500, attack: 500 },
-      { time: '23:00', success: 23800, attack: 592 },
-      { time: '02:00', success: 11000, attack: 1000 },
-      { time: '05:00', success: 7200, attack: 800 },
-      { time: '08:00', success: 13500, attack: 500 },
-    ],
-    pie: [{ name: '정상 탐지', value: 94.2 }, { name: '보안 차단', value: 5.8 }],
-    behavior: { safe: 88.4, suspicious: 9.2, critical: 2.4 }
-  },
-  handlight: {
-    summary: { total: '92,410', rate: '98.1%', attack: '412' },
-    traffic: [
-      { time: '14:00', success: 7100, attack: 210 },
-      { time: '17:00', success: 8500, attack: 190 },
-      { time: '20:00', success: 10800, attack: 80 },
-      { time: '23:00', success: 11900, attack: 112 },
-      { time: '02:00', success: 5400, attack: 310 },
-      { time: '05:00', success: 3500, attack: 140 },
-      { time: '08:00', success: 6800, attack: 90 },
-    ],
-    pie: [{ name: '정상 탐지', value: 96.5 }, { name: '보안 차단', value: 3.5 }],
-    behavior: { safe: 92.1, suspicious: 6.4, critical: 1.5 }
-  },
-  facial: {
-    summary: { total: '58,122', rate: '97.2%', attack: '520' },
-    traffic: [
-      { time: '14:00', success: 4200, attack: 410 },
-      { time: '17:00', success: 4800, attack: 520 },
-      { time: '20:00', success: 6100, attack: 280 },
-      { time: '23:00', success: 6900, attack: 310 },
-      { time: '02:00', success: 2800, attack: 550 },
-      { time: '05:00', success: 1900, attack: 420 },
-      { time: '08:00', success: 3800, attack: 290 },
-    ],
-    pie: [{ name: '정상 탐지', value: 91.5 }, { name: '보안 차단', value: 8.5 }],
-    behavior: { safe: 82.5, suspicious: 13.5, critical: 4.0 }
-  },
-  emotion: {
-    summary: { total: '33,860', rate: '95.4%', attack: '315' },
-    traffic: [
-      { time: '14:00', success: 2800, attack: 150 },
-      { time: '17:00', success: 3100, attack: 180 },
-      { time: '20:00', success: 4200, attack: 90 },
-      { time: '23:00', success: 5000, attack: 120 },
-      { time: '02:00', success: 1500, attack: 220 },
-      { time: '05:00', success: 900, attack: 190 },
-      { time: '08:00', success: 2500, attack: 80 },
-    ],
-    pie: [{ name: '정상 탐지', value: 89.2 }, { name: '보안 차단', value: 10.8 }],
-    behavior: { safe: 78.0, suspicious: 15.5, critical: 6.5 }
-  }
-};
-
-const attackTypeData = [
-  { name: 'GPT-Vision API', value: 412 },
-  { name: 'Selenium/자동화', value: 287 },
-  { name: 'Headless Chrome', value: 198 },
-  { name: '인간 위장형 봇', value: 156 },
-  { name: 'Tor / VPN 우회', value: 89 },
-];
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -95,11 +29,61 @@ const CustomTooltip = ({ active, payload }) => {
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [activeModel, setActiveModel] = useState('all');
+  const [dashboardData, setDashboardData] = useState(null);
 
-  if (loading) return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}`, {
+          withCredentials: true
+        });
+        if (response.data.status === 'success') {
+          setDashboardData(response.data.data);
+        }
+      } catch (error) {
+        console.error("대시보드 데이터를 가져오는데 실패했습니다.", error);
+      }
+    };
+
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [activeModel, user]);
+
+  if (loading || !dashboardData) return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   if (!user) return null;
 
-  const current = modelData[activeModel] || modelData.all;
+  // --- API 데이터를 UI 컴포넌트 형식에 맞게 변환 (Data Mapping) ---
+  const { summary, attacks, risks, logs, traffic } = dashboardData;
+
+  // 요약 통계 계산
+  const totalRequests = summary?.total_sessions || 0;
+  const passRate = summary?.human_pass_rate && !isNaN(summary.human_pass_rate)
+    ? (summary.human_pass_rate * 100).toFixed(1) 
+    : summary?.total_sessions ? ((summary.human_total / summary.total_sessions) * 100).toFixed(1) : 0;
+  
+  let botDetectRate = 0.8; // 기본값
+  if (summary?.bot_detect_rate && !isNaN(summary.bot_detect_rate)) {
+      botDetectRate = parseFloat(summary.bot_detect_rate);
+  }
+  const blockedAttacks = Math.floor((summary?.bot_total || 0) * botDetectRate);
+
+  // 파이 차트 (UI 규격에 맞춰 2개로 압축)
+  const pieData = [
+    { name: '정상 탐지', value: Number((summary?.pie_chart?.find(i => i.label === 'Human Passed')?.ratio * 100 || 94.2).toFixed(1)) },
+    { name: '보안 차단', value: Number((summary?.pie_chart?.find(i => i.label === 'Bot Detected')?.ratio * 100 || 5.8).toFixed(1)) }
+  ];
+
+  // 행동 신뢰도 바
+  const safeBand = (risks?.bands?.find(b => b.band === 'low_risk')?.ratio * 100 || 0).toFixed(1);
+  const suspBand = (risks?.bands?.find(b => b.band === 'suspicious')?.ratio * 100 || 0).toFixed(1);
+  const critBand = (risks?.bands?.find(b => b.band === 'high_risk')?.ratio * 100 || 0).toFixed(1);
+
+  // 공격 유형 차트
+  const attackTypeData = attacks?.top_types?.map(type => ({
+    name: type.display_name,
+    value: type.count
+  })) || [];
 
   return (
     <div className="dashboard-container">
@@ -121,17 +105,17 @@ export default function Dashboard() {
           <section className="summary-grid">
             <div className="summary-card">
               <span className="card-label">오늘 총 요청 수</span>
-              <div className="card-value">{current.summary.total}</div>
+              <div className="card-value">{totalRequests.toLocaleString()}</div>
               <span className="card-sub up">+12.4% vs 어제</span>
             </div>
             <div className="summary-card">
               <span className="card-label">평균 정상 통과율</span>
-              <div className="card-value">{current.summary.rate}</div>
+              <div className="card-value">{passRate}%</div>
               <span className="card-sub up">0.3%p 상승</span>
             </div>
             <div className="summary-card">
               <span className="card-label">금일 공격 차단 건수</span>
-              <div className="card-value danger-text">{current.summary.attack}</div>
+              <div className="card-value danger-text">{blockedAttacks.toLocaleString()}</div>
               <span className="card-sub stable">안정적인 차단 상태</span>
             </div>
           </section>
@@ -142,7 +126,8 @@ export default function Dashboard() {
                 <h3>실시간 인증/차단 트래픽 추이</h3>
                 <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={current.traffic} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    {/* DB에서 가져온 traffic 데이터 매핑 */}
+                    <LineChart data={traffic} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
                       <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -161,17 +146,17 @@ export default function Dashboard() {
                     <div className="pie-wrapper">
                       <ResponsiveContainer width="100%" height={140}>
                         <PieChart>
-                          <Pie data={current.pie} innerRadius={48} outerRadius={62} paddingAngle={5} dataKey="value" startAngle={90} endAngle={-270}>
+                          <Pie data={pieData} innerRadius={48} outerRadius={62} paddingAngle={5} dataKey="value" startAngle={90} endAngle={-270}>
                             <Cell fill="var(--brand-color)" />
                             <Cell fill="var(--danger-color)" />
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
-                      <div className="pie-center-label"><h4>{current.pie[0].value}%</h4></div>
+                      <div className="pie-center-label"><h4>{pieData[0]?.value}%</h4></div>
                     </div>
                     <div className="pie-legend-list">
-                      <div className="legend-item"><span className="dot brand" /><span className="lbl">정상 사용자 ({current.pie[0].value}%)</span></div>
-                      <div className="legend-item"><span className="dot danger" /><span className="lbl">보안 차단 ({current.pie[1].value}%)</span></div>
+                      <div className="legend-item"><span className="dot brand" /><span className="lbl">정상 사용자 ({pieData[0]?.value}%)</span></div>
+                      <div className="legend-item"><span className="dot danger" /><span className="lbl">보안 차단 ({pieData[1]?.value}%)</span></div>
                     </div>
                   </div>
                 </div>
@@ -180,16 +165,16 @@ export default function Dashboard() {
                   <h3>종합 행동 신뢰도 분포</h3>
                   <div className="behavior-stats">
                     <div className="metric-bar-group">
-                      <div className="metric-bar-label"><span>안전 요인 (Safe)</span><strong>{current.behavior.safe}%</strong></div>
-                      <div className="metric-bar-track"><div className="metric-bar-fill safe" style={{ width: `${current.behavior.safe}%` }} /></div>
+                      <div className="metric-bar-label"><span>안전 요인 (Safe)</span><strong>{safeBand}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill safe" style={{ width: `${safeBand}%` }} /></div>
                     </div>
                     <div className="metric-bar-group">
-                      <div className="metric-bar-label"><span>의심 탐지 (Suspicious)</span><strong>{current.behavior.suspicious}%</strong></div>
-                      <div className="metric-bar-track"><div className="metric-bar-fill suspicious" style={{ width: `${current.behavior.suspicious}%` }} /></div>
+                      <div className="metric-bar-label"><span>의심 탐지 (Suspicious)</span><strong>{suspBand}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill suspicious" style={{ width: `${suspBand}%` }} /></div>
                     </div>
                     <div className="metric-bar-group">
-                      <div className="metric-bar-label"><span>위험 수위 (Critical)</span><strong>{current.behavior.critical}%</strong></div>
-                      <div className="metric-bar-track"><div className="metric-bar-fill critical" style={{ width: `${current.behavior.critical}%` }} /></div>
+                      <div className="metric-bar-label"><span>위험 수위 (Critical)</span><strong>{critBand}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill critical" style={{ width: `${critBand}%` }} /></div>
                     </div>
                   </div>
                 </div>
@@ -213,9 +198,13 @@ export default function Dashboard() {
               <div className="log-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
                 <div className="log-list">
-                  <div className="log-item danger-log"><span className="log-ip">203.0.113.42</span><span className="log-reason">Headless browser mismatch</span><span className="risk-score">0.92</span></div>
-                  <div className="log-item danger-log"><span className="log-ip">198.51.100.7</span><span className="log-reason">Datacenter ASN 패턴 유입</span><span className="risk-score">0.88</span></div>
-                  <div className="log-item warning-log"><span className="log-ip">192.0.2.55</span><span className="log-reason">비정상 마우스 가속도 탐지</span><span className="risk-score">0.76</span></div>
+                  {logs?.sessions?.map((log, idx) => (
+                    <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log'}`}>
+                      <span className="log-ip">{log.file?.split('_')[1] || "Unknown"}</span>
+                      <span className="log-reason">{log.bot_type || log.source_type}</span>
+                      <span className="risk-score">{log.bot_risk_score ? log.bot_risk_score.toFixed(2) : "N/A"}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

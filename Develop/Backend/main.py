@@ -181,10 +181,8 @@ async def get_me(request: Request, db: Session = Depends(get_db), captcha_db: Se
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
 
-        # --- [추가된 로직] 유저가 접속할 때마다 백그라운드에서 조용히 플랜 동기화 ---
         try:
             current_plan = "pro" if user.plan == "Pro" else "free"
-            # 테넌트가 이미 존재한다면 agamidb의 최신 플랜으로 업데이트 (없으면 무시됨)
             captcha_db.execute(
                 text("UPDATE tenants SET billing_plan = :plan, updated_at = NOW() WHERE owner_user_id = :uid"),
                 {"plan": current_plan, "uid": int(user_id)}
@@ -192,9 +190,7 @@ async def get_me(request: Request, db: Session = Depends(get_db), captcha_db: Se
             captcha_db.commit()
         except Exception as e:
             captcha_db.rollback()
-            # 동기화에 실패하더라도 유저의 로그인/접속 자체를 막으면 안 되므로 에러만 기록하고 넘깁니다.
             print(f"Background Sync Error: {str(e)}")
-        # ----------------------------------------------------------------------
 
         return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
     except Exception:
@@ -332,12 +328,10 @@ async def get_projects(request: Request, db: Session = Depends(get_db), captcha_
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 웹 DB에서 유저의 프로젝트 목록 조회
     projects = db.query(models.Project).filter(models.Project.user_id == user_id).all()
     
     project_list = []
     for p in projects:
-        # 캡차 DB에서 해당 프로젝트(Site Key)의 api_key_id를 찾음
         api_key_record = captcha_db.execute(
             text("SELECT id FROM api_keys WHERE client_key = :ck"),
             {"ck": p.site_key}
@@ -345,7 +339,6 @@ async def get_projects(request: Request, db: Session = Depends(get_db), captcha_
 
         total_usage = 0
         if api_key_record:
-            # 해당 api_key_id로 발행된 모든 캡차 도전(challenges) 횟수를 카운트 (유형/성공 무관)
             total_usage = captcha_db.execute(
                 text("SELECT COUNT(*) FROM challenges WHERE api_key_id = :ak"),
                 {"ak": api_key_record}
@@ -357,7 +350,7 @@ async def get_projects(request: Request, db: Session = Depends(get_db), captcha_
             "domains": p.domains,
             "site_key": p.site_key,
             "secret_key": p.secret_key,
-            "total_usage": total_usage # 계산된 총 호출 수 반환
+            "total_usage": total_usage 
         })
 
     return {
@@ -571,3 +564,74 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
         raise HTTPException(status_code=500, detail=f"결제 후 DB 동기화 실패: {str(e)}")
 
     return {"status": "success", "message": "결제가 완료되었습니다."}
+
+# -----------------------------------------------------------------------------
+# 대시보드 API (프록시 및 DB 병합)
+# -----------------------------------------------------------------------------
+@app.get("/api/dashboard/all")
+async def get_combined_dashboard_data(request: Request, kind: str = "all", captcha_db: Session = Depends(get_captcha_db)):
+    token = request.cookies.get("accessToken")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    DASHBOARD_POD_URL = os.getenv("DASHBOARD_POD_URL", "http://10.3.7.10:8080/api/v1/dashboard")
+    
+    try:
+        # 1. 조원분의 API에서 JSON 기반 데이터 조회
+        summary_res = requests.get(f"{DASHBOARD_POD_URL}/summary").json()
+        attacks_res = requests.get(f"{DASHBOARD_POD_URL}/attack_types?top_n=5").json()
+        risks_res = requests.get(f"{DASHBOARD_POD_URL}/risk_bands").json()
+        sessions_res = requests.get(f"{DASHBOARD_POD_URL}/sessions?is_blocked=true&limit=10").json()
+
+        # 2. DB(challenges 테이블)에서 직접 최근 24시간 시간대별 총 요청 수 조회
+        traffic_query = text("""
+            SELECT TO_CHAR(issued_at AT TIME ZONE 'Asia/Seoul', 'HH24:00') as time_str,
+                   COUNT(*) as total_req
+            FROM challenges
+            WHERE owner_user_id = :uid
+              AND issued_at >= NOW() - INTERVAL '24 hours'
+            GROUP BY time_str
+            ORDER BY time_str
+        """)
+        traffic_records = captcha_db.execute(traffic_query, {"uid": int(user_id)}).fetchall()
+
+        # 3. 트래픽 데이터 결합 (DB 총 요청수 + JSON 요약 데이터 기반 차단 비율 추산)
+        total_sessions = summary_res.get("total_sessions", 1)
+        bot_total = summary_res.get("bot_total", 0)
+        
+        try:
+            bot_detect_rate = float(summary_res.get("bot_detect_rate", 0))
+        except (ValueError, TypeError):
+            bot_detect_rate = 0.8  # [원문 누락] 등 예외 시 임시 기본값
+            
+        overall_block_ratio = (bot_total * bot_detect_rate) / total_sessions if total_sessions > 0 else 0
+        
+        traffic_data = []
+        for row in traffic_records:
+            time_label = row[0]
+            total_req = int(row[1])
+            blocked_req = int(total_req * overall_block_ratio)
+            success_req = total_req - blocked_req
+            traffic_data.append({
+                "time": time_label,
+                "success": success_req,
+                "attack": blocked_req
+            })
+
+        return {
+            "status": "success",
+            "data": {
+                "summary": summary_res,
+                "attacks": attacks_res,
+                "risks": risks_res,
+                "logs": sessions_res,
+                "traffic": traffic_data
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"대시보드 데이터 집계 실패: {str(e)}")
