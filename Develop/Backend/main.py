@@ -566,7 +566,7 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     return {"status": "success", "message": "결제가 완료되었습니다."}
 
 # -----------------------------------------------------------------------------
-# 대시보드 API (프록시 및 DB 병합)
+# 대시보드 API (프록시 및 DB 병합) - 에러 방어 로직 추가
 # -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
 async def get_combined_dashboard_data(request: Request, kind: str = "all", captcha_db: Session = Depends(get_captcha_db)):
@@ -579,10 +579,9 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 조원 파드 주소 (기본값 설정)
     DASHBOARD_POD_URL = os.getenv("DASHBOARD_POD_URL", "http://10.3.7.10:8080/api/v1/dashboard")
     
-    # 에러 방어 및 JSON 파싱 헬퍼 함수
+    # 안전하게 API를 호출하고 실패 시 로그를 남기는 헬퍼 함수
     def fetch_api(endpoint: str, default_data: dict):
         url = f"{DASHBOARD_POD_URL}{endpoint}"
         try:
@@ -590,20 +589,33 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
             if res.status_code == 200:
                 return res.json()
             else:
-                print(f"❌ [조원 API 에러] URL: {url} | 상태 코드: {res.status_code}")
+                print(f"❌ [조원 API 에러] URL: {url} | 상태 코드: {res.status_code} | 응답: {res.text[:100]}")
                 return default_data
         except Exception as e:
-            print(f"❌ [서버 연결 실패] URL: {url} | 사유: {str(e)}")
+            print(f"❌ [조원 서버 연결 실패] URL: {url} | 에러 내용: {str(e)}")
             return default_data
 
+    # 안전하게 숫자로 변환하는 헬퍼 함수들 (TypeError 완벽 차단)
+    def safe_float(val, default=0.0):
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return default
+            
+    def safe_int(val, default=0):
+        try:
+            return int(val)
+        except (ValueError, TypeError):
+            return default
+
     try:
-        # 1. 조원의 실제 엔드포인트 명칭에 맞게 수정 (/risk_distribution)
+        # 1. 조원 API 호출 (엔드포인트 명칭 수정 반영)
         summary_res = fetch_api("/summary", {"total_sessions": 0, "bot_total": 0, "human_total": 0, "bot_detect_rate": 0, "pie_chart": []})
         attacks_res = fetch_api("/attack_types?top_n=5", {"top_types": []}) 
-        risks_res = fetch_api("/risk_distribution", {"bands": []})  # <--- 이 부분이 수정되었습니다.
+        risks_res = fetch_api("/risk_distribution", {"bands": []})
         sessions_res = fetch_api("/sessions?is_blocked=true&limit=10", {"sessions": []})
 
-        # 2. DB(challenges 테이블)에서 직접 최근 24시간 시간대별 총 요청 수 조회
+        # 2. DB(challenges 테이블)에서 시간대별 총 요청 수 조회
         traffic_query = text("""
             SELECT TO_CHAR(issued_at AT TIME ZONE 'Asia/Seoul', 'HH24:00') as time_str,
                    COUNT(*) as total_req
@@ -613,23 +625,19 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
             GROUP BY time_str
             ORDER BY time_str
         """)
-        traffic_records = captcha_db.execute(traffic_query, {"uid": int(user_id)}).fetchall()
+        traffic_records = captcha_db.execute(traffic_query, {"uid": safe_int(user_id)}).fetchall()
 
-        # 3. 트래픽 데이터 결합
-        total_sessions = summary_res.get("total_sessions", 0)
-        bot_total = summary_res.get("bot_total", 0)
-        
-        try:
-            bot_detect_rate = float(summary_res.get("bot_detect_rate", 0.8))
-        except (ValueError, TypeError):
-            bot_detect_rate = 0.8 
+        # 3. 트래픽 데이터 결합 (안전한 형변환 적용)
+        total_sessions = safe_int(summary_res.get("total_sessions", 0))
+        bot_total = safe_int(summary_res.get("bot_total", 0))
+        bot_detect_rate = safe_float(summary_res.get("bot_detect_rate", 0.8))
             
         overall_block_ratio = (bot_total * bot_detect_rate) / total_sessions if total_sessions > 0 else 0
         
         traffic_data = []
         for row in traffic_records:
             time_label = row[0]
-            total_req = int(row[1])
+            total_req = safe_int(row[1])
             blocked_req = int(total_req * overall_block_ratio)
             success_req = total_req - blocked_req
             traffic_data.append({

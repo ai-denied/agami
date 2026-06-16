@@ -56,17 +56,16 @@ export default function Dashboard() {
   // --- API 데이터를 UI 컴포넌트 형식에 맞게 변환 (Data Mapping) ---
   const { summary, attacks, risks, logs, traffic } = dashboardData;
 
-  // 요약 통계 계산
-  const totalRequests = summary?.total_sessions || 0;
-  const passRate = summary?.human_pass_rate && !isNaN(summary.human_pass_rate)
-    ? (summary.human_pass_rate * 100).toFixed(1) 
-    : summary?.total_sessions ? ((summary.human_total / summary.total_sessions) * 100).toFixed(1) : 0;
+  // 요약 통계 계산 (안전한 숫자 형변환 추가)
+  const totalRequests = Number(summary?.total_sessions) || 0;
   
-  let botDetectRate = 0.8; // 기본값
-  if (summary?.bot_detect_rate && !isNaN(summary.bot_detect_rate)) {
-      botDetectRate = parseFloat(summary.bot_detect_rate);
-  }
-  const blockedAttacks = Math.floor((summary?.bot_total || 0) * botDetectRate);
+  const passRate = (summary?.human_pass_rate && !isNaN(Number(summary.human_pass_rate)))
+    ? (Number(summary.human_pass_rate) * 100).toFixed(1) 
+    : (Number(summary?.total_sessions) > 0 && !isNaN(Number(summary?.human_total))) 
+      ? ((Number(summary.human_total) / Number(summary.total_sessions)) * 100).toFixed(1) : "0.0";
+  
+  const botDetectRate = (!isNaN(Number(summary?.bot_detect_rate))) ? Number(summary.bot_detect_rate) : 0.8;
+  const blockedAttacks = Math.floor((Number(summary?.bot_total) || 0) * botDetectRate);
 
   // 파이 차트 (UI 규격에 맞춰 2개로 압축)
   const pieData = [
@@ -82,7 +81,7 @@ export default function Dashboard() {
   // 공격 유형 차트
   const attackTypeData = attacks?.top_types?.map(type => ({
     name: type.display_name,
-    value: type.count
+    value: Number(type.count) || 0
   })) || [];
 
   return (
@@ -202,7 +201,7 @@ export default function Dashboard() {
                     <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log'}`}>
                       <span className="log-ip">{log.file?.split('_')[1] || "Unknown"}</span>
                       <span className="log-reason">{log.bot_type || log.source_type}</span>
-                      <span className="risk-score">{log.bot_risk_score ? log.bot_risk_score.toFixed(2) : "N/A"}</span>
+                      <span className="risk-score">{log.bot_risk_score ? Number(log.bot_risk_score).toFixed(2) : "N/A"}</span>
                     </div>
                   ))}
                 </div>
