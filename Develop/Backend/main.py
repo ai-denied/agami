@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from database import SessionLocal
 import models
 from dotenv import load_dotenv
-from fastapi.middleware.middleware import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware  # 이 부분입니다!
 from datetime import datetime, timedelta
 from jose import jwt
 from pydantic import BaseModel
