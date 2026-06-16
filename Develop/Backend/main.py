@@ -579,14 +579,29 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+    # 조원 파드 주소 (기본값 설정)
     DASHBOARD_POD_URL = os.getenv("DASHBOARD_POD_URL", "http://10.3.7.10:8080/api/v1/dashboard")
     
+    # 에러 방어 및 JSON 파싱 헬퍼 함수
+    def fetch_api(endpoint: str, default_data: dict):
+        url = f"{DASHBOARD_POD_URL}{endpoint}"
+        try:
+            res = requests.get(url, timeout=5)
+            if res.status_code == 200:
+                return res.json()
+            else:
+                print(f"❌ [조원 API 에러] URL: {url} | 상태 코드: {res.status_code}")
+                return default_data
+        except Exception as e:
+            print(f"❌ [서버 연결 실패] URL: {url} | 사유: {str(e)}")
+            return default_data
+
     try:
-        # 1. 조원분의 API에서 JSON 기반 데이터 조회
-        summary_res = requests.get(f"{DASHBOARD_POD_URL}/summary").json()
-        attacks_res = requests.get(f"{DASHBOARD_POD_URL}/attack_types?top_n=5").json()
-        risks_res = requests.get(f"{DASHBOARD_POD_URL}/risk_bands").json()
-        sessions_res = requests.get(f"{DASHBOARD_POD_URL}/sessions?is_blocked=true&limit=10").json()
+        # 1. 조원의 실제 엔드포인트 명칭에 맞게 수정 (/risk_distribution)
+        summary_res = fetch_api("/summary", {"total_sessions": 0, "bot_total": 0, "human_total": 0, "bot_detect_rate": 0, "pie_chart": []})
+        attacks_res = fetch_api("/attack_types?top_n=5", {"top_types": []}) 
+        risks_res = fetch_api("/risk_distribution", {"bands": []})  # <--- 이 부분이 수정되었습니다.
+        sessions_res = fetch_api("/sessions?is_blocked=true&limit=10", {"sessions": []})
 
         # 2. DB(challenges 테이블)에서 직접 최근 24시간 시간대별 총 요청 수 조회
         traffic_query = text("""
@@ -600,14 +615,14 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
         """)
         traffic_records = captcha_db.execute(traffic_query, {"uid": int(user_id)}).fetchall()
 
-        # 3. 트래픽 데이터 결합 (DB 총 요청수 + JSON 요약 데이터 기반 차단 비율 추산)
-        total_sessions = summary_res.get("total_sessions", 1)
+        # 3. 트래픽 데이터 결합
+        total_sessions = summary_res.get("total_sessions", 0)
         bot_total = summary_res.get("bot_total", 0)
         
         try:
-            bot_detect_rate = float(summary_res.get("bot_detect_rate", 0))
+            bot_detect_rate = float(summary_res.get("bot_detect_rate", 0.8))
         except (ValueError, TypeError):
-            bot_detect_rate = 0.8  # [원문 누락] 등 예외 시 임시 기본값
+            bot_detect_rate = 0.8 
             
         overall_block_ratio = (bot_total * bot_detect_rate) / total_sessions if total_sessions > 0 else 0
         
@@ -634,4 +649,5 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"대시보드 데이터 집계 실패: {str(e)}")
+        print(f"❌ [백엔드 통합 로직 에러] {str(e)}")
+        raise HTTPException(status_code=500, detail="대시보드 데이터 집계 중 오류가 발생했습니다.")
