@@ -73,6 +73,9 @@ def get_captcha_db():
     db = CaptchaSessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 
@@ -86,6 +89,9 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 
@@ -243,7 +249,8 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
             captcha_db.execute(text("""INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())"""), {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id})
-            captcha_db.execute(text("""INSERT INTO tenant_settings (tenant_id, default_difficulty, enabled_kinds, max_attempts, rate_limit_per_min, updated_at) VALUES (:tid, 'medium', '["flashlight"]'::jsonb, 3, 60, NOW())"""), {"tid": tenant_id})
+            # 수정됨: ::jsonb 구문을 파이썬이 변수로 착각하지 못하도록 CAST 문법으로 교체
+            captcha_db.execute(text("""INSERT INTO tenant_settings (tenant_id, default_difficulty, enabled_kinds, max_attempts, rate_limit_per_min, updated_at) VALUES (:tid, 'medium', CAST('["flashlight"]' AS JSONB), 3, 60, NOW())"""), {"tid": tenant_id})
         else:
             tenant_id = str(tenant_id_record)
             captcha_db.execute(text("UPDATE tenants SET billing_plan = :plan WHERE id = :tid"), {"plan": current_plan, "tid": tenant_id})
@@ -438,7 +445,6 @@ async def get_combined_dashboard_data(
     bot_blocked = stats_dict.get(False, 0)
     total_verified = human_passed + bot_blocked
     
-    # 중도 이탈 수치 계산 (전체 발급 수에서 검증 완료 수를 차감)
     abandoned_today = max(0, total_sessions - total_verified)
     
     # 2. 차단 유형 한글 맵핑
@@ -511,14 +517,13 @@ async def get_combined_dashboard_data(
             "abandoned": abandoned_cnt
         })
 
-    # 5. 파이 차트 보정 (분모를 total_sessions로 잡아 3분할 100% 구조로 변경)
+    # 5. 파이 차트 보정
     if total_sessions > 0:
         pass_rate = (human_passed / total_sessions * 100)
         pie_human = round(pass_rate, 1)
         pie_bot = round((bot_blocked / total_sessions * 100), 1)
         pie_abandoned = round((abandoned_today / total_sessions * 100), 1)
         
-        # 소수점 반올림 오차 보정
         if (pie_human + pie_bot + pie_abandoned) != 100.0:
             pie_abandoned = round(100.0 - pie_human - pie_bot, 1)
     else:
