@@ -1,32 +1,4 @@
-/* =============================================================================
-   [전역 고정] 시스템 스크롤바 공간 개입 박탈 및 테마 엔진 최적화
-   ============================================================================= */
-html {
-  color-scheme: light dark;
-}
 
-html,
-body,
-#root,
-.global-app-root {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  overflow: hidden !important; 
-  position: relative;
-}
-
-::-webkit-scrollbar {
-  width: 0px !important;
-  height: 0px !important;
-  display: none !important;
-}
-
-* {
-  scrollbar-width: none !important; 
-  -ms-overflow-style: none !important; 
-}
 
 /* =============================================================================
    [1] 테마별 변수 제어 (오리지널 동일)
@@ -79,13 +51,20 @@ body.no-scroll {
   z-index: 1;
 }
 
-.main-wrapper {
+.home-main-wrapper {
   width: 100%;
   height: 100%; 
   overflow-y: auto !important; 
   overflow-x: hidden !important; 
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
+  scrollbar-width: none !important; 
+  -ms-overflow-style: none !important; 
+}
+
+.home-main-wrapper::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
 }
 
 .home-container,

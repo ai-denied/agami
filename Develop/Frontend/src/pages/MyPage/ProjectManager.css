@@ -5,11 +5,12 @@
 
 .pm-wrapper {
   width: 100%;
-  margin: 40px;
-  padding: 40px;
+  margin: 40px 0; /* 좌우 마진을 0으로 처리하여 100% 너비 초과 방지 */
+  padding: 0 40px; /* 기존 상하좌우 40px 여백 효과를 패딩으로 유지 */
   box-sizing: border-box;
   display: flex;
   justify-content: center;
+  overflow-x: hidden; /* 좌우 스크롤 원천 차단 */
 }
 
 .pm-container {

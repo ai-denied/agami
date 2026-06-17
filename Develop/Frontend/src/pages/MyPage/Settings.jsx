@@ -58,7 +58,7 @@ const Settings = () => {
       <div className="settings-container">
         <header className="settings-header">
           <h1 className="settings-title">계정 설정</h1>
-          <p className="settings-description">플랫폼에서 사용될 프로필과 닉네임, 요금제를 관리합니다.</p>
+          <p className="settings-description">플랫폼에서 사용될 닉네임, 요금제를 관리합니다.</p>
         </header>
 
         <section className="settings-section">

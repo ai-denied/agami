@@ -662,7 +662,7 @@ const Home = () => {
 
   return (
     <div 
-      className="main-wrapper" 
+      className="home-main-wrapper" 
       ref={wrapperRef} 
       style={{ 
         contentVisibility: "auto", 
