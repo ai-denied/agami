@@ -1,7 +1,5 @@
 /* =============================================================================
    [초핵심] 전역 렌더링 강제 동기화 엔진
-   오른쪽 메인 컨텐츠 내부에 있는 카드(0.2s)나 요소들이 제각각 
-   빨리 어두워지는 시차 오작동을 0.3s로 멱살잡고 완벽히 통일합니다.
    ============================================================================= */
 .mypage-layout,
 .mypage-sidebar,
@@ -10,7 +8,6 @@
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-/* 화살표 모션은 예외로 살려둡니다 */
 .arrow-icon { transition: transform 0.2s ease !important; }
 
 /* =============================================================================
@@ -27,7 +24,7 @@
   display: flex;
   width: 100%;
   height: 100%; 
-  padding-top: 65px; /* Navbar 영역(65px) 확보 */
+  padding-top: 65px; 
   background-color: #f4f7fb;
   box-sizing: border-box;
   overflow-x: auto; 
@@ -59,9 +56,6 @@ body.dark-mode .mypage-sidebar {
   border-right-color: #28282a;
 }
 
-/* ---------------------------------------------------
-   [프로필 영역]
---------------------------------------------------- */
 .sidebar-profile {
   display: flex;
   flex-direction: column;
@@ -92,9 +86,6 @@ body.dark-mode .sidebar-profile .profile-name {
   color: #ffffff;
 }
 
-/* ---------------------------------------------------
-   [메뉴 리스트]
---------------------------------------------------- */
 .sidebar-menu-list { 
   list-style: none; 
   padding: 0; 
@@ -108,12 +99,12 @@ body.dark-mode .sidebar-profile .profile-name {
 }
 
 .sidebar-menu-list li {
-  padding: 15px 35px; /* 텍스트 시작 위치 보정 */
+  padding: 15px 35px; 
   margin-top: 0;
   margin-bottom: 8px;
-  margin-left: -20px; /* 사이드바 끝까지 밀착 */
-  margin-right: -20px; /* 사이드바 끝까지 밀착 */
-  border-radius: 0; /* 둥근 모서리 파괴 */
+  margin-left: -20px; 
+  margin-right: -20px; 
+  border-radius: 0; 
   cursor: pointer;
   color: #6b7891;
   font-weight: 500;
@@ -137,7 +128,6 @@ body.dark-mode .sidebar-menu-list li:hover {
   color: #5da2ff;
 }
 
-/* 활성화 상태 */
 .sidebar-menu-list a.active li {
   background-color: #5da2ff !important;
   color: white !important;
@@ -167,7 +157,7 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
 .mypage-main {
   flex: 1;
   height: 100%;
-  padding: 40px;
+  padding: 0; /* 이중 여백의 원인이던 40px 패딩 삭제. 스크롤바가 우측 끝으로 밀착됩니다. */
   overflow-y: auto;
   box-sizing: border-box;
 }
