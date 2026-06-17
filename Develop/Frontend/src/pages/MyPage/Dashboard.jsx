@@ -31,7 +31,6 @@ export default function Dashboard() {
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
-  // 로컬 타임존 기반 오늘 날짜 문자열 생성 헬퍼
   const getLocalDateStr = (d) => {
     const offset = d.getTimezoneOffset() * 60000;
     return new Date(d - offset).toISOString().split('T')[0];
@@ -84,7 +83,7 @@ export default function Dashboard() {
           <section className="dashboard-header-block">
             <div className="welcome-section">
               <h2>안녕하세요, {user.nickname}님! 안전한 환경을 유지 중입니다</h2>
-              <p>Agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
+              <p>agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
             </div>
             
             <div className="header-controls">
@@ -96,6 +95,8 @@ export default function Dashboard() {
                     value={targetDate} 
                     max={todayStr}
                     onChange={(e) => setTargetDate(e.target.value)} 
+                    onClick={(e) => e.target.showPicker && e.target.showPicker()} // 클릭 시 팝업 즉시 열림
+                    onKeyDown={(e) => e.preventDefault()} // 키보드 입력 완벽 차단
                     className="dashboard-date-picker"
                   />
                   <button 
@@ -104,7 +105,6 @@ export default function Dashboard() {
                     disabled={targetDate >= todayStr}
                   >▶</button>
                 </div>
-                {/* 새로고침 버튼 디자인 및 분리 반영 */}
                 <button className="refresh-btn" onClick={fetchDashboardData} title="새로고침">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -143,7 +143,6 @@ export default function Dashboard() {
 
           <section className="analytics-grid">
             <div className="left-analytics">
-              {/* 상단행 고정 높이 적용 */}
               <div className="chart-card line-chart-card">
                 <h3>시간대별 인증/차단/이탈 트래픽 추이</h3>
                 <div className="chart-wrapper split-charts">
@@ -182,7 +181,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* 하단행 고정 높이 적용 */}
               <div className="two-column-grid bottom-row-height">
                 <div className="sub-card">
                   <h3>유입 트래픽 검증 비율</h3>
@@ -241,7 +239,6 @@ export default function Dashboard() {
             </div>
 
             <div className="right-analytics">
-              {/* 상단: 실시간 로그 (그래프 높이 동기화) */}
               <div className="log-card line-chart-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
                 <div className="log-list-container">
@@ -262,16 +259,16 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* 하단: 우회 공격 유형 (행동 분포 높이 동기화) */}
               <div className="chart-card bottom-row-height attack-chart-card">
                 <h3>주요 우회 공격 유형</h3>
                 <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={attacks} margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
+                    {/* 마진을 수정하여 쏠림 현상을 방지하고, Bar radius 4면 둥글게 적용 */}
+                    <BarChart layout="vertical" data={attacks} margin={{ left: -10, right: 20, top: 0, bottom: 0 }}>
                       <XAxis type="number" hide allowDecimals={false} />
-                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={120} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={105} />
                       <Tooltip content={<CustomTooltip />} cursor={false} />
-                      <Bar dataKey="value" fill="var(--danger-color)" radius={[0, 6, 6, 0]} barSize={10} name="감지 건수" isAnimationActive={false} />
+                      <Bar dataKey="value" fill="var(--danger-color)" radius={[6, 6, 6, 6]} barSize={10} name="감지 건수" isAnimationActive={false} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

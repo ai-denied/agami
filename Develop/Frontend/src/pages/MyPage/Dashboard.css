@@ -35,6 +35,7 @@ body.dark-mode, .dark-mode {
   background-color: transparent; 
   color: var(--text-primary);
   font-family: 'Pretendard', sans-serif;
+  margin: 40px;
 }
 
 .main-wrapper {
@@ -67,7 +68,6 @@ body.dark-mode, .dark-mode {
   gap: 12px;
 }
 
-/* 새로고침 분리 및 디자인 개선 */
 .date-control-wrapper {
   display: flex;
   align-items: center;
@@ -178,8 +178,8 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
 .danger-text { color: var(--danger-color) !important; }
 
 /* 높이 강제 동기화 클래스 (한 줄에 칼같이 정렬) */
-.line-chart-card { height: 480px; }
-.bottom-row-height { height: 280px; }
+.line-chart-card { height: 480px; box-sizing: border-box; }
+.bottom-row-height { height: 290px; box-sizing: border-box; }
 
 .analytics-grid {
   display: grid;
@@ -204,7 +204,7 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
 .chart-card h3, .sub-card h3, .log-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 24px; flex-shrink: 0;}
 
 .chart-wrapper { 
-  flex-grow: 1; /* 부모 높이 안에서 꽉 차게 확장 */
+  flex-grow: 1; 
   width: 100%; 
   position: relative;
 }
@@ -216,7 +216,8 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
 }
 
 .two-column-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.sub-card { justify-content: flex-start; }
+.two-column-grid.bottom-row-height .sub-card { height: 100%; }
+.sub-card { justify-content: flex-start; box-sizing: border-box; }
 
 .pie-container-layout {
   display: flex;
@@ -268,22 +269,34 @@ body.dark-mode .metric-bar-track { background-color: rgba(255,255,255,0.05); }
 .metric-bar-fill.critical { background-color: var(--danger-color); }
 .metric-bar-fill.abandoned { background-color: #94a3b8; }
 
-/* 로그 스크롤 컨테이너 적용 (플렉스 안에서 스크롤 생성) */
+/* 로그 박스 디자인 추가 (눈에 띄는 스크롤바와 배경 포함) */
 .log-list-container {
   flex-grow: 1;
-  overflow-y: auto;
-  padding-right: 6px;
+  overflow-y: scroll; /* 스크롤바 항시 표시 */
+  background-color: rgba(93, 162, 255, 0.03); 
+  border: 1px solid rgba(93, 162, 255, 0.05);
+  border-radius: 16px;
+  padding: 12px;
+  margin-top: 4px;
 }
-.log-list-container::-webkit-scrollbar { width: 6px; }
-.log-list-container::-webkit-scrollbar-track { background: transparent; }
+body.dark-mode .log-list-container {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.log-list-container::-webkit-scrollbar { width: 8px; }
+.log-list-container::-webkit-scrollbar-track { 
+  background: rgba(0,0,0,0.02); 
+  border-radius: 10px; 
+}
+body.dark-mode .log-list-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
 .log-list-container::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 10px; }
 .log-list-container::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
 
 .log-list { display: flex; flex-direction: column; gap: 10px; }
-.log-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 16px; font-size: 0.85rem; }
+.log-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 12px; font-size: 0.85rem; }
 .danger-log { background-color: var(--danger-bg); color: var(--danger-color); }
 .warning-log { background-color: var(--warning-bg); color: var(--warning-color); }
-/* 정상 통과 로그는 파란색으로 처리 */
 .safe-log { background-color: rgba(93, 162, 255, 0.1); color: var(--brand-color); }
 
 .log-ip { font-family: monospace; font-weight: 700; width: 100px; }
