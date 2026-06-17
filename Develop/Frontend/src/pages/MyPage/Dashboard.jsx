@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Dashboard.css';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 
@@ -31,20 +31,27 @@ export default function Dashboard() {
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
-  const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  const todayStr = (() => {
+    const today = new Date();
+    const offset = today.getTimezoneOffset() * 60000;
+    return new Date(today - offset).toISOString().split('T')[0];
+  })();
+
   const [targetDate, setTargetDate] = useState(todayStr);
 
-  const handlePrevDate = () => {
+  const handlePrevDay = () => {
     const d = new Date(targetDate);
     d.setDate(d.getDate() - 1);
-    setTargetDate(d.toISOString().split('T')[0]);
+    const offset = d.getTimezoneOffset() * 60000;
+    setTargetDate(new Date(d - offset).toISOString().split('T')[0]);
   };
 
-  const handleNextDate = () => {
+  const handleNextDay = () => {
     if (targetDate >= todayStr) return;
     const d = new Date(targetDate);
     d.setDate(d.getDate() + 1);
-    setTargetDate(d.toISOString().split('T')[0]);
+    const offset = d.getTimezoneOffset() * 60000;
+    setTargetDate(new Date(d - offset).toISOString().split('T')[0]);
   };
 
   useEffect(() => {
@@ -82,19 +89,19 @@ export default function Dashboard() {
             </div>
             
             <div className="header-controls">
-              <div className="date-picker-wrapper">
-                <button className="date-arrow-btn" onClick={handlePrevDate}>&lt;</button>
-                <input 
-                  type="date" 
-                  value={targetDate} 
-                  max={todayStr}
-                  onChange={(e) => setTargetDate(e.target.value)} 
-                  className="dashboard-date-picker"
-                />
-                {targetDate < todayStr ? (
-                  <button className="date-arrow-btn" onClick={handleNextDate}>&gt;</button>
-                ) : (
-                  <div className="date-arrow-spacer"></div>
+              <div className="date-picker-container">
+                <button className="arrow-btn" onClick={handlePrevDay}>&lt;</button>
+                <div className="date-picker-wrapper">
+                  <input 
+                    type="date" 
+                    value={targetDate} 
+                    max={todayStr}
+                    onChange={(e) => setTargetDate(e.target.value)} 
+                    className="dashboard-date-picker"
+                  />
+                </div>
+                {targetDate < todayStr && (
+                  <button className="arrow-btn" onClick={handleNextDay}>&gt;</button>
                 )}
               </div>
 
@@ -121,7 +128,7 @@ export default function Dashboard() {
               <div className="card-value danger-text">{display.blocked_today.toLocaleString()}</div>
             </div>
             <div className="summary-card">
-              <span className="card-label">미인증/중도 이탈 건수</span>
+              <span className="card-label">미인증 / 중도 이탈</span>
               <div className="card-value" style={{ color: 'var(--text-secondary)' }}>{display.abandoned_today?.toLocaleString() || 0}</div>
             </div>
           </section>
@@ -129,20 +136,46 @@ export default function Dashboard() {
           <section className="analytics-grid">
             <div className="left-analytics">
               <div className="chart-card">
-                <h3>시간대별 인증/차단/이탈 트래픽 추이</h3>
-                <div className="chart-wrapper">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={traffic} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
-                      <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)', strokeWidth: 1 }} />
-                      <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}/>
-                      <Line type="monotone" dataKey="success" stroke="var(--brand-color)" strokeWidth={3} strokeOpacity={0.8} dot={false} name="정상 요청" isAnimationActive={false} />
-                      <Line type="monotone" dataKey="attack" stroke="var(--danger-color)" strokeWidth={3} strokeOpacity={0.8} dot={false} name="차단된 공격" isAnimationActive={false} />
-                      <Line type="monotone" dataKey="abandoned" stroke="var(--warning-color)" strokeWidth={3} strokeOpacity={0.8} dot={false} name="중도 이탈" isAnimationActive={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="chart-header-row">
+                  <h3>시간대별 인증/차단/이탈 트래픽 추이</h3>
+                  <div className="chart-legend-top-right">
+                    <span><div className="dot brand"/> 정상 요청</span>
+                    <span><div className="dot danger"/> 차단된 공격</span>
+                    <span><div className="dot abandoned"/> 중도 이탈</span>
+                  </div>
+                </div>
+                <div className="chart-wrapper-multi">
+                  <div className="mini-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={traffic} syncId="trafficChart" margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
+                        <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} tickCount={3}/>
+                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)', strokeWidth: 1 }} />
+                        <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={2} dot={false} isAnimationActive={false} name="정상 요청" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mini-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={traffic} syncId="trafficChart" margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
+                        <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} tickCount={3}/>
+                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)', strokeWidth: 1 }} />
+                        <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={2} dot={false} isAnimationActive={false} name="차단된 공격" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mini-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={traffic} syncId="trafficChart" margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
+                        <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} tickCount={3}/>
+                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)', strokeWidth: 1 }} />
+                        <Line type="monotone" dataKey="abandoned" stroke="#94a3b8" strokeWidth={2} dot={false} isAnimationActive={false} name="중도 이탈" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
 
@@ -165,7 +198,7 @@ export default function Dashboard() {
                           >
                             <Cell fill="var(--brand-color)" />
                             <Cell fill="var(--danger-color)" />
-                            <Cell fill="var(--warning-color)" />
+                            <Cell fill="#94a3b8" />
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
@@ -174,7 +207,7 @@ export default function Dashboard() {
                     <div className="pie-legend-list">
                       <div className="legend-item"><span className="dot brand" /><span className="lbl">정상 통과 ({pieData[0]?.value}%)</span></div>
                       <div className="legend-item"><span className="dot danger" /><span className="lbl">보안 차단 ({pieData[1]?.value}%)</span></div>
-                      <div className="legend-item"><span className="dot warning" /><span className="lbl">중도 이탈 ({pieData[2]?.value}%)</span></div>
+                      <div className="legend-item"><span className="dot abandoned" /><span className="lbl">중도 이탈 ({pieData[2]?.value}%)</span></div>
                     </div>
                   </div>
                 </div>
@@ -193,6 +226,10 @@ export default function Dashboard() {
                     <div className="metric-bar-group">
                       <div className="metric-bar-label"><span>위험 수위 (Critical)</span><strong>{behavior.critical}%</strong></div>
                       <div className="metric-bar-track"><div className="metric-bar-fill critical" style={{ width: `${behavior.critical}%` }} /></div>
+                    </div>
+                    <div className="metric-bar-group">
+                      <div className="metric-bar-label"><span>미인증 / 중도 이탈</span><strong>{behavior.abandoned}%</strong></div>
+                      <div className="metric-bar-track"><div className="metric-bar-fill abandoned" style={{ width: `${behavior.abandoned}%` }} /></div>
                     </div>
                   </div>
                 </div>
@@ -218,13 +255,13 @@ export default function Dashboard() {
                 <div className="log-list-container">
                   <div className="log-list">
                     {logs && logs.length > 0 ? logs.map((log, idx) => (
-                      <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : (log.risk_band === 'low_risk' ? 'safe-log' : 'warning-log')}`}>
+                      <div key={idx} className={`log-item ${log.risk_band === 'low_risk' && log.reason === '정상 통과' ? 'safe-log' : (log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log')}`}>
                         <span className="log-ip">{log.ip}</span>
                         <span className="log-reason">{log.reason}</span>
                         <span className="risk-score">{log.score}</span>
                       </div>
                     )) : (
-                      <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 로그가 없습니다.</div>
+                      <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 이상 징후가 없습니다.</div>
                     )}
                   </div>
                 </div>
