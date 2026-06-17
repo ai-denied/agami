@@ -404,7 +404,7 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     return {"status": "success", "message": "결제가 완료되었습니다."}
 
 # -----------------------------------------------------------------------------
-# 대시보드 API (프록시) - PostgreSQL 실 데이터 기반 집계 (비율 보정 및 이탈 반영)
+# 대시보드 API (프록시) - PostgreSQL 실 데이터 기반 집계
 # -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
 async def get_combined_dashboard_data(
@@ -438,7 +438,7 @@ async def get_combined_dashboard_data(
     bot_blocked = stats_dict.get(False, 0)
     total_verified = human_passed + bot_blocked
     
-    # 중도 이탈 수치 계산 (전체 로드 수 - 검증 시도 수)
+    # 중도 이탈 수치 계산 (전체 발급 수에서 검증 완료 수를 차감)
     abandoned_today = max(0, total_sessions - total_verified)
     
     # 2. 차단 유형 한글 맵핑
@@ -468,7 +468,7 @@ async def get_combined_dashboard_data(
         verdict = row[2]
         conf = row[3] or 0.0
         
-        reason = attack_map.get(a_type, a_type) if a_type else ("봇으로 판단됨" if verdict == "bot" else "정상 통과")
+        reason = attack_map.get(a_type, a_type) if a_type else ("봇으로 판단됨" if verdict == "bot" else "정상 요청")
         risk_band = "high_risk" if verdict == "bot" else "low_risk"
         
         logs_list.append({
@@ -478,7 +478,7 @@ async def get_combined_dashboard_data(
             "risk_band": risk_band
         })
 
-    # 4. 트래픽 데이터 (발급 건수와 검증 건수를 합산하여 중도 이탈 도출)
+    # 4. 트래픽 데이터
     challenge_traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(issued_at, 'HH24:00') as time, COUNT(*) as cnt FROM challenges WHERE owner_user_id = :uid {kind_filter} {challenge_date_filter} GROUP BY time"), params).fetchall()
     ch_traffic_dict = {row[0]: row[1] for row in challenge_traffic_res}
 
@@ -511,17 +511,21 @@ async def get_combined_dashboard_data(
             "abandoned": abandoned_cnt
         })
 
-    # 5. 파이 차트 보정 (총 발급 수 기준 100% 맞춤)
-    pass_rate = (human_passed / total_sessions * 100) if total_sessions > 0 else 0
-    pie_human = round(pass_rate, 1)
-    pie_bot = round((bot_blocked / total_sessions * 100), 1) if total_sessions > 0 else 0
-    pie_abandoned = round((abandoned_today / total_sessions * 100), 1) if total_sessions > 0 else 0
-    
-    if total_sessions > 0 and (pie_human + pie_bot + pie_abandoned) != 100.0:
-        pie_abandoned = round(100.0 - (pie_human + pie_bot), 1)
-        if pie_abandoned < 0:
-            pie_abandoned = 0
-            pie_bot = round(100.0 - pie_human, 1)
+    # 5. 파이 차트 보정 (분모를 total_sessions로 잡아 3분할 100% 구조로 변경)
+    if total_sessions > 0:
+        pass_rate = (human_passed / total_sessions * 100)
+        pie_human = round(pass_rate, 1)
+        pie_bot = round((bot_blocked / total_sessions * 100), 1)
+        pie_abandoned = round((abandoned_today / total_sessions * 100), 1)
+        
+        # 소수점 반올림 오차 보정
+        if (pie_human + pie_bot + pie_abandoned) != 100.0:
+            pie_abandoned = round(100.0 - pie_human - pie_bot, 1)
+    else:
+        pass_rate = 0
+        pie_human = 0
+        pie_bot = 0
+        pie_abandoned = 0
 
     return {
         "status": "success",
@@ -538,7 +542,12 @@ async def get_combined_dashboard_data(
                 {"name": "보안 차단", "value": pie_bot},
                 {"name": "중도 이탈", "value": pie_abandoned}
             ],
-            "behavior": {"safe": pie_human, "suspicious": 0, "critical": pie_bot, "abandoned": pie_abandoned},
+            "behavior": {
+                "safe": pie_human, 
+                "suspicious": 0, 
+                "critical": pie_bot,
+                "abandoned": pie_abandoned
+            },
             "attacks": attacks_list,
             "logs": logs_list
         }
