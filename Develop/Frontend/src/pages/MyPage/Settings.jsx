@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import "./Settings.css";
+import Scrollbar from "@/components/Scrollbar/Scrollbar";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
@@ -54,7 +55,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="settings-page-wrapper">
+    <Scrollbar className="settings-page-wrapper">
       <div className="settings-container">
         <header className="settings-header">
           <h1 className="settings-title">계정 설정</h1>
@@ -120,7 +121,7 @@ const Settings = () => {
           </div>
         </section>
       </div>
-    </div>
+    </Scrollbar>
   );
 };
 

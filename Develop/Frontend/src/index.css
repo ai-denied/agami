@@ -1,3 +1,4 @@
+/* index.css 수정 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,8 +9,10 @@ body,
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: 100%;
-  overflow: auto;
+  
+  /* [교정 1] min-height를 100%로 고정하여 뷰포트를 벗어나지 않도록 통제합니다. */
+  height: 100%; 
+  overflow: hidden; 
 }
 
 #root {
@@ -19,6 +22,7 @@ body,
 
 html,
 body {
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* [교정 2] 가로 스크롤은 허용하되, 우측의 빈 시스템 세로 스크롤바 트랙을 소멸시킵니다. */
+  overflow-x: auto; 
+  overflow-y: hidden; 
 }

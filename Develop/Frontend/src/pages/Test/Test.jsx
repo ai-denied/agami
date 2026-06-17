@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Flashlight from "@/components/FlashlightCaptcha/FlashlightCaptcha";
+import Scrollbar from "@/components/Scrollbar/Scrollbar";
 import './Test.css';
 
 const CAPTCHA_TYPES = [
@@ -31,7 +32,7 @@ const Test = () => {
           </ul>
         </nav>
 
-        <main className="main-content">
+        <Scrollbar className="main-content">
           {/* 조건부 렌더링 로직 */}
           {selectedType.id === 'flashlight' ? (
             // 기존 손전등 캡챠 (직접 렌더링)
@@ -59,7 +60,7 @@ const Test = () => {
             <h3>{selectedType.title} 상세 설명</h3>
             <p>{selectedType.desc}</p>
           </section>
-        </main>
+        </Scrollbar>
       </div>
     </div>
   );

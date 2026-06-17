@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./ProjectManager.css";
+import Scrollbar from "@/components/Scrollbar/Scrollbar";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
@@ -79,7 +80,7 @@ const ProjectManager = () => {
   };
 
   return (
-    <div className="pm-wrapper">
+    <Scrollbar className="pm-wrapper">
       <div className="pm-container">
         <header className="pm-header">
           <div>
@@ -180,7 +181,7 @@ const ProjectManager = () => {
           </div>
         </div>
       )}
-    </div>
+    </Scrollbar>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom"; // useNavigate 추가
 import "./Settings.css"; 
+import Scrollbar from "@/components/Scrollbar/Scrollbar";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
@@ -50,7 +51,6 @@ const ProjectDetail = () => {
     });
   };
 
-  // ... (handleDomainChange, handleUpdate, copyToClipboard 로직은 동일)
   const handleDomainChange = (index, value) => {
     const newList = [...domainList];
     newList[index] = value;
@@ -87,7 +87,7 @@ const ProjectDetail = () => {
   if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
 
   return (
-    <div className="settings-page-wrapper">
+    <Scrollbar className="settings-page-wrapper">
       <div className="settings-container">
         <header className="settings-header">
           <div>
@@ -98,7 +98,6 @@ const ProjectDetail = () => {
           <button className="btn-delete-project" onClick={handleDeleteProject}>프로젝트 삭제</button>
         </header>
 
-        {/* ... (하단 본문 내용은 기존과 동일) ... */}
         <section className="settings-section">
           <form className="nickname-form" onSubmit={handleUpdate}>
             <div className="form-group">
@@ -171,7 +170,7 @@ const ProjectDetail = () => {
           </div>
         </div>
       )}
-    </div>
+    </Scrollbar>
   );
 };
 

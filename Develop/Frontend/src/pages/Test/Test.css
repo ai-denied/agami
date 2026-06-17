@@ -96,9 +96,12 @@ body.dark-mode .sidebar {
 }
 
 .sidebar li {
-  padding: 15px;
+  padding: 15px 35px; /* 글자 위치를 기존과 동일하게 맞추기 위한 여백 보정 */
+  margin-top: 0;
   margin-bottom: 8px;
-  border-radius: 8px;
+  margin-left: -20px; /* 사이드바 패딩(20px)만큼 좌측으로 팽창 */
+  margin-right: -20px; /* 사이드바 패딩(20px)만큼 우측으로 팽창 */
+  border-radius: 0; /* 둥근 모서리를 직각으로 변경 */
   cursor: pointer;
   color: #6b7891;
   font-weight: 500;

@@ -7,6 +7,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend
 } from 'recharts';
+import Scrollbar from "@/components/Scrollbar/Scrollbar";
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -78,7 +79,7 @@ export default function Dashboard() {
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
   return (
-    <div className="dashboard-container">
+    <Scrollbar className="dashboard-container">
       <div className="main-wrapper">
         <div className="content-body">
           <section className="dashboard-header-block">
@@ -242,7 +243,7 @@ export default function Dashboard() {
             <div className="right-analytics">
               <div className="log-card line-chart-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
-                <div className="log-list-container">
+                <Scrollbar className="log-list-container">
                   <div className="log-list">
                     {logs && logs.length > 0 ? logs.map((log, idx) => {
                       const logClass = log.risk_band === 'high_risk' ? 'danger-log' : (log.risk_band === 'low_risk' ? 'safe-log' : 'warning-log');
@@ -257,7 +258,7 @@ export default function Dashboard() {
                       <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 내역이 없습니다.</div>
                     )}
                   </div>
-                </div>
+                </Scrollbar>
               </div>
 
               <div className="chart-card bottom-row-height attack-chart-card">
@@ -278,6 +279,6 @@ export default function Dashboard() {
           </section>
         </div>
       </div>
-    </div>
+    </Scrollbar>
   );
 }

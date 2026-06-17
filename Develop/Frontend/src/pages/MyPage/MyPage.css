@@ -108,9 +108,12 @@ body.dark-mode .sidebar-profile .profile-name {
 }
 
 .sidebar-menu-list li {
-  padding: 15px;
+  padding: 15px 35px; /* 텍스트 시작 위치 보정 */
+  margin-top: 0;
   margin-bottom: 8px;
-  border-radius: 8px;
+  margin-left: -20px; /* 사이드바 끝까지 밀착 */
+  margin-right: -20px; /* 사이드바 끝까지 밀착 */
+  border-radius: 0; /* 둥근 모서리 파괴 */
   cursor: pointer;
   color: #6b7891;
   font-weight: 500;
