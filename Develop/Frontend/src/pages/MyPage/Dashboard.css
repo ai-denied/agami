@@ -30,11 +30,8 @@ body.dark-mode, .dark-mode {
   --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
 }
 
-/* Dashboard.css 상단부 수정 */
-
 .dashboard-container {
   display: flex;
-  /* min-height를 100vh로 변경하고, 하단 여백을 위해 padding을 활용합니다 */
   min-height: 100vh;
   padding-top: var(--nav-height); 
   background-color: var(--bg-main);
@@ -42,14 +39,12 @@ body.dark-mode, .dark-mode {
   font-family: 'Pretendard', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
   width: 100%;
-  /* flex-direction: column을 추가하여 하위 요소들이 자연스럽게 배치되게 합니다 */
   flex-direction: column;
 }
 
 .main-wrapper {
   flex-grow: 1;
   width: 100%;
-  /* 아래 padding-bottom을 추가하여 스크롤 시 마지막 요소가 잘리지 않게 합니다 */
   padding-bottom: 60px; 
 }
 
@@ -64,7 +59,6 @@ body.dark-mode, .dark-mode {
   box-sizing: border-box;
 }
 
-/* 상단 타이틀 및 탭 배치 */
 .dashboard-header-block {
   display: flex;
   justify-content: space-between;
@@ -75,7 +69,42 @@ body.dark-mode, .dark-mode {
 .welcome-section h2 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
 .welcome-section p { color: var(--text-secondary); font-size: 0.95rem; }
 
-/* 유연한 라운딩 처리를 강조한 탭 메뉴 스타일 */
+/* 우측 상단 컨트롤 패널 (날짜 + 모델탭) */
+.header-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* Date Picker 디자인 */
+.date-picker-wrapper {
+  display: inline-block;
+}
+
+.dashboard-date-picker {
+  padding: 8px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  font-family: 'Pretendard', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  transition: border-color 0.2s;
+}
+
+.dashboard-date-picker:focus {
+  border-color: var(--brand-color);
+}
+
+body.dark-mode .dashboard-date-picker::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 .model-tab-container {
   display: flex;
   background-color: rgba(93, 162, 255, 0.06);
@@ -103,7 +132,6 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-/* 카드 그리드 */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -126,11 +154,7 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
 .card-label { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
 .card-value { font-size: 2rem; font-weight: 800; color: var(--text-primary); }
 .danger-text { color: var(--danger-color) !important; }
-.card-sub { font-size: 0.8rem; font-weight: 600; }
-.card-sub.up { color: var(--success-color); }
-.card-sub.stable { color: var(--text-secondary); }
 
-/* 메인 그리드 */
 .analytics-grid {
   display: grid;
   grid-template-columns: 1.55fr 1.05fr;
@@ -147,25 +171,35 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
   padding: 28px;
   border-radius: 32px;
   box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
 }
 
 .chart-card h3, .sub-card h3, .log-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 24px; }
-.chart-wrapper { height: 250px; }
+
+/* 차트 높이와 너비를 부모 컨테이너에 맞춰 고정 */
+.chart-wrapper { 
+  height: 250px; 
+  width: 100%; 
+  position: relative;
+}
+
 .two-column-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 
-/* 캡챠 통과율 레이아웃 개선 (중앙 텍스트와 원형 그래프 분리 및 범례 지정) */
 .pie-container-layout {
   display: flex;
   align-items: center;
   justify-content: space-around;
   gap: 16px;
   height: 140px;
+  width: 100%;
 }
 
 .pie-wrapper {
   position: relative;
   width: 140px;
   height: 140px;
+  flex-shrink: 0; /* 컨테이너 축소 방지 */
 }
 
 .pie-center-label {
@@ -176,7 +210,7 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
   text-align: center;
   pointer-events: none;
 }
-.pie-center-label h4 { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); }
+.pie-center-label h4 { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin: 0; }
 
 .pie-legend-list {
   display: flex;
@@ -184,12 +218,11 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
   gap: 12px;
 }
 .legend-item { display: flex; align-items: center; gap: 8px; }
-.legend-item .dot { width: 8px; height: 8px; border-radius: 50%; }
+.legend-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .legend-item .dot.brand { background-color: var(--brand-color); }
 .legend-item .dot.danger { background-color: var(--danger-color); }
 .legend-item .lbl { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
 
-/* 종합 행동 분포 상태 바 형식 컴포넌트 */
 .behavior-stats { display: flex; flex-direction: column; gap: 14px; justify-content: center; height: 140px; }
 .metric-bar-group { display: flex; flex-direction: column; gap: 6px; }
 .metric-bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; }
@@ -197,21 +230,19 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
 .metric-bar-label strong { color: var(--text-primary); }
 .metric-bar-track { height: 6px; background-color: rgba(0,0,0,0.04); border-radius: 3px; overflow: hidden; }
 body.dark-mode .metric-bar-track { background-color: rgba(255,255,255,0.05); }
-.metric-bar-fill { height: 100%; border-radius: 3px; }
+.metric-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
 .metric-bar-fill.safe { background-color: var(--brand-color); }
 .metric-bar-fill.suspicious { background-color: var(--warning-color); }
 .metric-bar-fill.critical { background-color: var(--danger-color); }
 
-/* 의심 로그 컴포넌트 */
 .log-list { display: flex; flex-direction: column; gap: 10px; }
 .log-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 16px; font-size: 0.85rem; }
 .danger-log { background-color: var(--danger-bg); color: var(--danger-color); }
 .warning-log { background-color: var(--warning-bg); color: var(--warning-color); }
-.log-ip { font-family: monospace; font-weight: 700; }
-.log-reason { flex-grow: 1; margin-left: 16px; color: var(--text-primary); font-weight: 500; }
+.log-ip { font-family: monospace; font-weight: 700; width: 100px; }
+.log-reason { flex-grow: 1; margin-left: 16px; color: var(--text-primary); font-weight: 600; }
 .risk-score { font-weight: 800; font-family: monospace; }
 
-/* 커스텀 차트 툴팁 스타일 독립 선언 */
 .custom-chart-tooltip {
   background-color: var(--bg-card);
   backdrop-filter: blur(10px);
@@ -227,10 +258,10 @@ body.dark-mode .metric-bar-track { background-color: rgba(255,255,255,0.05); }
 .tooltip-label { color: var(--text-secondary); }
 .tooltip-value { color: var(--text-primary); margin-left: auto; }
 
-/* 반응형 모바일 브레이크포인트 보정 */
 @media (max-width: 1200px) {
   .analytics-grid { grid-template-columns: 1fr; }
   .dashboard-header-block { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .header-controls { align-items: flex-start; width: 100%; }
   .model-tab-container { width: 100%; justify-content: space-between; box-sizing: border-box; }
   .tab-btn { flex-grow: 1; text-align: center; }
 }
@@ -244,4 +275,5 @@ body.dark-mode .metric-bar-track { background-color: rgba(255,255,255,0.05); }
   .summary-grid { grid-template-columns: 1fr; }
   .two-column-grid { grid-template-columns: 1fr; }
   .pie-container-layout { flex-direction: column; height: auto; padding: 10px 0; }
+  .pie-wrapper { width: 120px; height: 120px; }
 }

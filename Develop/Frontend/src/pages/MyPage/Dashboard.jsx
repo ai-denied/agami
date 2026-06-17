@@ -29,22 +29,21 @@ const CustomTooltip = ({ active, payload }) => {
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [activeModel, setActiveModel] = useState('all');
-  
-  // 한국 시간 기준 오늘 날짜를 기본값으로 설정
-  const getTodayKST = () => {
-    const now = new Date();
-    const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-    return kst.toISOString().split('T')[0];
-  };
-  
-  const [selectedDate, setSelectedDate] = useState(getTodayKST());
   const [dashboardData, setDashboardData] = useState(null);
+  
+  // 날짜 필터 상태 (기본값 오늘)
+  const [targetDate, setTargetDate] = useState(() => {
+    const today = new Date();
+    // UTC와 한국 시간의 차이를 방지하기 위해 로컬 날짜를 YYYY-MM-DD 형태로 변환
+    const offset = today.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
+    return localISOTime;
+  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // 선택된 날짜와 모델 파라미터 전달
-        const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}&date=${selectedDate}`, {
+        const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}&target_date=${targetDate}`, {
           withCredentials: true
         });
         if (response.data.status === 'success') {
@@ -58,7 +57,7 @@ export default function Dashboard() {
     if (user) {
       fetchDashboardData();
     }
-  }, [activeModel, selectedDate, user]);
+  }, [activeModel, targetDate, user]);
 
   if (loading || !dashboardData) return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   if (!user) return null;
@@ -74,21 +73,18 @@ export default function Dashboard() {
               <h2>안녕하세요, {user.nickname}님! 안전한 환경을 유지 중입니다</h2>
               <p>Agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
             </div>
-            <div className="filter-section" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <input 
-                type="date" 
-                value={selectedDate} 
-                onChange={(e) => setSelectedDate(e.target.value)}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border-color)',
-                  backgroundColor: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                  fontWeight: '600',
-                  outline: 'none'
-                }}
-              />
+            
+            <div className="header-controls">
+              {/* 날짜 선택 (Date Picker) 추가 */}
+              <div className="date-picker-wrapper">
+                <input 
+                  type="date" 
+                  value={targetDate} 
+                  onChange={(e) => setTargetDate(e.target.value)} 
+                  className="dashboard-date-picker"
+                />
+              </div>
+
               <div className="model-tab-container">
                 <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
                 <button className={`tab-btn ${activeModel === 'flashlight' ? 'active' : ''}`} onClick={() => setActiveModel('flashlight')}>손전등</button>
@@ -100,7 +96,7 @@ export default function Dashboard() {
 
           <section className="summary-grid">
             <div className="summary-card">
-              <span className="card-label">해당일 총 발급 수</span>
+              <span className="card-label">해당일 총 요청 수</span>
               <div className="card-value">{display.total_today.toLocaleString()}</div>
             </div>
             <div className="summary-card">
@@ -116,7 +112,7 @@ export default function Dashboard() {
           <section className="analytics-grid">
             <div className="left-analytics">
               <div className="chart-card">
-                <h3>실시간 인증/차단 트래픽 추이</h3>
+                <h3>시간대별 인증/차단 트래픽 추이</h3>
                 <div className="chart-wrapper" style={{ minHeight: 250 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={traffic} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -133,12 +129,21 @@ export default function Dashboard() {
 
               <div className="two-column-grid">
                 <div className="sub-card">
-                  <h3>유입 트래픽 검증 결과</h3>
+                  <h3>유입 트래픽 검증 비율</h3>
                   <div className="pie-container-layout">
-                    <div className="pie-wrapper" style={{ minHeight: 140 }}>
+                    <div className="pie-wrapper">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={pieData} innerRadius={48} outerRadius={62} paddingAngle={5} dataKey="value" startAngle={90} endAngle={-270}>
+                          <Pie 
+                            data={pieData} 
+                            innerRadius={48} 
+                            outerRadius={62} 
+                            paddingAngle={5} 
+                            dataKey="value" 
+                            startAngle={90} 
+                            endAngle={-270}
+                            isAnimationActive={false} // 애니메이션 튀는 현상 방지
+                          >
                             <Cell fill="var(--brand-color)" />
                             <Cell fill="var(--danger-color)" />
                           </Pie>
@@ -147,7 +152,7 @@ export default function Dashboard() {
                       <div className="pie-center-label"><h4>{pieData[0]?.value}%</h4></div>
                     </div>
                     <div className="pie-legend-list">
-                      <div className="legend-item"><span className="dot brand" /><span className="lbl">정상 사용자 ({pieData[0]?.value}%)</span></div>
+                      <div className="legend-item"><span className="dot brand" /><span className="lbl">정상 통과 ({pieData[0]?.value}%)</span></div>
                       <div className="legend-item"><span className="dot danger" /><span className="lbl">보안 차단 ({pieData[1]?.value}%)</span></div>
                     </div>
                   </div>
@@ -178,11 +183,11 @@ export default function Dashboard() {
                 <h3>주요 우회 공격 유형</h3>
                 <div className="chart-wrapper" style={{ minHeight: 200 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={attacks} margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
+                    <BarChart layout="vertical" data={attacks} margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
                       <XAxis type="number" hide />
-                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '13px' }} width={115} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={120} />
                       <Tooltip content={<CustomTooltip />} cursor={false} />
-                      <Bar dataKey="value" fill="var(--danger-color)" radius={[0, 6, 6, 0]} barSize={10} name="감지 건수" />
+                      <Bar dataKey="value" fill="var(--danger-color)" radius={[0, 6, 6, 0]} barSize={10} name="감지 건수" isAnimationActive={false} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -192,12 +197,13 @@ export default function Dashboard() {
                 <div className="log-list">
                   {logs && logs.length > 0 ? logs.map((log, idx) => (
                     <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log'}`}>
-                      <span className="log-ip">{log.file}</span>
-                      <span className="log-reason">{log.bot_type}</span>
-                      <span className="risk-score">{log.bot_risk_score}</span>
+                      {/* IP주소와 구체적 차단 사유로 출력 포맷 변경 */}
+                      <span className="log-ip">{log.ip}</span>
+                      <span className="log-reason">{log.reason}</span>
+                      <span className="risk-score">{log.score}</span>
                     </div>
                   )) : (
-                    <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>이상 징후가 탐지되지 않았습니다.</div>
+                    <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 이상 징후가 없습니다.</div>
                   )}
                 </div>
               </div>
