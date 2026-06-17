@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
+  // 로컬 타임존 기반 오늘 날짜 문자열 생성 헬퍼
   const getLocalDateStr = (d) => {
     const offset = d.getTimezoneOffset() * 60000;
     return new Date(d - offset).toISOString().split('T')[0];
@@ -83,7 +84,7 @@ export default function Dashboard() {
           <section className="dashboard-header-block">
             <div className="welcome-section">
               <h2>안녕하세요, {user.nickname}님! 안전한 환경을 유지 중입니다</h2>
-              <p>agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
+              <p>Agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
             </div>
             
             <div className="header-controls">
@@ -95,8 +96,8 @@ export default function Dashboard() {
                     value={targetDate} 
                     max={todayStr}
                     onChange={(e) => setTargetDate(e.target.value)} 
-                    onClick={(e) => e.target.showPicker && e.target.showPicker()} // 클릭 시 팝업 즉시 열림
-                    onKeyDown={(e) => e.preventDefault()} // 키보드 입력 완벽 차단
+                    onClick={(e) => e.target.showPicker && e.target.showPicker()} 
+                    onKeyDown={(e) => e.preventDefault()} 
                     className="dashboard-date-picker"
                   />
                   <button 
@@ -263,10 +264,10 @@ export default function Dashboard() {
                 <h3>주요 우회 공격 유형</h3>
                 <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
-                    {/* 마진을 수정하여 쏠림 현상을 방지하고, Bar radius 4면 둥글게 적용 */}
-                    <BarChart layout="vertical" data={attacks} margin={{ left: -10, right: 20, top: 0, bottom: 0 }}>
+                    {/* 너비를 140으로 늘려 두 줄 래핑 현상 방지 */}
+                    <BarChart layout="vertical" data={attacks} margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
                       <XAxis type="number" hide allowDecimals={false} />
-                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={105} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={140} />
                       <Tooltip content={<CustomTooltip />} cursor={false} />
                       <Bar dataKey="value" fill="var(--danger-color)" radius={[6, 6, 6, 6]} barSize={10} name="감지 건수" isAnimationActive={false} />
                     </BarChart>
