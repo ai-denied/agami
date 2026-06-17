@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Dashboard.css';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 
@@ -31,12 +31,21 @@ export default function Dashboard() {
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
-  const [targetDate, setTargetDate] = useState(() => {
-    const today = new Date();
-    const offset = today.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
-    return localISOTime;
-  });
+  const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  const [targetDate, setTargetDate] = useState(todayStr);
+
+  const handlePrevDate = () => {
+    const d = new Date(targetDate);
+    d.setDate(d.getDate() - 1);
+    setTargetDate(d.toISOString().split('T')[0]);
+  };
+
+  const handleNextDate = () => {
+    if (targetDate >= todayStr) return;
+    const d = new Date(targetDate);
+    d.setDate(d.getDate() + 1);
+    setTargetDate(d.toISOString().split('T')[0]);
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -74,12 +83,19 @@ export default function Dashboard() {
             
             <div className="header-controls">
               <div className="date-picker-wrapper">
+                <button className="date-arrow-btn" onClick={handlePrevDate}>&lt;</button>
                 <input 
                   type="date" 
                   value={targetDate} 
+                  max={todayStr}
                   onChange={(e) => setTargetDate(e.target.value)} 
                   className="dashboard-date-picker"
                 />
+                {targetDate < todayStr ? (
+                  <button className="date-arrow-btn" onClick={handleNextDate}>&gt;</button>
+                ) : (
+                  <div className="date-arrow-spacer"></div>
+                )}
               </div>
 
               <div className="model-tab-container">
@@ -105,7 +121,7 @@ export default function Dashboard() {
               <div className="card-value danger-text">{display.blocked_today.toLocaleString()}</div>
             </div>
             <div className="summary-card">
-              <span className="card-label">미인증/중도 포기 건수</span>
+              <span className="card-label">미인증/중도 이탈 건수</span>
               <div className="card-value" style={{ color: 'var(--text-secondary)' }}>{display.abandoned_today?.toLocaleString() || 0}</div>
             </div>
           </section>
@@ -121,10 +137,10 @@ export default function Dashboard() {
                       <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)', strokeWidth: 1 }} />
-                      {/* 애니메이션을 제거하고, 겹쳐도 보이도록 투명도(strokeOpacity) 적용 */}
-                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={3} dot={false} name="정상 요청" isAnimationActive={false} strokeOpacity={0.8} />
-                      <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={3} dot={false} name="차단된 공격" isAnimationActive={false} strokeOpacity={0.8} />
-                      <Line type="monotone" dataKey="abandoned" stroke="#94a3b8" strokeWidth={3} dot={false} name="중도 포기" isAnimationActive={false} strokeOpacity={0.8} />
+                      <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}/>
+                      <Line type="monotone" dataKey="success" stroke="var(--brand-color)" strokeWidth={3} strokeOpacity={0.8} dot={false} name="정상 요청" isAnimationActive={false} />
+                      <Line type="monotone" dataKey="attack" stroke="var(--danger-color)" strokeWidth={3} strokeOpacity={0.8} dot={false} name="차단된 공격" isAnimationActive={false} />
+                      <Line type="monotone" dataKey="abandoned" stroke="var(--warning-color)" strokeWidth={3} strokeOpacity={0.8} dot={false} name="중도 이탈" isAnimationActive={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -149,6 +165,7 @@ export default function Dashboard() {
                           >
                             <Cell fill="var(--brand-color)" />
                             <Cell fill="var(--danger-color)" />
+                            <Cell fill="var(--warning-color)" />
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
@@ -157,6 +174,7 @@ export default function Dashboard() {
                     <div className="pie-legend-list">
                       <div className="legend-item"><span className="dot brand" /><span className="lbl">정상 통과 ({pieData[0]?.value}%)</span></div>
                       <div className="legend-item"><span className="dot danger" /><span className="lbl">보안 차단 ({pieData[1]?.value}%)</span></div>
+                      <div className="legend-item"><span className="dot warning" /><span className="lbl">중도 이탈 ({pieData[2]?.value}%)</span></div>
                     </div>
                   </div>
                 </div>
@@ -200,13 +218,13 @@ export default function Dashboard() {
                 <div className="log-list-container">
                   <div className="log-list">
                     {logs && logs.length > 0 ? logs.map((log, idx) => (
-                      <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log'}`}>
+                      <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : (log.risk_band === 'low_risk' ? 'safe-log' : 'warning-log')}`}>
                         <span className="log-ip">{log.ip}</span>
                         <span className="log-reason">{log.reason}</span>
                         <span className="risk-score">{log.score}</span>
                       </div>
                     )) : (
-                      <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 이상 징후가 없습니다.</div>
+                      <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 로그가 없습니다.</div>
                     )}
                   </div>
                 </div>

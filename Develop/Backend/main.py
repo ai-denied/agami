@@ -438,8 +438,6 @@ async def get_combined_dashboard_data(
     bot_blocked = stats_dict.get(False, 0)
     total_verified = human_passed + bot_blocked
     
-    # 중도 포기 수치 계산 (전체 로드 수 - 검증 시도 수)
-    # 단, 시간 차이로 인해 음수가 될 경우를 대비해 0으로 보정
     abandoned_today = max(0, total_sessions - total_verified)
     
     # 2. 차단 유형 한글 맵핑
@@ -479,7 +477,7 @@ async def get_combined_dashboard_data(
             "risk_band": risk_band
         })
 
-    # 4. 트래픽 데이터 (발급 건수와 검증 건수를 합산하여 중도 포기 도출)
+    # 4. 트래픽 데이터
     challenge_traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(issued_at, 'HH24:00') as time, COUNT(*) as cnt FROM challenges WHERE owner_user_id = :uid {kind_filter} {challenge_date_filter} GROUP BY time"), params).fetchall()
     ch_traffic_dict = {row[0]: row[1] for row in challenge_traffic_res}
 
@@ -503,7 +501,6 @@ async def get_combined_dashboard_data(
         suc_cnt = traffic_dict[t]["success"]
         atk_cnt = traffic_dict[t]["attack"]
         
-        # 시간대별 이탈(중도포기) 수치
         abandoned_cnt = max(0, ch_cnt - (suc_cnt + atk_cnt))
         
         traffic_data.append({
@@ -513,13 +510,23 @@ async def get_combined_dashboard_data(
             "abandoned": abandoned_cnt
         })
 
-    # 5. 파이 차트 보정
+    # 5. 파이 차트 및 행동 분포 비율 계산 (전체 세션 기준 100% 보정)
     pass_rate = (human_passed / total_verified * 100) if total_verified > 0 else 0
-    pie_human = round(pass_rate, 1)
-    pie_bot = round((bot_blocked / total_verified * 100), 1) if total_verified > 0 else 0
     
-    if total_verified > 0 and (pie_human + pie_bot) != 100.0:
-        pie_bot = round(100.0 - pie_human, 1)
+    if total_sessions > 0:
+        pie_human = round((human_passed / total_sessions * 100), 1)
+        pie_bot = round((bot_blocked / total_sessions * 100), 1)
+        pie_abandoned = round((abandoned_today / total_sessions * 100), 1)
+        
+        if (pie_human + pie_bot + pie_abandoned) != 100.0:
+            pie_abandoned = round(100.0 - pie_human - pie_bot, 1)
+            if pie_abandoned < 0:
+                pie_abandoned = 0.0
+                pie_bot = round(100.0 - pie_human, 1)
+    else:
+        pie_human = 0.0
+        pie_bot = 0.0
+        pie_abandoned = 0.0
 
     return {
         "status": "success",
@@ -533,9 +540,10 @@ async def get_combined_dashboard_data(
             "traffic": traffic_data,
             "pieData": [
                 {"name": "정상 통과", "value": pie_human},
-                {"name": "보안 차단", "value": pie_bot}
+                {"name": "보안 차단", "value": pie_bot},
+                {"name": "중도 이탈", "value": pie_abandoned}
             ],
-            "behavior": {"safe": pie_human, "suspicious": 0, "critical": pie_bot},
+            "behavior": {"safe": pie_human, "suspicious": pie_abandoned, "critical": pie_bot},
             "attacks": attacks_list,
             "logs": logs_list
         }
