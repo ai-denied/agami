@@ -69,7 +69,6 @@ body.dark-mode, .dark-mode {
 .welcome-section h2 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
 .welcome-section p { color: var(--text-secondary); font-size: 0.95rem; }
 
-/* 우측 상단 컨트롤 패널 (날짜 + 모델탭) */
 .header-controls {
   display: flex;
   flex-direction: column;
@@ -77,7 +76,6 @@ body.dark-mode, .dark-mode {
   gap: 12px;
 }
 
-/* Date Picker 디자인 */
 .date-picker-wrapper {
   display: inline-block;
 }
@@ -177,7 +175,6 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
 
 .chart-card h3, .sub-card h3, .log-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 24px; }
 
-/* 차트 높이와 너비를 부모 컨테이너에 맞춰 고정 */
 .chart-wrapper { 
   height: 250px; 
   width: 100%; 
@@ -199,7 +196,7 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
   position: relative;
   width: 140px;
   height: 140px;
-  flex-shrink: 0; /* 컨테이너 축소 방지 */
+  flex-shrink: 0;
 }
 
 .pie-center-label {

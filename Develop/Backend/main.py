@@ -361,9 +361,6 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
         raise HTTPException(status_code=500, detail=f"프로젝트 업데이트 실패: {str(e)}")
     return {"status": "success"}
 
-# -----------------------------------------------------------------------------
-# 결제 API
-# -----------------------------------------------------------------------------
 @app.post("/api/payment/ready")
 async def payment_ready(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("accessToken")
@@ -423,29 +420,26 @@ async def get_combined_dashboard_data(
         user_id = int(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
-    # target_date가 없을 경우 서버 기준 당일 날짜로 설정
     if not target_date:
         target_date = datetime.utcnow().strftime("%Y-%m-%d")
 
     kind_filter = "" if kind == "all" else " AND kind = :kind"
-    # 날짜 필터링을 명확히 적용 (DB의 timestamp에서 날짜만 추출하여 비교)
-    date_filter = " AND created_at::date = :target_date::date"
-    params = {"uid": user_id, "kind": kind, "target_date": target_date}
     
-    # challenges 테이블의 발급 일자도 date_filter와 동일한 방식으로 맞춤
-    challenge_date_filter = " AND issued_at::date = :target_date::date"
+    # 500 에러 해결: ::date 텍스트 캐스팅 대신 CAST() 함수를 사용하여 SQLAlchemy 파라미터 충돌 방지
+    date_filter = " AND CAST(created_at AS DATE) = CAST(:target_date AS DATE)"
+    challenge_date_filter = " AND CAST(issued_at AS DATE) = CAST(:target_date AS DATE)"
+    params = {"uid": user_id, "kind": kind, "target_date": target_date}
 
     # 1. 지표 조회 (DB 집계)
     total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges WHERE owner_user_id = :uid {kind_filter} {challenge_date_filter}"), params).scalar() or 0
     
-    # 정상/차단 (success 컬럼 이용)
     stats = captcha_db.execute(text(f"SELECT success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} GROUP BY success"), params).fetchall()
     stats_dict = {row[0]: row[1] for row in stats}
     human_passed = stats_dict.get(True, 0)
     bot_blocked = stats_dict.get(False, 0)
     total_verified = human_passed + bot_blocked
     
-    # 2. 차단 유형 한글 맵핑 및 Top 5
+    # 2. 차단 유형 한글 맵핑
     attacks = captcha_db.execute(text(f"SELECT attack_type, COUNT(*) as cnt FROM verifications WHERE success = false AND owner_user_id = :uid {kind_filter} {date_filter} GROUP BY attack_type ORDER BY cnt DESC LIMIT 5"), params).fetchall()
     
     attack_map = {
@@ -462,7 +456,7 @@ async def get_combined_dashboard_data(
         disp_name = attack_map.get(raw_type, "비정상적 우회 시도" if not raw_type else raw_type)
         attacks_list.append({"name": disp_name, "value": row[1]})
 
-    # 3. 세션 로그 (IP 및 한글 사유 반환)
+    # 3. 세션 로그
     logs = captcha_db.execute(text(f"SELECT requester_ip, attack_type, verdict, confidence FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} ORDER BY created_at DESC LIMIT 10"), params).fetchall()
     
     logs_list = []
@@ -482,7 +476,7 @@ async def get_combined_dashboard_data(
             "risk_band": risk_band
         })
 
-    # 4. 트래픽 데이터 (선택된 날짜의 24시간 시간대별)
+    # 4. 트래픽 데이터
     traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(created_at, 'HH24:00') as time, success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} GROUP BY time, success"), params).fetchall()
     
     traffic_dict = {f"{i:02d}:00": {"success": 0, "attack": 0} for i in range(24)}
@@ -498,7 +492,7 @@ async def get_combined_dashboard_data(
                 
     traffic_data = [{"time": k, "success": v["success"], "attack": v["attack"]} for k, v in traffic_dict.items()]
 
-    # 5. 파이 차트 및 통과율 100% 수식 보정
+    # 5. 파이 차트 보정
     pass_rate = (human_passed / total_verified * 100) if total_verified > 0 else 0
     pie_human = round(pass_rate, 1)
     pie_bot = round((bot_blocked / total_verified * 100), 1) if total_verified > 0 else 0
