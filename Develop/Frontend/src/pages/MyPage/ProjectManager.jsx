@@ -52,7 +52,16 @@ const ProjectManager = () => {
         fetchProjects();
         showAlert("새 프로젝트가 생성되었습니다.");
       }
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+      console.error(error);
+      const status = error.response?.status;
+      // DB 제약조건 위반(중복 도메인 등)으로 인한 에러 처리
+      if (status === 400 || status === 409 || status === 500) {
+        showAlert("이미 다른 곳에 등록된 도메인이거나 유효하지 않은 입력입니다.\n(중복된 도메인이 없는지 확인해 주세요.)");
+      } else {
+        showAlert("프로젝트 생성 중 서버 오류가 발생했습니다.");
+      }
+    }
   };
 
   // 자체 Confirm 모달을 이용한 삭제 로직

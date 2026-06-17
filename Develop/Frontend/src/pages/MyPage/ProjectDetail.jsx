@@ -74,7 +74,16 @@ const ProjectDetail = () => {
         showAlert("프로젝트 정보가 성공적으로 수정되었습니다.");
         setProject({ ...project, name, domains });
       }
-    } catch (error) { showAlert("수정 중 오류가 발생했습니다."); } 
+    } catch (error) { 
+      console.error(error);
+      const status = error.response?.status;
+      // DB 제약조건 위반(중복 도메인 등)으로 인한 에러 처리
+      if (status === 400 || status === 409 || status === 500) {
+        showAlert("이미 다른 곳에 등록된 도메인이거나 유효하지 않은 입력입니다.\n(중복된 도메인이 없는지 확인해 주세요.)");
+      } else {
+        showAlert("수정 중 서버 오류가 발생했습니다.");
+      }
+    } 
     finally { setIsSubmitting(false); }
   };
 

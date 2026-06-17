@@ -1,20 +1,24 @@
 /* src/components/Scrollbar/Scrollbar.css */
 
+/* [기본 스크롤 컨테이너 설정] */
 .custom-scrollbar-container {
   width: 100%;
   height: 100%;
   min-height: 0;
-  overflow-y: auto; 
+  overflow-y: auto !important; 
   box-sizing: border-box;
   
-  scrollbar-width: thin;
+  /* Firefox 대응 스펙 (얇은 굵기에서 기본 굵기로 변경) */
+  scrollbar-width: auto;
   scrollbar-color: rgba(93, 162, 255, 0.6) transparent;
 }
 
+/* [Webkit 엔진 대응 - Chrome, Safari, Edge] */
 .custom-scrollbar-container::-webkit-scrollbar {
-  width: 8px !important; 
-  height: 8px !important;
-  /* display: block !important; <--- 내용이 없을 때도 강제로 띄우던 이 속성을 삭제했습니다! */
+  /* 8px에서 12px로 두께를 늘려 안정감 부여 */
+  width: 12px !important; 
+  height: 12px !important;
+  display: block !important; 
   background-color: rgba(0, 0, 0, 0.02); 
 }
 
@@ -25,14 +29,17 @@
 .custom-scrollbar-container::-webkit-scrollbar-thumb {
   background-color: rgba(93, 162, 255, 0.6) !important;
   border-radius: 10px;
-  border: 2px solid transparent;
+  /* 두께가 커진 만큼 테두리 여백(2px -> 3px)을 늘려 시각적 밸런스 유지 */
+  border: 3px solid transparent;
   background-clip: padding-box;
 }
 
+/* 호버 시 색상 강조 */
 .custom-scrollbar-container::-webkit-scrollbar-thumb:hover {
   background-color: rgba(93, 162, 255, 0.9) !important;
 }
 
+/* [다크모드 인지 명세] */
 body.dark-mode .custom-scrollbar-container::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.3) !important;
 }

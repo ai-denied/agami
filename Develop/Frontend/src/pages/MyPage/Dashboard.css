@@ -307,15 +307,6 @@ body.dark-mode .log-list-container {
   border-color: rgba(255, 255, 255, 0.03);
 }
 
-.log-list-container::-webkit-scrollbar { width: 8px; }
-.log-list-container::-webkit-scrollbar-track { 
-  background: rgba(0,0,0,0.02); 
-  border-radius: 10px; 
-}
-body.dark-mode .log-list-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
-.log-list-container::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 10px; }
-.log-list-container::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
-
 .log-list { display: flex; flex-direction: column; gap: 10px; }
 .log-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 12px; font-size: 0.85rem; }
 .danger-log { background-color: var(--danger-bg); color: var(--danger-color); }
