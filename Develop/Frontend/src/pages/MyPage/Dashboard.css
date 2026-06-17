@@ -35,7 +35,7 @@ body.dark-mode, .dark-mode {
   background-color: transparent; 
   color: var(--text-primary);
   font-family: 'Pretendard', sans-serif;
-  margin: 40px;
+  overflow-x: hidden; /* 좌우 스크롤 완벽 차단 */
 }
 
 .main-wrapper {
@@ -107,7 +107,14 @@ body.dark-mode, .dark-mode {
   font-weight: 600;
   outline: none;
   cursor: pointer;
+  user-select: none; /* 텍스트 선택 방지 */
+  -webkit-user-select: none;
 }
+
+.dashboard-date-picker::selection {
+  background: transparent; /* 클릭 시 파란색 블록 지정 완벽 방지 */
+}
+
 .dashboard-date-picker:focus { border-color: var(--brand-color); }
 body.dark-mode .dashboard-date-picker::-webkit-calendar-picker-indicator { filter: invert(1); }
 

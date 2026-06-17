@@ -164,6 +164,7 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
 .mypage-main {
   flex: 1;
   height: 100%;
+  padding: 40px;
   overflow-y: auto;
   box-sizing: border-box;
 }
