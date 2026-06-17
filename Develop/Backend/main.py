@@ -425,7 +425,6 @@ async def get_combined_dashboard_data(
 
     kind_filter = "" if kind == "all" else " AND kind = :kind"
     
-    # 500 에러 해결: ::date 텍스트 캐스팅 대신 CAST() 함수를 사용하여 SQLAlchemy 파라미터 충돌 방지
     date_filter = " AND CAST(created_at AS DATE) = CAST(:target_date AS DATE)"
     challenge_date_filter = " AND CAST(issued_at AS DATE) = CAST(:target_date AS DATE)"
     params = {"uid": user_id, "kind": kind, "target_date": target_date}
@@ -438,6 +437,10 @@ async def get_combined_dashboard_data(
     human_passed = stats_dict.get(True, 0)
     bot_blocked = stats_dict.get(False, 0)
     total_verified = human_passed + bot_blocked
+    
+    # 중도 포기 수치 계산 (전체 로드 수 - 검증 시도 수)
+    # 단, 시간 차이로 인해 음수가 될 경우를 대비해 0으로 보정
+    abandoned_today = max(0, total_sessions - total_verified)
     
     # 2. 차단 유형 한글 맵핑
     attacks = captcha_db.execute(text(f"SELECT attack_type, COUNT(*) as cnt FROM verifications WHERE success = false AND owner_user_id = :uid {kind_filter} {date_filter} GROUP BY attack_type ORDER BY cnt DESC LIMIT 5"), params).fetchall()
@@ -476,7 +479,10 @@ async def get_combined_dashboard_data(
             "risk_band": risk_band
         })
 
-    # 4. 트래픽 데이터
+    # 4. 트래픽 데이터 (발급 건수와 검증 건수를 합산하여 중도 포기 도출)
+    challenge_traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(issued_at, 'HH24:00') as time, COUNT(*) as cnt FROM challenges WHERE owner_user_id = :uid {kind_filter} {challenge_date_filter} GROUP BY time"), params).fetchall()
+    ch_traffic_dict = {row[0]: row[1] for row in challenge_traffic_res}
+
     traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(created_at, 'HH24:00') as time, success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} GROUP BY time, success"), params).fetchall()
     
     traffic_dict = {f"{i:02d}:00": {"success": 0, "attack": 0} for i in range(24)}
@@ -490,7 +496,22 @@ async def get_combined_dashboard_data(
             else:
                 traffic_dict[t]["attack"] += cnt
                 
-    traffic_data = [{"time": k, "success": v["success"], "attack": v["attack"]} for k, v in traffic_dict.items()]
+    traffic_data = []
+    for i in range(24):
+        t = f"{i:02d}:00"
+        ch_cnt = ch_traffic_dict.get(t, 0)
+        suc_cnt = traffic_dict[t]["success"]
+        atk_cnt = traffic_dict[t]["attack"]
+        
+        # 시간대별 이탈(중도포기) 수치
+        abandoned_cnt = max(0, ch_cnt - (suc_cnt + atk_cnt))
+        
+        traffic_data.append({
+            "time": t, 
+            "success": suc_cnt, 
+            "attack": atk_cnt,
+            "abandoned": abandoned_cnt
+        })
 
     # 5. 파이 차트 보정
     pass_rate = (human_passed / total_verified * 100) if total_verified > 0 else 0
@@ -506,7 +527,8 @@ async def get_combined_dashboard_data(
             "display": {
                 "total_today": total_sessions,
                 "pass_rate": round(pass_rate, 1),
-                "blocked_today": bot_blocked
+                "blocked_today": bot_blocked,
+                "abandoned_today": abandoned_today
             },
             "traffic": traffic_data,
             "pieData": [

@@ -31,10 +31,8 @@ export default function Dashboard() {
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
-  // 날짜 필터 상태 (기본값 오늘)
   const [targetDate, setTargetDate] = useState(() => {
     const today = new Date();
-    // UTC와 한국 시간의 차이를 방지하기 위해 로컬 날짜를 YYYY-MM-DD 형태로 변환
     const offset = today.getTimezoneOffset() * 60000;
     const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
     return localISOTime;
@@ -67,7 +65,7 @@ export default function Dashboard() {
   return (
     <div className="dashboard-container">
       <div className="main-wrapper">
-        <main className="content-body">
+        <div className="content-body">
           <section className="dashboard-header-block">
             <div className="welcome-section">
               <h2>안녕하세요, {user.nickname}님! 안전한 환경을 유지 중입니다</h2>
@@ -75,7 +73,6 @@ export default function Dashboard() {
             </div>
             
             <div className="header-controls">
-              {/* 날짜 선택 (Date Picker) 추가 */}
               <div className="date-picker-wrapper">
                 <input 
                   type="date" 
@@ -107,21 +104,27 @@ export default function Dashboard() {
               <span className="card-label">해당일 공격 차단 건수</span>
               <div className="card-value danger-text">{display.blocked_today.toLocaleString()}</div>
             </div>
+            <div className="summary-card">
+              <span className="card-label">미인증/중도 포기 건수</span>
+              <div className="card-value" style={{ color: 'var(--text-secondary)' }}>{display.abandoned_today?.toLocaleString() || 0}</div>
+            </div>
           </section>
 
           <section className="analytics-grid">
             <div className="left-analytics">
               <div className="chart-card">
-                <h3>시간대별 인증/차단 트래픽 추이</h3>
-                <div className="chart-wrapper" style={{ minHeight: 250 }}>
+                <h3>시간대별 인증/차단/이탈 트래픽 추이</h3>
+                <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={traffic} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
                       <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)', strokeWidth: 1 }} />
-                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={3} dot={false} name="정상 요청" />
-                      <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={3} dot={false} name="차단된 공격" />
+                      {/* 애니메이션을 제거하고, 겹쳐도 보이도록 투명도(strokeOpacity) 적용 */}
+                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={3} dot={false} name="정상 요청" isAnimationActive={false} strokeOpacity={0.8} />
+                      <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={3} dot={false} name="차단된 공격" isAnimationActive={false} strokeOpacity={0.8} />
+                      <Line type="monotone" dataKey="abandoned" stroke="#94a3b8" strokeWidth={3} dot={false} name="중도 포기" isAnimationActive={false} strokeOpacity={0.8} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -142,7 +145,7 @@ export default function Dashboard() {
                             dataKey="value" 
                             startAngle={90} 
                             endAngle={-270}
-                            isAnimationActive={false} // 애니메이션 튀는 현상 방지
+                            isAnimationActive={false} 
                           >
                             <Cell fill="var(--brand-color)" />
                             <Cell fill="var(--danger-color)" />
@@ -181,7 +184,7 @@ export default function Dashboard() {
             <div className="right-analytics">
               <div className="chart-card">
                 <h3>주요 우회 공격 유형</h3>
-                <div className="chart-wrapper" style={{ minHeight: 200 }}>
+                <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart layout="vertical" data={attacks} margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
                       <XAxis type="number" hide />
@@ -194,22 +197,23 @@ export default function Dashboard() {
               </div>
               <div className="log-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
-                <div className="log-list">
-                  {logs && logs.length > 0 ? logs.map((log, idx) => (
-                    <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log'}`}>
-                      {/* IP주소와 구체적 차단 사유로 출력 포맷 변경 */}
-                      <span className="log-ip">{log.ip}</span>
-                      <span className="log-reason">{log.reason}</span>
-                      <span className="risk-score">{log.score}</span>
-                    </div>
-                  )) : (
-                    <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 이상 징후가 없습니다.</div>
-                  )}
+                <div className="log-list-container">
+                  <div className="log-list">
+                    {logs && logs.length > 0 ? logs.map((log, idx) => (
+                      <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log'}`}>
+                        <span className="log-ip">{log.ip}</span>
+                        <span className="log-reason">{log.reason}</span>
+                        <span className="risk-score">{log.score}</span>
+                      </div>
+                    )) : (
+                      <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 이상 징후가 없습니다.</div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </section>
-        </main>
+        </div>
       </div>
     </div>
   );
