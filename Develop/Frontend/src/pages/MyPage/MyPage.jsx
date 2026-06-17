@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import Scrollbar from "@/components/Scrollbar/Scrollbar"; // 스크롤바 컴포넌트 로드
+import Scrollbar from "@/components/Scrollbar/Scrollbar";
 import "./MyPage.css";
 
 const MyPage = () => {
@@ -18,7 +18,6 @@ const MyPage = () => {
       <div className="layout-container mypage-layout">
         <aside className="sidebar mypage-sidebar">
           
-          {/* 프로필 영역 */}
           <div className="sidebar-profile">
             <img 
               src={user?.profile || '/agami-profile.png'} 
@@ -29,7 +28,6 @@ const MyPage = () => {
             <span className="profile-name"><strong>{user?.nickname}</strong> 님</span>
           </div>
 
-          {/* 메뉴 리스트 */}
           <ul className="sidebar-menu-list">
             {isProjectContext ? (
               <>
@@ -57,7 +55,6 @@ const MyPage = () => {
           </ul>
         </aside>
 
-        {/* main 태그를 Scrollbar로 교체하여 스크롤바를 우측 끝에 완벽히 밀착시킵니다 */}
         <Scrollbar className="main-content mypage-main">
           <Outlet />
         </Scrollbar>

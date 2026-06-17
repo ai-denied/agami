@@ -224,6 +224,21 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         user_id = int(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
+    # 1. 도메인 중복 여부 사전 검증 (500 에러 방지 핵심)
+    # 중복 입력된 도메인이 있다면 set()으로 제거
+    domain_list = list(set([normalize_domain(d) for d in data.domains.split(",") if d.strip()]))
+    if not domain_list:
+        raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
+
+    for domain in domain_list:
+        is_dup = captcha_db.execute(
+            text("SELECT id FROM allowed_origins WHERE origin = :o"), 
+            {"o": domain}
+        ).scalar()
+        if is_dup:
+            raise HTTPException(status_code=400, detail=f"이미 다른 프로젝트에 등록된 도메인입니다: {domain}")
+
+    # 2. 신규 프로젝트 DB 생성
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
@@ -243,7 +258,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
             captcha_db.execute(text("""INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())"""), {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id})
-            # 수정됨: SQLAlchemy의 콜론(:) 파싱 오류 방지를 위해 CAST 문법과 파라미터 바인딩으로 완벽하게 교체
             captcha_db.execute(text("""INSERT INTO tenant_settings (tenant_id, default_difficulty, enabled_kinds, max_attempts, rate_limit_per_min, updated_at) VALUES (:tid, 'medium', CAST(:ek AS jsonb), 3, 60, NOW())"""), {"tid": tenant_id, "ek": '["flashlight"]'})
         else:
             tenant_id = str(tenant_id_record)
@@ -252,7 +266,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         api_key_id = str(uuid.uuid4())
         captcha_db.execute(text("""INSERT INTO api_keys (id, tenant_id, name, client_key, secret_hash, owner_user_id, created_at) VALUES (:id, :t, :n, :ck, :sh, :uid, NOW())"""), {"id": api_key_id, "t": tenant_id, "n": data.name, "ck": generated_site_key, "sh": secret_hash, "uid": user_id})
 
-        domain_list = [normalize_domain(d) for d in data.domains.split(",") if d.strip()]
         for domain in domain_list:
             origin_id = str(uuid.uuid4())
             captcha_db.execute(text("""INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at) VALUES (:id, :t, :ak, :o, NOW())"""), {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain})
@@ -263,7 +276,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     except Exception as e:
         db.rollback()
         captcha_db.rollback()
-        # 수정됨: 터미널에 에러 원인이 완벽히 출력되도록 로깅 추가
         logger.error(f"[Project Create Error] {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"DB 작업 실패: {str(e)}")
 
@@ -343,19 +355,33 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
     if not project: raise HTTPException(status_code=404, detail="Project not found")
 
+    domain_list = list(set([normalize_domain(d) for d in data.domains.split(",") if d.strip()]))
+    if not domain_list:
+        raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
+
+    # 수정 시 다른 프로젝트가 선점한 도메인인지 사전에 확인 (자신이 등록한 건 패스)
+    api_key_id_record = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": project.site_key}).scalar()
+    
+    if api_key_id_record:
+        for domain in domain_list:
+            dup_record = captcha_db.execute(text("SELECT api_key_id FROM allowed_origins WHERE origin = :o"), {"o": domain}).fetchone()
+            if dup_record and dup_record[0] != api_key_id_record:
+                raise HTTPException(status_code=400, detail=f"이미 다른 프로젝트에 등록된 도메인입니다: {domain}")
+
     project.name = data.name
     project.domains = data.domains
 
     try:
-        api_info = captcha_db.execute(text("UPDATE api_keys SET name = :name WHERE client_key = :client_key RETURNING id, tenant_id"), {"name": data.name, "client_key": project.site_key}).fetchone()
-        if api_info:
-            api_key_id = api_info[0]
-            tenant_id = api_info[1]
-            captcha_db.execute(text("DELETE FROM allowed_origins WHERE api_key_id = :ak"), {"ak": api_key_id})
-            domain_list = [normalize_domain(d) for d in data.domains.split(",") if d.strip()]
+        if api_key_id_record:
+            captcha_db.execute(text("UPDATE api_keys SET name = :name WHERE client_key = :client_key"), {"name": data.name, "client_key": project.site_key})
+            tenant_id = captcha_db.execute(text("SELECT tenant_id FROM api_keys WHERE id = :id"), {"id": api_key_id_record}).scalar()
+            
+            captcha_db.execute(text("DELETE FROM allowed_origins WHERE api_key_id = :ak"), {"ak": api_key_id_record})
+            
             for domain in domain_list:
                 origin_id = str(uuid.uuid4())
-                captcha_db.execute(text("""INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at) VALUES (:id, :t, :ak, :o, NOW())"""), {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain})
+                captcha_db.execute(text("""INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at) VALUES (:id, :t, :ak, :o, NOW())"""), {"id": origin_id, "t": tenant_id, "ak": api_key_id_record, "o": domain})
+        
         db.commit()
         captcha_db.commit()
     except Exception as e:

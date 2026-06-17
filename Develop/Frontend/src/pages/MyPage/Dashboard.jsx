@@ -7,7 +7,6 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend
 } from 'recharts';
-import Scrollbar from "@/components/Scrollbar/Scrollbar";
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -243,8 +242,7 @@ export default function Dashboard() {
             <div className="right-analytics">
               <div className="log-card line-chart-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
-                {/* 로그 컨테이너에는 독립적인 스크롤바가 필요하므로 Scrollbar 컴포넌트를 유지합니다. */}
-                <Scrollbar className="log-list-container">
+                <div className="log-list-container">
                   <div className="log-list">
                     {logs && logs.length > 0 ? logs.map((log, idx) => {
                       const logClass = log.risk_band === 'high_risk' ? 'danger-log' : (log.risk_band === 'low_risk' ? 'safe-log' : 'warning-log');
@@ -259,7 +257,7 @@ export default function Dashboard() {
                       <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 내역이 없습니다.</div>
                     )}
                   </div>
-                </Scrollbar>
+                </div>
               </div>
 
               <div className="chart-card bottom-row-height attack-chart-card">
