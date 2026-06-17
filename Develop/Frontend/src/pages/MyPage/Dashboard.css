@@ -67,7 +67,13 @@ body.dark-mode, .dark-mode {
   gap: 12px;
 }
 
-/* 날짜 컨트롤러 그룹 디자인 */
+/* 새로고침 분리 및 디자인 개선 */
+.date-control-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .date-control-group {
   display: flex;
   align-items: center;
@@ -102,25 +108,24 @@ body.dark-mode, .dark-mode {
   outline: none;
   cursor: pointer;
 }
+.dashboard-date-picker:focus { border-color: var(--brand-color); }
+body.dark-mode .dashboard-date-picker::-webkit-calendar-picker-indicator { filter: invert(1); }
 
 .refresh-btn {
-  background: var(--bg-card); 
-  border: 1px solid var(--border-color); 
-  border-radius: 8px; 
-  padding: 6px 10px; 
+  background-color: rgba(93, 162, 255, 0.15); 
+  border: none; 
+  border-radius: 12px; 
+  padding: 8px; 
   cursor: pointer; 
-  color: var(--text-primary); 
-  margin-left: 8px; 
+  color: var(--brand-color); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-  transition: transform 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
 }
-.refresh-btn:active {
-  transform: rotate(180deg);
-}
-
-body.dark-mode .dashboard-date-picker::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-}
+.refresh-btn:hover { background-color: rgba(93, 162, 255, 0.25); }
+.refresh-btn:active { transform: rotate(180deg); }
 
 .model-tab-container {
   display: flex;
@@ -172,6 +177,10 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
 .card-value { font-size: 2rem; font-weight: 800; color: var(--text-primary); }
 .danger-text { color: var(--danger-color) !important; }
 
+/* 높이 강제 동기화 클래스 (한 줄에 칼같이 정렬) */
+.line-chart-card { height: 480px; }
+.bottom-row-height { height: 280px; }
+
 .analytics-grid {
   display: grid;
   grid-template-columns: 1.55fr 1.05fr;
@@ -192,22 +201,22 @@ body.dark-mode .model-tab-container { background-color: rgba(0, 0, 0, 0.2); }
   flex-direction: column;
 }
 
-.chart-card h3, .sub-card h3, .log-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 24px; }
+.chart-card h3, .sub-card h3, .log-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 24px; flex-shrink: 0;}
 
-/* 3분할 그래프를 담기 위해 높이 여유를 둡니다 */
 .chart-wrapper { 
-  height: 250px; 
+  flex-grow: 1; /* 부모 높이 안에서 꽉 차게 확장 */
   width: 100%; 
   position: relative;
 }
 .chart-wrapper.split-charts {
-  height: 380px; 
+  height: auto; 
   display: flex; 
   flex-direction: column; 
   gap: 10px;
 }
 
 .two-column-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.sub-card { justify-content: flex-start; }
 
 .pie-container-layout {
   display: flex;
@@ -259,31 +268,22 @@ body.dark-mode .metric-bar-track { background-color: rgba(255,255,255,0.05); }
 .metric-bar-fill.critical { background-color: var(--danger-color); }
 .metric-bar-fill.abandoned { background-color: #94a3b8; }
 
-/* 로그 스크롤 컨테이너 적용 */
+/* 로그 스크롤 컨테이너 적용 (플렉스 안에서 스크롤 생성) */
 .log-list-container {
-  max-height: 250px;
+  flex-grow: 1;
   overflow-y: auto;
   padding-right: 6px;
 }
-
-.log-list-container::-webkit-scrollbar {
-  width: 6px;
-}
-.log-list-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-.log-list-container::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
-  border-radius: 10px;
-}
-.log-list-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.6);
-}
+.log-list-container::-webkit-scrollbar { width: 6px; }
+.log-list-container::-webkit-scrollbar-track { background: transparent; }
+.log-list-container::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 10px; }
+.log-list-container::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
 
 .log-list { display: flex; flex-direction: column; gap: 10px; }
 .log-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 16px; font-size: 0.85rem; }
 .danger-log { background-color: var(--danger-bg); color: var(--danger-color); }
 .warning-log { background-color: var(--warning-bg); color: var(--warning-color); }
+/* 정상 통과 로그는 파란색으로 처리 */
 .safe-log { background-color: rgba(93, 162, 255, 0.1); color: var(--brand-color); }
 
 .log-ip { font-family: monospace; font-weight: 700; width: 100px; }
@@ -312,6 +312,7 @@ body.dark-mode .metric-bar-track { background-color: rgba(255,255,255,0.05); }
   .model-tab-container { width: 100%; justify-content: space-between; box-sizing: border-box; }
   .tab-btn { flex-grow: 1; text-align: center; }
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .line-chart-card, .bottom-row-height { height: auto; }
 }
 
 @media (max-width: 600px) {

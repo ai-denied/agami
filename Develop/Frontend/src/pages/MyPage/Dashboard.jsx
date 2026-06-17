@@ -88,21 +88,29 @@ export default function Dashboard() {
             </div>
             
             <div className="header-controls">
-              <div className="date-control-group">
-                <button className="date-arrow-btn" onClick={handlePrevDay}>◀</button>
-                <input 
-                  type="date" 
-                  value={targetDate} 
-                  max={todayStr}
-                  onChange={(e) => setTargetDate(e.target.value)} 
-                  className="dashboard-date-picker"
-                />
-                <button 
-                  className="date-arrow-btn" 
-                  onClick={handleNextDay} 
-                  disabled={targetDate >= todayStr}
-                >▶</button>
-                <button className="refresh-btn" onClick={fetchDashboardData} title="새로고침">↻</button>
+              <div className="date-control-wrapper">
+                <div className="date-control-group">
+                  <button className="date-arrow-btn" onClick={handlePrevDay}>◀</button>
+                  <input 
+                    type="date" 
+                    value={targetDate} 
+                    max={todayStr}
+                    onChange={(e) => setTargetDate(e.target.value)} 
+                    className="dashboard-date-picker"
+                  />
+                  <button 
+                    className="date-arrow-btn" 
+                    onClick={handleNextDay} 
+                    disabled={targetDate >= todayStr}
+                  >▶</button>
+                </div>
+                {/* 새로고침 버튼 디자인 및 분리 반영 */}
+                <button className="refresh-btn" onClick={fetchDashboardData} title="새로고침">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                </button>
               </div>
 
               <div className="model-tab-container">
@@ -135,18 +143,18 @@ export default function Dashboard() {
 
           <section className="analytics-grid">
             <div className="left-analytics">
-              <div className="chart-card">
+              {/* 상단행 고정 높이 적용 */}
+              <div className="chart-card line-chart-card">
                 <h3>시간대별 인증/차단/이탈 트래픽 추이</h3>
-                {/* 그래프 3분할 렌더링 및 툴팁 동기화 */}
                 <div className="chart-wrapper split-charts">
                   <ResponsiveContainer width="100%" height="33%">
                     <LineChart data={traffic} syncId="trafficSync" margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
                       <XAxis dataKey="time" hide />
-                      <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)' }} />
                       <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '5px' }}/>
-                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={2} dot={false} name="정상 요청" isAnimationActive={false} />
+                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={2} dot={false} name="정상 요청" isAnimationActive={false} strokeOpacity={0.8} />
                     </LineChart>
                   </ResponsiveContainer>
                   
@@ -154,10 +162,10 @@ export default function Dashboard() {
                     <LineChart data={traffic} syncId="trafficSync" margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
                       <XAxis dataKey="time" hide />
-                      <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)' }} />
                       <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '5px' }}/>
-                      <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={2} dot={false} name="차단된 공격" isAnimationActive={false} />
+                      <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={2} dot={false} name="차단된 공격" isAnimationActive={false} strokeOpacity={0.8} />
                     </LineChart>
                   </ResponsiveContainer>
 
@@ -165,16 +173,17 @@ export default function Dashboard() {
                     <LineChart data={traffic} syncId="trafficSync" margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--chart-grid)" />
                       <XAxis dataKey="time" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)' }} />
                       <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '5px' }}/>
-                      <Line type="monotone" dataKey="abandoned" stroke="#94a3b8" strokeWidth={2} dot={false} name="중도 이탈" isAnimationActive={false} />
+                      <Line type="monotone" dataKey="abandoned" stroke="#94a3b8" strokeWidth={2} dot={false} name="중도 이탈" isAnimationActive={false} strokeOpacity={0.8} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              <div className="two-column-grid">
+              {/* 하단행 고정 높이 적용 */}
+              <div className="two-column-grid bottom-row-height">
                 <div className="sub-card">
                   <h3>유입 트래픽 검증 비율</h3>
                   <div className="pie-container-layout">
@@ -232,20 +241,8 @@ export default function Dashboard() {
             </div>
 
             <div className="right-analytics">
-              <div className="chart-card">
-                <h3>주요 우회 공격 유형</h3>
-                <div className="chart-wrapper">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={attacks} margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
-                      <XAxis type="number" hide />
-                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={120} />
-                      <Tooltip content={<CustomTooltip />} cursor={false} />
-                      <Bar dataKey="value" fill="var(--danger-color)" radius={[0, 6, 6, 0]} barSize={10} name="감지 건수" isAnimationActive={false} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="log-card">
+              {/* 상단: 실시간 로그 (그래프 높이 동기화) */}
+              <div className="log-card line-chart-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
                 <div className="log-list-container">
                   <div className="log-list">
@@ -262,6 +259,21 @@ export default function Dashboard() {
                       <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 내역이 없습니다.</div>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* 하단: 우회 공격 유형 (행동 분포 높이 동기화) */}
+              <div className="chart-card bottom-row-height attack-chart-card">
+                <h3>주요 우회 공격 유형</h3>
+                <div className="chart-wrapper">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart layout="vertical" data={attacks} margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
+                      <XAxis type="number" hide allowDecimals={false} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={120} />
+                      <Tooltip content={<CustomTooltip />} cursor={false} />
+                      <Bar dataKey="value" fill="var(--danger-color)" radius={[0, 6, 6, 0]} barSize={10} name="감지 건수" isAnimationActive={false} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             </div>
