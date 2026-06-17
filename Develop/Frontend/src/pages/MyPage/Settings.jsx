@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import "./Settings.css";
-import Scrollbar from "@/components/Scrollbar/Scrollbar";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
@@ -55,7 +54,7 @@ const Settings = () => {
   };
 
   return (
-    <Scrollbar className="settings-page-wrapper">
+    <div className="settings-page-wrapper">
       <div className="settings-container">
         <header className="settings-header">
           <h1 className="settings-title">계정 설정</h1>
@@ -68,7 +67,6 @@ const Settings = () => {
             <div className="form-group profile-readonly-group">
               <label className="form-label">프로필 사진</label>
               <div className="image-preview-wrapper">
-                {/* 잃어버렸던 동그라미 프로필 사진 복구 */}
                 <img 
                   src={user?.profile || "/agami-profile.png"} 
                   alt="Profile" 
@@ -121,7 +119,7 @@ const Settings = () => {
           </div>
         </section>
       </div>
-    </Scrollbar>
+    </div>
   );
 };
 

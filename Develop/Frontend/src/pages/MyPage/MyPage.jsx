@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import Scrollbar from "@/components/Scrollbar/Scrollbar"; // 스크롤바 컴포넌트 로드
 import "./MyPage.css";
 
 const MyPage = () => {
@@ -56,9 +57,10 @@ const MyPage = () => {
           </ul>
         </aside>
 
-        <main className="main-content mypage-main">
+        {/* main 태그를 Scrollbar로 교체하여 스크롤바를 우측 끝에 완벽히 밀착시킵니다 */}
+        <Scrollbar className="main-content mypage-main">
           <Outlet />
-        </main>
+        </Scrollbar>
       </div>
     </div>
   );

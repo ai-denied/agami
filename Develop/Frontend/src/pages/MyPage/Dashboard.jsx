@@ -79,7 +79,7 @@ export default function Dashboard() {
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
   return (
-    <Scrollbar className="dashboard-container">
+    <div className="dashboard-container">
       <div className="main-wrapper">
         <div className="content-body">
           <section className="dashboard-header-block">
@@ -243,6 +243,7 @@ export default function Dashboard() {
             <div className="right-analytics">
               <div className="log-card line-chart-card">
                 <h3>실시간 이상 징후 탐지 로그</h3>
+                {/* 로그 컨테이너에는 독립적인 스크롤바가 필요하므로 Scrollbar 컴포넌트를 유지합니다. */}
                 <Scrollbar className="log-list-container">
                   <div className="log-list">
                     {logs && logs.length > 0 ? logs.map((log, idx) => {
@@ -279,6 +280,6 @@ export default function Dashboard() {
           </section>
         </div>
       </div>
-    </Scrollbar>
+    </div>
   );
 }

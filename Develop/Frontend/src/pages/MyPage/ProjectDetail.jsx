@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom"; // useNavigate 추가
+import { useParams, useNavigate } from "react-router-dom"; 
 import "./Settings.css"; 
-import Scrollbar from "@/components/Scrollbar/Scrollbar";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
 const ProjectDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // 추가
+  const navigate = useNavigate(); 
   const [project, setProject] = useState(null);
   const [name, setName] = useState("");
   const [domainList, setDomainList] = useState([""]); 
@@ -87,14 +86,13 @@ const ProjectDetail = () => {
   if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
 
   return (
-    <Scrollbar className="settings-page-wrapper">
+    <div className="settings-page-wrapper">
       <div className="settings-container">
         <header className="settings-header">
           <div>
             <h1 className="settings-title">프로젝트 기본 정보</h1>
             <p className="settings-description">프로젝트 이름과 허용 도메인을 수정하고 연동 키를 확인합니다.</p>
           </div>
-          {/* 추가된 삭제 버튼 */}
           <button className="btn-delete-project" onClick={handleDeleteProject}>프로젝트 삭제</button>
         </header>
 
@@ -170,7 +168,7 @@ const ProjectDetail = () => {
           </div>
         </div>
       )}
-    </Scrollbar>
+    </div>
   );
 };
 
