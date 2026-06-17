@@ -29,12 +29,22 @@ const CustomTooltip = ({ active, payload }) => {
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [activeModel, setActiveModel] = useState('all');
+  
+  // 한국 시간 기준 오늘 날짜를 기본값으로 설정
+  const getTodayKST = () => {
+    const now = new Date();
+    const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    return kst.toISOString().split('T')[0];
+  };
+  
+  const [selectedDate, setSelectedDate] = useState(getTodayKST());
   const [dashboardData, setDashboardData] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}`, {
+        // 선택된 날짜와 모델 파라미터 전달
+        const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}&date=${selectedDate}`, {
           withCredentials: true
         });
         if (response.data.status === 'success') {
@@ -48,7 +58,7 @@ export default function Dashboard() {
     if (user) {
       fetchDashboardData();
     }
-  }, [activeModel, user]);
+  }, [activeModel, selectedDate, user]);
 
   if (loading || !dashboardData) return <div className="dashboard-loading">보안 세션을 확인 중입니다...</div>;
   if (!user) return null;
@@ -64,17 +74,33 @@ export default function Dashboard() {
               <h2>안녕하세요, {user.nickname}님! 안전한 환경을 유지 중입니다</h2>
               <p>Agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
             </div>
-            <div className="model-tab-container">
-              <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
-              <button className={`tab-btn ${activeModel === 'flashlight' ? 'active' : ''}`} onClick={() => setActiveModel('flashlight')}>손전등</button>
-              <button className={`tab-btn ${activeModel === 'facial' ? 'active' : ''}`} onClick={() => setActiveModel('facial')}>안면 인식</button>
-              <button className={`tab-btn ${activeModel === 'emotion' ? 'active' : ''}`} onClick={() => setActiveModel('emotion')}>감정 기반</button>
+            <div className="filter-section" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <input 
+                type="date" 
+                value={selectedDate} 
+                onChange={(e) => setSelectedDate(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  fontWeight: '600',
+                  outline: 'none'
+                }}
+              />
+              <div className="model-tab-container">
+                <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
+                <button className={`tab-btn ${activeModel === 'flashlight' ? 'active' : ''}`} onClick={() => setActiveModel('flashlight')}>손전등</button>
+                <button className={`tab-btn ${activeModel === 'facial' ? 'active' : ''}`} onClick={() => setActiveModel('facial')}>안면 인식</button>
+                <button className={`tab-btn ${activeModel === 'emotion' ? 'active' : ''}`} onClick={() => setActiveModel('emotion')}>감정 기반</button>
+              </div>
             </div>
           </section>
 
           <section className="summary-grid">
             <div className="summary-card">
-              <span className="card-label">오늘 총 요청 수</span>
+              <span className="card-label">해당일 총 발급 수</span>
               <div className="card-value">{display.total_today.toLocaleString()}</div>
             </div>
             <div className="summary-card">
@@ -82,7 +108,7 @@ export default function Dashboard() {
               <div className="card-value">{display.pass_rate}%</div>
             </div>
             <div className="summary-card">
-              <span className="card-label">금일 공격 차단 건수</span>
+              <span className="card-label">해당일 공격 차단 건수</span>
               <div className="card-value danger-text">{display.blocked_today.toLocaleString()}</div>
             </div>
           </section>
@@ -107,7 +133,7 @@ export default function Dashboard() {
 
               <div className="two-column-grid">
                 <div className="sub-card">
-                  <h3>인입 트래픽 검증 분석</h3>
+                  <h3>유입 트래픽 검증 결과</h3>
                   <div className="pie-container-layout">
                     <div className="pie-wrapper" style={{ minHeight: 140 }}>
                       <ResponsiveContainer width="100%" height="100%">
@@ -115,7 +141,6 @@ export default function Dashboard() {
                           <Pie data={pieData} innerRadius={48} outerRadius={62} paddingAngle={5} dataKey="value" startAngle={90} endAngle={-270}>
                             <Cell fill="var(--brand-color)" />
                             <Cell fill="var(--danger-color)" />
-                            <Cell fill="#e0e0e0" />
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
@@ -150,7 +175,7 @@ export default function Dashboard() {
 
             <div className="right-analytics">
               <div className="chart-card">
-                <h3>주요 우회 공격 유형 Top 5</h3>
+                <h3>주요 우회 공격 유형</h3>
                 <div className="chart-wrapper" style={{ minHeight: 200 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart layout="vertical" data={attacks} margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
@@ -167,9 +192,9 @@ export default function Dashboard() {
                 <div className="log-list">
                   {logs && logs.length > 0 ? logs.map((log, idx) => (
                     <div key={idx} className={`log-item ${log.risk_band === 'high_risk' ? 'danger-log' : 'warning-log'}`}>
-                      <span className="log-ip">{log.file?.split('_')[1] || "Unknown"}</span>
-                      <span className="log-reason">{log.bot_type || log.source_type}</span>
-                      <span className="risk-score">{log.bot_risk_score ? Number(log.bot_risk_score).toFixed(2) : "N/A"}</span>
+                      <span className="log-ip">{log.file}</span>
+                      <span className="log-reason">{log.bot_type}</span>
+                      <span className="risk-score">{log.bot_risk_score}</span>
                     </div>
                   )) : (
                     <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>이상 징후가 탐지되지 않았습니다.</div>

@@ -5,6 +5,7 @@ import hmac
 import hashlib
 import uuid
 import logging
+import json
 
 from fastapi import FastAPI, Depends, HTTPException, Response, Request
 from sqlalchemy import create_engine, text
@@ -403,14 +404,22 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
         raise HTTPException(status_code=500, detail=f"결제 동기화 실패: {str(e)}")
     return {"status": "success", "message": "결제가 완료되었습니다."}
 
+
 # -----------------------------------------------------------------------------
-# 대시보드 API (프록시) - 실제 DB 조회 및 ML 포맷 정밀 매핑 (K8s Service DNS 적용)
+# 대시보드 API (프록시) - 완벽한 PostgreSQL 실 데이터 기반 집계 및 날짜 필터링
 # -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-# 대시보드 API (프록시) - PostgreSQL 실 데이터 기반 집계
-# -----------------------------------------------------------------------------
+ATTACK_TYPE_MAP = {
+    "coordinate_brute": "좌표 무차별 대입",
+    "empty_trajectory": "마우스 궤적 없음",
+    "random_search": "무작위 탐색",
+    "known_target": "알려진 타겟",
+    "other_search": "AI 비전 탐색",
+    "fast_solve": "비정상적 해결 속도",
+    "straight_line": "기계적 직선 궤적"
+}
+
 @app.get("/api/dashboard/all")
-async def get_combined_dashboard_data(request: Request, kind: str = "all", captcha_db: Session = Depends(get_captcha_db)):
+async def get_combined_dashboard_data(request: Request, kind: str = "all", date: str = None, captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
@@ -418,51 +427,124 @@ async def get_combined_dashboard_data(request: Request, kind: str = "all", captc
         user_id = int(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
-    # kind 필터 조건 (전체일 경우 필터링 없음)
-    kind_filter = "" if kind == "all" else " AND kind = :kind"
-    params = {"uid": user_id, "kind": kind}
+    # 1. 날짜 필터 처리 (KST 기준)
+    target_date = date if date else (datetime.utcnow() + timedelta(hours=9)).strftime("%Y-%m-%d")
 
-    # 1. 지표 조회 (DB 집계)
-    # 총 요청 수
-    total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges WHERE owner_user_id = :uid {kind_filter}"), params).scalar() or 0
+    kind_filter = "" if kind == "all" else " AND kind = :kind"
+    params = {"uid": user_id, "kind": kind, "target_date": target_date}
+
+    # 2. 총 요청 수 (challenges 테이블 기준, 선택한 날짜 하루)
+    total_challenges = captcha_db.execute(
+        text(f"SELECT COUNT(*) FROM challenges WHERE owner_user_id = :uid {kind_filter} AND (issued_at AT TIME ZONE 'Asia/Seoul')::date = :target_date::date"), 
+        params
+    ).scalar() or 0
     
-    # 정상/차단 (success 컬럼 이용)
-    stats = captcha_db.execute(text(f"SELECT success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} GROUP BY success"), params).fetchall()
+    # 3. 정상/차단 파이차트 및 통과율 (verifications 테이블 기준, 선택한 날짜 하루)
+    # 발급만 되고 풀지 않은 건수를 분모에서 제외하여 논리적 오류(100% 안맞는 문제) 해결
+    stats = captcha_db.execute(
+        text(f"SELECT success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} AND (created_at AT TIME ZONE 'Asia/Seoul')::date = :target_date::date GROUP BY success"), 
+        params
+    ).fetchall()
+    
     stats_dict = {row[0]: row[1] for row in stats}
     human_passed = stats_dict.get(True, 0)
     bot_blocked = stats_dict.get(False, 0)
+    total_verified = human_passed + bot_blocked
     
-    # 차단 유형 Top 5
-    attacks = captcha_db.execute(text(f"SELECT attack_type, COUNT(*) as cnt FROM verifications WHERE success = false AND owner_user_id = :uid {kind_filter} GROUP BY attack_type ORDER BY cnt DESC LIMIT 5"), params).fetchall()
-    attacks_list = [{"name": row[0] or "Unknown", "value": row[1]} for row in attacks]
+    # 파이차트 계산 (오직 검증된 건수 안에서만 퍼센트 분할)
+    pass_rate = (human_passed / total_verified * 100) if total_verified > 0 else 0
+    block_rate = (bot_blocked / total_verified * 100) if total_verified > 0 else 0
+    
+    # 4. 공격 유형 한글화 (verifications 테이블 기준)
+    attacks = captcha_db.execute(
+        text(f"SELECT attack_type, COUNT(*) as cnt FROM verifications WHERE success = false AND owner_user_id = :uid {kind_filter} AND (created_at AT TIME ZONE 'Asia/Seoul')::date = :target_date::date GROUP BY attack_type ORDER BY cnt DESC"), 
+        params
+    ).fetchall()
+    
+    attacks_list = []
+    for row in attacks:
+        raw_type = row[0]
+        # DB에 저장된 값이 없으면 '알 수 없는 공격'으로 표기
+        display_name = ATTACK_TYPE_MAP.get(raw_type, "알 수 없는 공격") if raw_type else "알 수 없는 공격"
+        attacks_list.append({"name": display_name, "value": row[1]})
 
-    # 위험도 분포 (verifications의 verdict 컬럼 활용 가능하면 활용, 여기선 기본값 0)
-    # 세션 로그
-    logs = captcha_db.execute(text(f"SELECT challenge_id as file, verdict as bot_type, 0 as bot_risk_score, 'high_risk' as risk_band FROM verifications WHERE owner_user_id = :uid {kind_filter} ORDER BY created_at DESC LIMIT 10"), params).fetchall()
-    logs_list = [{"file": row[0], "bot_type": row[1], "bot_risk_score": row[2], "risk_band": row[3]} for row in logs]
+    # 5. 행동 신뢰도 분포 파싱 (ai_model_score JSON 활용)
+    # JSON 내부에 risk_bands 배열이 들어있으므로 파이썬에서 꺼내서 합산합니다.
+    ai_scores = captcha_db.execute(
+        text(f"SELECT ai_model_score FROM verifications WHERE owner_user_id = :uid {kind_filter} AND (created_at AT TIME ZONE 'Asia/Seoul')::date = :target_date::date AND ai_model_score IS NOT NULL"), 
+        params
+    ).fetchall()
+    
+    safe_cnt, susp_cnt, crit_cnt = 0, 0, 0
+    for row in ai_scores:
+        try:
+            score_json = row[0] if isinstance(row[0], dict) else json.loads(row[0])
+            bands = score_json.get("risk_bands", [])
+            for band in bands:
+                if band == "low_risk": safe_cnt += 1
+                elif band == "suspicious": susp_cnt += 1
+                elif band == "high_risk": crit_cnt += 1
+        except: pass
 
-    # 트래픽 데이터 (시간대별)
-    traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(created_at, 'HH24:00') as time, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} GROUP BY time ORDER BY time"), params).fetchall()
-    traffic_dict = {row[0]: row[1] for row in traffic_res}
-    traffic_data = [{"time": f"{i:02d}:00", "success": traffic_dict.get(f"{i:02d}:00", 0), "attack": 0} for i in range(24)]
+    total_bands = safe_cnt + susp_cnt + crit_cnt
+    safe_rate = (safe_cnt / total_bands * 100) if total_bands > 0 else (100 if total_verified > 0 else 0)
+    susp_rate = (susp_cnt / total_bands * 100) if total_bands > 0 else 0
+    crit_rate = (crit_cnt / total_bands * 100) if total_bands > 0 else 0
 
-    pass_rate = (human_passed / total_sessions * 100) if total_sessions > 0 else 0
+    # 6. 실시간 이상 징후 탐지 로그 정리
+    logs = captcha_db.execute(
+        text(f"SELECT challenge_id, verdict, confidence, attack_type FROM verifications WHERE success = false AND owner_user_id = :uid {kind_filter} ORDER BY created_at DESC LIMIT 10"), 
+        params
+    ).fetchall()
+    
+    logs_list = []
+    for row in logs:
+        # 긴 challenge_id 앞부분만 잘라서 파일명처럼 보이게 수정
+        short_id = row[0][:8] if row[0] else "Unknown"
+        logs_list.append({
+            "file": f"{short_id}", 
+            "bot_type": ATTACK_TYPE_MAP.get(row[3], "알 수 없는 공격") if row[3] else "의심스러운 행동", 
+            "bot_risk_score": round(row[2], 2) if row[2] else 0.99, 
+            "risk_band": "high_risk"
+        })
+
+    # 7. 트래픽 데이터 (24시간 정규화, 특정 날짜 기준)
+    traffic_res = captcha_db.execute(
+        text(f"SELECT TO_CHAR((created_at AT TIME ZONE 'Asia/Seoul'), 'HH24:00') as time, success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} AND (created_at AT TIME ZONE 'Asia/Seoul')::date = :target_date::date GROUP BY time, success ORDER BY time"), 
+        params
+    ).fetchall()
+    
+    traffic_dict = {}
+    for row in traffic_res:
+        time_key = row[0]
+        is_success = row[1]
+        cnt = row[2]
+        if time_key not in traffic_dict:
+            traffic_dict[time_key] = {"success": 0, "attack": 0}
+        
+        if is_success: traffic_dict[time_key]["success"] += cnt
+        else: traffic_dict[time_key]["attack"] += cnt
+
+    traffic_data = [{"time": f"{i:02d}:00", "success": traffic_dict.get(f"{i:02d}:00", {}).get("success", 0), "attack": traffic_dict.get(f"{i:02d}:00", {}).get("attack", 0)} for i in range(24)]
 
     return {
         "status": "success",
         "data": {
             "display": {
-                "total_today": total_sessions,
-                "pass_rate": round(pass_rate, 1),
+                "total_today": total_challenges, # 상단 노출용: 발급 기준
+                "pass_rate": round(pass_rate, 1), # 상단 노출용: 검증 기준 통과율
                 "blocked_today": bot_blocked
             },
             "traffic": traffic_data,
             "pieData": [
-                {"name": "정상 탐지", "value": round((human_passed / total_sessions * 100) if total_sessions > 0 else 0, 1)},
-                {"name": "보안 차단", "value": round((bot_blocked / total_sessions * 100) if total_sessions > 0 else 0, 1)},
-                {"name": "기타", "value": 0}
+                {"name": "정상 사용자", "value": round(pass_rate, 1)},
+                {"name": "보안 차단", "value": round(block_rate, 1)}
             ],
-            "behavior": {"safe": 100, "suspicious": 0, "critical": 0},
+            "behavior": {
+                "safe": round(safe_rate, 1),
+                "suspicious": round(susp_rate, 1),
+                "critical": round(crit_rate, 1)
+            },
             "attacks": attacks_list,
             "logs": logs_list
         }
