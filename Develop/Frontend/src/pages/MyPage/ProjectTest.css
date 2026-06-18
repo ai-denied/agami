@@ -73,7 +73,7 @@ body.dark-mode .btn-refresh-widget {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 850px; /* 기존 700px -> 850px 확장 (잘림 방지) */
+  min-height: 400px; /* 고정 높이 삭제, 자식 iframe의 동적 높이에 자연스레 늘어남 */
   overflow: hidden; 
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }

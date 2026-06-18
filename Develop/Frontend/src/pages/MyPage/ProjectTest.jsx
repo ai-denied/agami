@@ -12,6 +12,9 @@ const ProjectTest = () => {
   const [testToken, setTestToken] = useState("");
   const [isCopied, setIsCopied] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  
+  // 위젯이 요구하는 높이를 실시간으로 반영하기 위한 상태 (기본 600px)
+  const [widgetHeight, setWidgetHeight] = useState(600); 
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -25,43 +28,32 @@ const ProjectTest = () => {
     fetchProjectDetails();
   }, [id]);
 
-  // iframe으로부터 캡챠 완료 토큰 수신 (백엔드 captcha_token 스펙 반영)
+  // iframe 메시지 통신 (리사이징 & 토큰 수신)
   useEffect(() => {
     const handleIframeMessage = (event) => {
       const data = event.data;
       if (!data) return;
-      
-      // React 내부 통신용 메시지는 무시
       if (data.source && data.source.includes('react-devtools')) return;
 
-      console.log("[Agami Widget] 수신된 원본 데이터:", data);
+      console.log("[Agami Widget] 수신된 데이터:", data);
 
-      let extractedToken = null;
-
-      // 1. 객체 형태로 수신된 경우 (백엔드 스펙인 captcha_token을 우선 탐색)
-      if (typeof data === 'object') {
-        extractedToken = data.captcha_token || data.token || (data.data && (data.data.captcha_token || data.data.token));
-      } 
-      // 2. 문자열(JSON)로 수신된 경우
-      else if (typeof data === 'string') {
-        try {
-          const parsed = JSON.parse(data);
-          extractedToken = parsed.captcha_token || parsed.token || (parsed.data && (parsed.data.captcha_token || parsed.data.token));
-        } catch (e) {
-          // 파싱 실패 시, 문자열 자체가 토큰일 가능성 (JSON 중괄호가 없는 경우)
-          if (data.length > 15 && !data.includes("{")) {
-            extractedToken = data;
-          }
-        }
+      // 1. 위젯 리사이징(크기 조절) 이벤트 처리
+      if (data.type === 'agami-resize' && data.height) {
+        // 위젯이 요구하는 높이에 약간의 여백(20px)을 더해 완벽히 담아냅니다.
+        setWidgetHeight(data.height + 20);
       }
 
-      // 추출된 토큰이 있다면 상태 업데이트
-      if (extractedToken) {
-        if (typeof extractedToken === 'object') {
-          setTestToken(JSON.stringify(extractedToken, null, 2));
-        } else {
-          setTestToken(String(extractedToken));
+      // 2. 캡챠 인증 결과(토큰) 처리
+      if (data.type === 'agami-result') {
+        if (data.success && data.captchaToken) {
+          setTestToken(String(data.captchaToken)); // 낙타 표기법(captchaToken) 캡치 완벽 적용
+        } else if (data.success && data.token) {
+          setTestToken(String(data.token));
         }
+      } 
+      // 3. 만약 타입이 명시되지 않은 구형 포맷일 경우 방어 로직
+      else if (typeof data === 'object' && (data.captchaToken || data.captcha_token || data.token)) {
+        setTestToken(String(data.captchaToken || data.captcha_token || data.token));
       }
     };
 
@@ -72,6 +64,7 @@ const ProjectTest = () => {
   const handleRefreshWidget = () => {
     setRefreshKey(prev => prev + 1);
     setTestToken(""); 
+    setWidgetHeight(600); // 새로고침 시 높이 초기화
   };
 
   const handleCopySnippet = () => {
@@ -109,21 +102,23 @@ const ProjectTest = () => {
             </div>
             
             <div className="widget-render-box">
+              {/* 높이가 widgetHeight 상태에 따라 고무줄처럼 자동으로 늘어납니다. */}
               <iframe 
                 key={refreshKey}
                 src={`https://agami-captcha.cloud/widget/embed?kind=flashlight&difficulty=easy&client_key=${project.site_key}`}
                 width="100%" 
-                height="850px" /* 잘림 현상 해결을 위해 세로 850px로 대폭 확장 */
+                height={`${widgetHeight}px`} 
                 frameBorder="0"
                 title="Agami Captcha Widget"
                 scrolling="no"
+                style={{ transition: 'height 0.3s ease' }} /* 부드럽게 늘어나는 애니메이션 */
               ></iframe>
             </div>
 
             {testToken && (
               <div className="token-result-box">
                 <span className="success-badge">✅ 인증 완료 및 토큰 수신</span>
-                <span className="token-label">발급된 토큰 (captcha_token):</span>
+                <span className="token-label">발급된 토큰 (captchaToken):</span>
                 <div className="token-string">{testToken}</div>
               </div>
             )}
@@ -149,7 +144,7 @@ const ProjectTest = () => {
             
             <div className="info-alert-box">
               <strong>💡 주의사항</strong>
-              <p>백엔드 코드를 보니 /siteverify 엔드포인트는 JSON이 아니라 Form Data 형식(-d)을 기대하고 있어 cURL 양식을 맞게 수정해 두었습니다. 이 코드는 반드시 고객님의 백엔드 서버에서 실행되어야 합니다.</p>
+              <p>이 코드는 반드시 고객님의 백엔드 서버에서 실행되어야 합니다.</p>
             </div>
           </div>
 

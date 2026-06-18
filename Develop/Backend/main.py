@@ -6,7 +6,7 @@ import hashlib
 import uuid
 import logging
 
-from fastapi import FastAPI, Depends, HTTPException, Response, Request, Form
+from fastapi import FastAPI, Depends, HTTPException, Response, Request
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 from database import SessionLocal
@@ -224,6 +224,8 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         user_id = int(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
+    # 1. 도메인 중복 여부 사전 검증 (500 에러 방지 핵심)
+    # 중복 입력된 도메인이 있다면 set()으로 제거
     domain_list = list(set([normalize_domain(d) for d in data.domains.split(",") if d.strip()]))
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
@@ -236,6 +238,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         if is_dup:
             raise HTTPException(status_code=400, detail=f"이미 다른 프로젝트에 등록된 도메인입니다: {domain}")
 
+    # 2. 신규 프로젝트 DB 생성
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
@@ -356,6 +359,7 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
 
+    # 수정 시 다른 프로젝트가 선점한 도메인인지 사전에 확인 (자신이 등록한 건 패스)
     api_key_id_record = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": project.site_key}).scalar()
     
     if api_key_id_record:
@@ -454,6 +458,7 @@ async def get_combined_dashboard_data(
     challenge_date_filter = " AND CAST(issued_at AS DATE) = CAST(:target_date AS DATE)"
     params = {"uid": user_id, "kind": kind, "target_date": target_date}
 
+    # 1. 지표 조회 (DB 집계)
     total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges WHERE owner_user_id = :uid {kind_filter} {challenge_date_filter}"), params).scalar() or 0
     
     stats = captcha_db.execute(text(f"SELECT success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} GROUP BY success"), params).fetchall()
@@ -464,6 +469,7 @@ async def get_combined_dashboard_data(
     
     abandoned_today = max(0, total_sessions - total_verified)
     
+    # 2. 차단 유형 한글 맵핑
     attacks = captcha_db.execute(text(f"SELECT attack_type, COUNT(*) as cnt FROM verifications WHERE success = false AND owner_user_id = :uid {kind_filter} {date_filter} GROUP BY attack_type ORDER BY cnt DESC LIMIT 5"), params).fetchall()
     
     attack_map = {
@@ -480,6 +486,7 @@ async def get_combined_dashboard_data(
         disp_name = attack_map.get(raw_type, "비정상적 우회 시도" if not raw_type else raw_type)
         attacks_list.append({"name": disp_name, "value": row[1]})
 
+    # 3. 세션 로그
     logs = captcha_db.execute(text(f"SELECT requester_ip, attack_type, verdict, confidence FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} ORDER BY created_at DESC LIMIT 10"), params).fetchall()
     
     logs_list = []
@@ -499,6 +506,7 @@ async def get_combined_dashboard_data(
             "risk_band": risk_band
         })
 
+    # 4. 트래픽 데이터
     challenge_traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(issued_at, 'HH24:00') as time, COUNT(*) as cnt FROM challenges WHERE owner_user_id = :uid {kind_filter} {challenge_date_filter} GROUP BY time"), params).fetchall()
     ch_traffic_dict = {row[0]: row[1] for row in challenge_traffic_res}
 
@@ -531,6 +539,7 @@ async def get_combined_dashboard_data(
             "abandoned": abandoned_cnt
         })
 
+    # 5. 파이 차트 보정
     if total_sessions > 0:
         pass_rate = (human_passed / total_sessions * 100)
         pie_human = round(pass_rate, 1)
@@ -570,28 +579,3 @@ async def get_combined_dashboard_data(
             "logs": logs_list
         }
     }
-
-# -----------------------------------------------------------------------------
-# API 검증 프록시 (Web Backend -> Engine) 추가 부분
-# -----------------------------------------------------------------------------
-@app.post("/api/v1/siteverify")
-async def proxy_siteverify(secret: str = Form(...), token: str = Form(...), remoteip: str = Form(None)):
-    """
-    고객이 웹 백엔드(/api/v1/siteverify)로 토큰 검증을 요청하면,
-    웹 백엔드가 캡챠 엔진(/v1/siteverify)으로 요청을 릴레이(Proxy)합니다.
-    """
-    engine_url = "https://agami-captcha.cloud/v1/siteverify"
-    payload = {"secret": secret, "token": token}
-    if remoteip:
-        payload["remoteip"] = remoteip
-    
-    try:
-        response = requests.post(engine_url, data=payload)
-        return Response(
-            content=response.content, 
-            status_code=response.status_code, 
-            media_type=response.headers.get("content-type", "application/json")
-        )
-    except Exception as e:
-        logger.error(f"Engine Proxy Error: {str(e)}")
-        return {"success": False, "error_codes": ["engine-connection-failed"]}
