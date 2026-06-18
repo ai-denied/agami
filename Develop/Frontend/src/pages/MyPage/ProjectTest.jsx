@@ -11,9 +11,8 @@ const ProjectTest = () => {
   const [project, setProject] = useState(null);
   const [testToken, setTestToken] = useState("");
   const [isCopied, setIsCopied] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); // 새로고침용 키
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // 프로젝트 정보 불러오기
   useEffect(() => {
     const fetchProjectDetails = async () => {
       try {
@@ -26,30 +25,44 @@ const ProjectTest = () => {
     fetchProjectDetails();
   }, [id]);
 
-  // iframe으로부터 캡챠 완료 토큰 수신 (postMessage 통신)
+  // iframe으로부터 캡챠 완료 토큰 수신 및 정밀 파싱
   useEffect(() => {
     const handleIframeMessage = (event) => {
-      // 🚨 디버깅: F12 콘솔창에서 위젯이 어떤 데이터를 뱉는지 확인 가능합니다.
-      console.log("[Agami Widget] 수신된 데이터:", event.data);
-
       const data = event.data;
       if (!data) return;
+      
+      // React 내부 통신용 메시지는 무시
+      if (data.source && data.source.includes('react-devtools')) return;
 
-      // 1. 객체 형태로 넘어올 경우
+      console.log("[Agami Widget] 수신된 원본 데이터:", data);
+
+      let extractedToken = null;
+
+      // 1. 객체 형태로 수신된 경우
       if (typeof data === 'object') {
-        if (data.token) {
-          setTestToken(String(data.token));
-        } else if (data.success && data.token === undefined) {
-          // 성공은 했는데 토큰 필드가 없을 경우를 대비한 방어 코드
-          setTestToken("토큰 필드 누락 (백엔드 위젯 코드 확인 필요)");
-        }
+        if (data.token) extractedToken = data.token;
+        else if (data.data && data.data.token) extractedToken = data.data.token; // 뎁스가 깊은 경우 방어
       } 
-      // 2. 문자열(JSON) 형태로 넘어올 경우
-      else if (typeof data === 'string' && data.includes("token")) {
+      // 2. 문자열(JSON)로 수신된 경우
+      else if (typeof data === 'string') {
         try {
           const parsed = JSON.parse(data);
-          if (parsed.token) setTestToken(String(parsed.token));
-        } catch (e) {}
+          if (parsed.token) extractedToken = parsed.token;
+          else if (parsed.data && parsed.data.token) extractedToken = parsed.data.token;
+        } catch (e) {
+          // 파싱에 실패했지만 문자열 자체가 토큰일 가능성 배제 안 함
+          if (data.length > 15) extractedToken = data;
+        }
+      }
+
+      // 추출된 토큰이 있다면 상태 업데이트
+      if (extractedToken) {
+        // 백엔드에서 토큰 자체를 객체로 던졌을 경우 [object Object]를 막고 내용물을 보여줌
+        if (typeof extractedToken === 'object') {
+          setTestToken(JSON.stringify(extractedToken, null, 2));
+        } else {
+          setTestToken(String(extractedToken));
+        }
       }
     };
 
@@ -57,10 +70,9 @@ const ProjectTest = () => {
     return () => window.removeEventListener("message", handleIframeMessage);
   }, []);
 
-  // 위젯 새로고침 함수
   const handleRefreshWidget = () => {
     setRefreshKey(prev => prev + 1);
-    setTestToken(""); // 새로고침 시 기존 토큰 초기화
+    setTestToken(""); 
   };
 
   const handleCopySnippet = () => {
@@ -89,26 +101,23 @@ const ProjectTest = () => {
 
         <div className="test-vertical-layout">
           
-          {/* 상단: 진짜 iframe 위젯 영역 */}
           <div className="test-panel">
             <div className="panel-header-row">
               <div>
                 <h3 className="panel-title">1. 실환경 위젯 테스트</h3>
                 <p className="panel-desc">고객님의 <strong>Site Key</strong>가 적용된 실제 iframe 위젯입니다.</p>
               </div>
-              {/* 새로고침 버튼 추가 */}
               <button className="btn-refresh-widget" onClick={handleRefreshWidget}>
                 ↻ 위젯 새로고침
               </button>
             </div>
             
             <div className="widget-render-box">
-              {/* key 속성을 부여하여 새로고침 버튼 클릭 시 아예 강제로 다시 그리도록 처리 */}
               <iframe 
                 key={refreshKey}
                 src={`https://agami-captcha.cloud/widget/embed?kind=flashlight&difficulty=easy&client_key=${project.site_key}`}
                 width="100%" 
-                height="500px" 
+                height="700px" /* 위젯이 잘리지 않도록 세로 700px로 대폭 확장 */
                 frameBorder="0"
                 title="Agami Captcha Widget"
                 scrolling="no"
@@ -124,7 +133,6 @@ const ProjectTest = () => {
             )}
           </div>
 
-          {/* 하단: 백엔드 연동 가이드 영역 */}
           <div className="test-panel">
             <h3 className="panel-title">2. 백엔드 검증 테스트</h3>
             <p className="panel-desc">아래의 cURL 코드를 복사하여 <strong>터미널(cmd)</strong>에 붙여넣고 엔터를 치시면 실제 검증 결과를 확인할 수 있습니다.</p>
@@ -141,7 +149,7 @@ const ProjectTest = () => {
   -H "Content-Type: application/json" \\
   -d '{
     "secret_key": "${project.secret_key}",
-    "token": "${testToken || "<상단_위젯에서_캡챠를_풀면_토큰이_채워집니다>"}"
+    "token": "${testToken ? (testToken.length > 50 ? testToken.substring(0, 50) + "..." : testToken) : "<상단_위젯에서_캡챠를_풀면_토큰이_채워집니다>"}"
   }'`}</code>
               </pre>
             </div>
