@@ -229,29 +229,29 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
 
     for domain in domain_list:
-        # [정석] 1. 현재 활성화된(revoked_at IS NULL) 다른 프로젝트가 이 도메인을 사용 중인지 검사
-        active_dup = captcha_db.execute(
+        # [수정됨] 웹 DB(agamidb)와 캡차 DB(captcha_db)를 교차 검증하여 과거 유령 데이터(Ghost Data) 자동 청소
+        existing_origins = captcha_db.execute(
             text("""
-                SELECT ao.id 
+                SELECT ao.id, ak.client_key 
                 FROM allowed_origins ao
-                JOIN api_keys ak ON ao.api_key_id = ak.id
-                WHERE ao.origin = :o AND ak.revoked_at IS NULL
+                LEFT JOIN api_keys ak ON ao.api_key_id = ak.id
+                WHERE ao.origin = :o
             """), 
             {"o": domain}
-        ).scalar()
-        if active_dup:
-            raise HTTPException(status_code=400, detail=f"이미 다른 활성 프로젝트에 등록된 도메인입니다: {domain}")
+        ).fetchall()
 
-        # [정석] 2. 과거 삭제된(revoked_at IS NOT NULL) 프로젝트에 묶여있던 찌꺼기 도메인은 하드 삭제하여 Unique 제약 조건 회피
-        captcha_db.execute(
-            text("""
-                DELETE FROM allowed_origins 
-                WHERE origin = :o AND api_key_id IN (
-                    SELECT id FROM api_keys WHERE revoked_at IS NOT NULL
-                )
-            """),
-            {"o": domain}
-        )
+        for ao_id, client_key in existing_origins:
+            is_active_in_agamidb = False
+            if client_key:
+                is_active_in_agamidb = db.query(models.Project).filter(models.Project.site_key == client_key).first() is not None
+
+            if is_active_in_agamidb:
+                raise HTTPException(status_code=400, detail=f"이미 다른 활성 프로젝트에 등록된 도메인입니다: {domain}")
+            else:
+                # 유령 데이터(삭제된 프로젝트의 도메인) 청소
+                captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
+                if client_key:
+                    captcha_db.execute(text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :ck AND revoked_at IS NULL"), {"ck": client_key})
 
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
@@ -377,30 +377,32 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     
     if api_key_id_record:
         for domain in domain_list:
-            # [정석] 1. 다른 활성화된 프로젝트가 이 도메인을 사용 중인지 확인
-            active_dup = captcha_db.execute(
+            # [수정됨] 업데이트 시에도 유령 데이터 자동 청소
+            existing_origins = captcha_db.execute(
                 text("""
-                    SELECT ao.api_key_id 
+                    SELECT ao.id, ak.client_key 
                     FROM allowed_origins ao
-                    JOIN api_keys ak ON ao.api_key_id = ak.id
-                    WHERE ao.origin = :o AND ak.revoked_at IS NULL
+                    LEFT JOIN api_keys ak ON ao.api_key_id = ak.id
+                    WHERE ao.origin = :o
                 """), 
                 {"o": domain}
-            ).fetchone()
+            ).fetchall()
             
-            if active_dup and active_dup[0] != api_key_id_record:
-                raise HTTPException(status_code=400, detail=f"이미 다른 활성 프로젝트에 등록된 도메인입니다: {domain}")
-
-            # [정석] 2. 찌꺼기 도메인 하드 삭제
-            captcha_db.execute(
-                text("""
-                    DELETE FROM allowed_origins 
-                    WHERE origin = :o AND api_key_id IN (
-                        SELECT id FROM api_keys WHERE revoked_at IS NOT NULL
-                    )
-                """),
-                {"o": domain}
-            )
+            for ao_id, client_key in existing_origins:
+                # 수정 중인 자기 자신의 기존 도메인은 패스
+                if client_key == project.site_key:
+                    continue
+                    
+                is_active_in_agamidb = False
+                if client_key:
+                    is_active_in_agamidb = db.query(models.Project).filter(models.Project.site_key == client_key).first() is not None
+                
+                if is_active_in_agamidb:
+                    raise HTTPException(status_code=400, detail=f"이미 다른 활성 프로젝트에 등록된 도메인입니다: {domain}")
+                else:
+                    captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
+                    if client_key:
+                        captcha_db.execute(text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :ck AND revoked_at IS NULL"), {"ck": client_key})
 
     project.name = data.name
     project.domains = data.domains
@@ -474,7 +476,7 @@ async def get_combined_dashboard_data(
     request: Request, 
     kind: str = "all", 
     target_date: str = None, 
-    project_id: int = None,  # [핵심] URL에서 넘어온 프로젝트 ID 파라미터 수신
+    project_id: int = None,
     db: Session = Depends(get_db),
     captcha_db: Session = Depends(get_captcha_db)
 ):
