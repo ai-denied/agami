@@ -209,7 +209,7 @@ async def update_profile(data: ProfileUpdate, request: Request, db: Session = De
     
 @app.post("/api/auth/logout")
 async def logout(response: Response):
-    response.delete_cookie(key="accessToken", path="/", httponly=True, secure=True, samesite="lax", domain=".agami-captcha.cloud")
+    response.delete_cookie(key="accessToken", path="/", httponly=True, secure=True, samesite="lax")
     return {"status": "success"}
 
 # -----------------------------------------------------------------------------
