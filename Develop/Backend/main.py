@@ -6,7 +6,7 @@ import hashlib
 import uuid
 import logging
 
-from fastapi import FastAPI, Depends, HTTPException, Response, Request
+from fastapi import FastAPI, Depends, HTTPException, Response, Request, Form
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 from database import SessionLocal
@@ -224,8 +224,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         user_id = int(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 1. 도메인 중복 여부 사전 검증 (500 에러 방지 핵심)
-    # 중복 입력된 도메인이 있다면 set()으로 제거
     domain_list = list(set([normalize_domain(d) for d in data.domains.split(",") if d.strip()]))
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
@@ -238,7 +236,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         if is_dup:
             raise HTTPException(status_code=400, detail=f"이미 다른 프로젝트에 등록된 도메인입니다: {domain}")
 
-    # 2. 신규 프로젝트 DB 생성
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
@@ -359,7 +356,6 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
 
-    # 수정 시 다른 프로젝트가 선점한 도메인인지 사전에 확인 (자신이 등록한 건 패스)
     api_key_id_record = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": project.site_key}).scalar()
     
     if api_key_id_record:
@@ -433,13 +429,15 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     return {"status": "success", "message": "결제가 완료되었습니다."}
 
 # -----------------------------------------------------------------------------
-# 대시보드 API (프록시) - PostgreSQL 실 데이터 기반 집계
+# 대시보드 API - PostgreSQL 실 데이터 기반 집계 (프로젝트별 격리 적용 완료)
 # -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
 async def get_combined_dashboard_data(
     request: Request, 
     kind: str = "all", 
     target_date: str = None, 
+    project_id: int = None,  # [핵심] URL에서 넘어온 프로젝트 ID 파라미터 수신
+    db: Session = Depends(get_db),
     captcha_db: Session = Depends(get_captcha_db)
 ):
     token = request.cookies.get("accessToken")
@@ -452,16 +450,56 @@ async def get_combined_dashboard_data(
     if not target_date:
         target_date = datetime.utcnow().strftime("%Y-%m-%d")
 
-    kind_filter = "" if kind == "all" else " AND kind = :kind"
-    
-    date_filter = " AND CAST(created_at AS DATE) = CAST(:target_date AS DATE)"
-    challenge_date_filter = " AND CAST(issued_at AS DATE) = CAST(:target_date AS DATE)"
-    params = {"uid": user_id, "kind": kind, "target_date": target_date}
+    # 프로젝트 ID 필수 체크
+    if not project_id:
+        raise HTTPException(status_code=400, detail="project_id is required")
 
-    # 1. 지표 조회 (DB 집계)
-    total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges WHERE owner_user_id = :uid {kind_filter} {challenge_date_filter}"), params).scalar() or 0
+    # 1. 웹 DB (agamidb)에서 해당 프로젝트의 site_key 조회 및 권한 확인
+    project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found or unauthorized")
+
+    # 2. 엔진 DB (captcha_db)에서 해당 site_key(client_key)의 api_key_id 조회
+    api_key_id = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": project.site_key}).scalar()
     
-    stats = captcha_db.execute(text(f"SELECT success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} GROUP BY success"), params).fetchall()
+    # 생성 직후 등 아직 엔진에 동기화가 안 됐을 경우의 빈 데이터 처리
+    def _empty_dashboard():
+        return {
+            "status": "success",
+            "data": {
+                "display": {"total_today": 0, "pass_rate": 0, "blocked_today": 0, "abandoned_today": 0},
+                "traffic": [{"time": f"{i:02d}:00", "success": 0, "attack": 0, "abandoned": 0} for i in range(24)],
+                "pieData": [{"name": "정상 통과", "value": 0}, {"name": "보안 차단", "value": 0}, {"name": "중도 이탈", "value": 0}],
+                "behavior": {"safe": 0, "suspicious": 0, "critical": 0, "abandoned": 0},
+                "attacks": [],
+                "logs": []
+            }
+        }
+        
+    if not api_key_id:
+        return _empty_dashboard()
+
+    # 3. 쿼리 필터 세팅 (owner_user_id가 아닌 api_key_id 기반으로 완벽 분리)
+    kind_filter_c = "" if kind == "all" else " AND c.kind = :kind"
+    kind_filter_v = "" if kind == "all" else " AND v.kind = :kind"
+    
+    date_filter_c = " AND CAST(c.issued_at AS DATE) = CAST(:target_date AS DATE)"
+    date_filter_v = " AND CAST(v.created_at AS DATE) = CAST(:target_date AS DATE)"
+    
+    params = {"api_key_id": api_key_id, "kind": kind, "target_date": target_date}
+
+    # [1] 지표 조회: 해당 api_key_id로 발급된 챌린지 세션 수 파악
+    total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges c WHERE c.api_key_id = :api_key_id {kind_filter_c} {date_filter_c}"), params).scalar() or 0
+    
+    # [1-2] 지표 조회: verifications 테이블은 challenges와 JOIN하여 해당 프로젝트인지 확인
+    stats_query = f"""
+        SELECT v.success, COUNT(*) as cnt 
+        FROM verifications v 
+        JOIN challenges c ON v.challenge_id = c.id 
+        WHERE c.api_key_id = :api_key_id {kind_filter_v} {date_filter_v} 
+        GROUP BY v.success
+    """
+    stats = captcha_db.execute(text(stats_query), params).fetchall()
     stats_dict = {row[0]: row[1] for row in stats}
     human_passed = stats_dict.get(True, 0)
     bot_blocked = stats_dict.get(False, 0)
@@ -469,8 +507,16 @@ async def get_combined_dashboard_data(
     
     abandoned_today = max(0, total_sessions - total_verified)
     
-    # 2. 차단 유형 한글 맵핑
-    attacks = captcha_db.execute(text(f"SELECT attack_type, COUNT(*) as cnt FROM verifications WHERE success = false AND owner_user_id = :uid {kind_filter} {date_filter} GROUP BY attack_type ORDER BY cnt DESC LIMIT 5"), params).fetchall()
+    # [2] 차단 유형 한글 맵핑 (JOIN)
+    attacks_query = f"""
+        SELECT v.attack_type, COUNT(*) as cnt 
+        FROM verifications v 
+        JOIN challenges c ON v.challenge_id = c.id 
+        WHERE c.api_key_id = :api_key_id AND v.success = false {kind_filter_v} {date_filter_v} 
+        GROUP BY v.attack_type 
+        ORDER BY cnt DESC LIMIT 5
+    """
+    attacks = captcha_db.execute(text(attacks_query), params).fetchall()
     
     attack_map = {
         "coordinate_brute": "좌표 무차별 대입",
@@ -486,8 +532,15 @@ async def get_combined_dashboard_data(
         disp_name = attack_map.get(raw_type, "비정상적 우회 시도" if not raw_type else raw_type)
         attacks_list.append({"name": disp_name, "value": row[1]})
 
-    # 3. 세션 로그
-    logs = captcha_db.execute(text(f"SELECT requester_ip, attack_type, verdict, confidence FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} ORDER BY created_at DESC LIMIT 10"), params).fetchall()
+    # [3] 세션 로그 (JOIN)
+    logs_query = f"""
+        SELECT v.requester_ip, v.attack_type, v.verdict, v.confidence 
+        FROM verifications v 
+        JOIN challenges c ON v.challenge_id = c.id 
+        WHERE c.api_key_id = :api_key_id {kind_filter_v} {date_filter_v} 
+        ORDER BY v.created_at DESC LIMIT 10
+    """
+    logs = captcha_db.execute(text(logs_query), params).fetchall()
     
     logs_list = []
     for row in logs:
@@ -506,11 +559,24 @@ async def get_combined_dashboard_data(
             "risk_band": risk_band
         })
 
-    # 4. 트래픽 데이터
-    challenge_traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(issued_at, 'HH24:00') as time, COUNT(*) as cnt FROM challenges WHERE owner_user_id = :uid {kind_filter} {challenge_date_filter} GROUP BY time"), params).fetchall()
+    # [4] 트래픽 데이터 (JOIN)
+    ch_traffic_query = f"""
+        SELECT TO_CHAR(c.issued_at, 'HH24:00') as time, COUNT(*) as cnt 
+        FROM challenges c 
+        WHERE c.api_key_id = :api_key_id {kind_filter_c} {date_filter_c} 
+        GROUP BY time
+    """
+    challenge_traffic_res = captcha_db.execute(text(ch_traffic_query), params).fetchall()
     ch_traffic_dict = {row[0]: row[1] for row in challenge_traffic_res}
 
-    traffic_res = captcha_db.execute(text(f"SELECT TO_CHAR(created_at, 'HH24:00') as time, success, COUNT(*) as cnt FROM verifications WHERE owner_user_id = :uid {kind_filter} {date_filter} GROUP BY time, success"), params).fetchall()
+    v_traffic_query = f"""
+        SELECT TO_CHAR(v.created_at, 'HH24:00') as time, v.success, COUNT(*) as cnt 
+        FROM verifications v 
+        JOIN challenges c ON v.challenge_id = c.id 
+        WHERE c.api_key_id = :api_key_id {kind_filter_v} {date_filter_v} 
+        GROUP BY time, v.success
+    """
+    traffic_res = captcha_db.execute(text(v_traffic_query), params).fetchall()
     
     traffic_dict = {f"{i:02d}:00": {"success": 0, "attack": 0} for i in range(24)}
     for row in traffic_res:
@@ -539,7 +605,7 @@ async def get_combined_dashboard_data(
             "abandoned": abandoned_cnt
         })
 
-    # 5. 파이 차트 보정
+    # [5] 파이 차트 보정
     if total_sessions > 0:
         pass_rate = (human_passed / total_sessions * 100)
         pie_human = round(pass_rate, 1)

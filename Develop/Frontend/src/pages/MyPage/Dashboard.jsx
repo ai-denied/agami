@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom'; // 💡 useParams 추가
 import axios from 'axios';
 import './Dashboard.css';
 import { 
@@ -28,10 +28,10 @@ const CustomTooltip = ({ active, payload }) => {
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
+  const { id: projectId } = useParams(); // 💡 URL에서 project_id 추출
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
-  // 로컬 타임존 기반 오늘 날짜 문자열 생성 헬퍼
   const getLocalDateStr = (d) => {
     const offset = d.getTimezoneOffset() * 60000;
     return new Date(d - offset).toISOString().split('T')[0];
@@ -42,7 +42,8 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}&target_date=${targetDate}`, {
+      // 💡 API 주소에 project_id 파라미터 추가
+      const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}&target_date=${targetDate}&project_id=${projectId}`, {
         withCredentials: true
       });
       if (response.data.status === 'success') {
@@ -54,10 +55,10 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && projectId) {
       fetchDashboardData();
     }
-  }, [activeModel, targetDate, user]);
+  }, [activeModel, targetDate, user, projectId]);
 
   const handlePrevDay = () => {
     const d = new Date(targetDate);
@@ -264,7 +265,6 @@ export default function Dashboard() {
                 <h3>주요 우회 공격 유형</h3>
                 <div className="chart-wrapper">
                   <ResponsiveContainer width="100%" height="100%">
-                    {/* 너비를 140으로 늘려 두 줄 래핑 현상 방지 */}
                     <BarChart layout="vertical" data={attacks} margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
                       <XAxis type="number" hide allowDecimals={false} />
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={140} />
