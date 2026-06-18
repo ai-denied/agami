@@ -16,7 +16,8 @@ const MyPage = () => {
   return (
     <div className="page-wrapper mypage-wrapper">
       <div className="layout-container mypage-layout">
-        <aside className="sidebar mypage-sidebar">
+        
+        <aside className="mypage-sidebar">
           
           <div className="sidebar-profile">
             <img 
@@ -55,9 +56,10 @@ const MyPage = () => {
           </ul>
         </aside>
 
-        <Scrollbar className="main-content mypage-main">
+        <Scrollbar className="mypage-main">
           <Outlet />
         </Scrollbar>
+        
       </div>
     </div>
   );
