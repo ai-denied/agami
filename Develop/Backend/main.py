@@ -125,7 +125,7 @@ async def kakao_callback(code: str, response: Response, db: Session = Depends(ge
     db.refresh(user)
 
     jwt_token = create_access_token({"sub": str(user.id), "nickname": user.nickname})
-    response.set_cookie(key="accessToken", value=jwt_token, httponly=True, secure=True, samesite="lax", path="/")
+    response.set_cookie(key="accessToken", value=jwt_token, httponly=True, secure=True, samesite="lax", path="/", domain=".agami-captcha.cloud")
     
     return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
 
@@ -164,7 +164,7 @@ async def google_callback(code: str, response: Response, db: Session = Depends(g
     db.refresh(user)
 
     jwt_token = create_access_token({"sub": str(user.id), "nickname": user.nickname})
-    response.set_cookie(key="accessToken", value=jwt_token, httponly=True, secure=True, samesite="lax", path="/")
+    response.set_cookie(key="accessToken", value=jwt_token, httponly=True, secure=True, samesite="lax", path="/", domain=".agami-captcha.cloud")
     
     return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
 
@@ -209,7 +209,7 @@ async def update_profile(data: ProfileUpdate, request: Request, db: Session = De
     
 @app.post("/api/auth/logout")
 async def logout(response: Response):
-    response.delete_cookie(key="accessToken", path="/", httponly=True, secure=True, samesite="lax")
+    response.delete_cookie(key="accessToken", path="/", httponly=True, secure=True, samesite="lax", domain=".agami-captcha.cloud")
     return {"status": "success"}
 
 # -----------------------------------------------------------------------------
@@ -229,12 +229,29 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
 
     for domain in domain_list:
-        is_dup = captcha_db.execute(
-            text("SELECT id FROM allowed_origins WHERE origin = :o"), 
+        # [정석] 1. 현재 활성화된(revoked_at IS NULL) 다른 프로젝트가 이 도메인을 사용 중인지 검사
+        active_dup = captcha_db.execute(
+            text("""
+                SELECT ao.id 
+                FROM allowed_origins ao
+                JOIN api_keys ak ON ao.api_key_id = ak.id
+                WHERE ao.origin = :o AND ak.revoked_at IS NULL
+            """), 
             {"o": domain}
         ).scalar()
-        if is_dup:
-            raise HTTPException(status_code=400, detail=f"이미 다른 프로젝트에 등록된 도메인입니다: {domain}")
+        if active_dup:
+            raise HTTPException(status_code=400, detail=f"이미 다른 활성 프로젝트에 등록된 도메인입니다: {domain}")
+
+        # [정석] 2. 과거 삭제된(revoked_at IS NOT NULL) 프로젝트에 묶여있던 찌꺼기 도메인은 하드 삭제하여 Unique 제약 조건 회피
+        captcha_db.execute(
+            text("""
+                DELETE FROM allowed_origins 
+                WHERE origin = :o AND api_key_id IN (
+                    SELECT id FROM api_keys WHERE revoked_at IS NOT NULL
+                )
+            """),
+            {"o": domain}
+        )
 
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
@@ -290,7 +307,7 @@ async def get_projects(request: Request, db: Session = Depends(get_db), captcha_
     projects = db.query(models.Project).filter(models.Project.user_id == user_id).all()
     project_list = []
     for p in projects:
-        api_key_record = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": p.site_key}).scalar()
+        api_key_record = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck AND revoked_at IS NULL"), {"ck": p.site_key}).scalar()
         total_usage = 0
         if api_key_record:
             total_usage = captcha_db.execute(text("SELECT COUNT(*) FROM challenges WHERE api_key_id = :ak"), {"ak": api_key_record}).scalar() or 0
@@ -360,9 +377,30 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     
     if api_key_id_record:
         for domain in domain_list:
-            dup_record = captcha_db.execute(text("SELECT api_key_id FROM allowed_origins WHERE origin = :o"), {"o": domain}).fetchone()
-            if dup_record and dup_record[0] != api_key_id_record:
-                raise HTTPException(status_code=400, detail=f"이미 다른 프로젝트에 등록된 도메인입니다: {domain}")
+            # [정석] 1. 다른 활성화된 프로젝트가 이 도메인을 사용 중인지 확인
+            active_dup = captcha_db.execute(
+                text("""
+                    SELECT ao.api_key_id 
+                    FROM allowed_origins ao
+                    JOIN api_keys ak ON ao.api_key_id = ak.id
+                    WHERE ao.origin = :o AND ak.revoked_at IS NULL
+                """), 
+                {"o": domain}
+            ).fetchone()
+            
+            if active_dup and active_dup[0] != api_key_id_record:
+                raise HTTPException(status_code=400, detail=f"이미 다른 활성 프로젝트에 등록된 도메인입니다: {domain}")
+
+            # [정석] 2. 찌꺼기 도메인 하드 삭제
+            captcha_db.execute(
+                text("""
+                    DELETE FROM allowed_origins 
+                    WHERE origin = :o AND api_key_id IN (
+                        SELECT id FROM api_keys WHERE revoked_at IS NOT NULL
+                    )
+                """),
+                {"o": domain}
+            )
 
     project.name = data.name
     project.domains = data.domains
