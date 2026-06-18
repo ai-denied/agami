@@ -36,7 +36,7 @@ const Navbar = () => {
     setUser(null);
     localStorage.clear();
     // 방문 기록(hasVisitedAgami)은 건드리지 않음
-    window.location.href = "/";
+    navigate("/", { replace: true });
   };
 
   if (isFirstVisit === null) return null;
