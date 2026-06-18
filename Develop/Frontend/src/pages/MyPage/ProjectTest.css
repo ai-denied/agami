@@ -191,5 +191,27 @@ body.dark-mode .token-string {
   font-size: 0.9rem;
   line-height: 1.5;
 }
+
+.platform-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.platform-tabs button {
+  padding: 8px 14px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.platform-tabs button.active {
+  background: #5da2ff;
+  color: white;
+  border-color: #5da2ff;
+}
+
 body.dark-mode .info-alert-box strong { color: #fbbf24; }
 body.dark-mode .info-alert-box p { color: #fcd34d; }

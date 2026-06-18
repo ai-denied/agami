@@ -12,6 +12,7 @@ const ProjectTest = () => {
   const [testToken, setTestToken] = useState("");
   const [isCopied, setIsCopied] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [platform, setPlatform] = useState("linux");
   
   const [widgetHeight, setWidgetHeight] = useState(600); 
 
@@ -67,11 +68,30 @@ const ProjectTest = () => {
     setWidgetHeight(600); 
   };
 
+  const getCurlSnippet = () => {
+    const token = testToken || "<발급된_토큰>";
+
+    switch (platform) {
+      case "windows":
+        return `curl -X POST https://agami-captcha.cloud/v1/siteverify ^
+    -d "secret=${project?.secret_key}" ^
+    -d "token=${token}"`;
+
+      case "powershell":
+        return `curl.exe -X POST https://agami-captcha.cloud/v1/siteverify \`
+    -d "secret=${project?.secret_key}" \`
+    -d "token=${token}"`;
+
+      default:
+        return `curl -X POST https://agami-captcha.cloud/v1/siteverify \\
+    -d "secret=${project?.secret_key}" \\
+    -d "token=${token}"`;
+    }
+  };
+
   const handleCopySnippet = () => {
-    // 💡 [수정] 복사되는 텍스트의 주소를 /api/v1 -> /v1 으로 수정했습니다.
-    const snippet = `curl -X POST https://agami-captcha.cloud/v1/siteverify \\
-  -d "secret=${project?.secret_key}" \\
-  -d "token=${testToken || "<발급된_토큰>"}"`;
+    const snippet = getCurlSnippet();
+
     navigator.clipboard.writeText(snippet);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
@@ -126,6 +146,29 @@ const ProjectTest = () => {
           <div className="test-panel">
             <h3 className="panel-title">2. 백엔드 검증 테스트</h3>
             <p className="panel-desc">아래의 cURL 코드를 복사하여 <strong>터미널(cmd)</strong>에 붙여넣고 엔터를 치시면 실제 검증 결과를 확인할 수 있습니다.</p>
+
+            <div className="platform-tabs">
+              <button
+                className={platform === "linux" ? "active" : ""}
+                onClick={() => setPlatform("linux")}
+              >
+                Linux/macOS
+              </button>
+
+              <button
+                className={platform === "windows" ? "active" : ""}
+                onClick={() => setPlatform("windows")}
+              >
+                Windows CMD
+              </button>
+
+              <button
+                className={platform === "powershell" ? "active" : ""}
+                onClick={() => setPlatform("powershell")}
+              >
+                PowerShell
+              </button>
+            </div>
             
             <div className="code-snippet-box">
               <div className="code-header">
@@ -135,10 +178,7 @@ const ProjectTest = () => {
                 </button>
               </div>
               <pre className="code-content">
-{/* 💡 [수정] 화면에 보여지는 텍스트의 주소를 /api/v1 -> /v1 으로 수정했습니다. */}
-<code>{`curl -X POST https://agami-captcha.cloud/v1/siteverify \\
-  -d "secret=${project.secret_key}" \\
-  -d "token=${testToken ? (testToken.length > 50 ? testToken.substring(0, 50) + "..." : testToken) : "<상단_위젯에서_캡챠를_풀면_토큰이_채워집니다>"}"`}</code>
+                <code>{getCurlSnippet()}</code>
               </pre>
             </div>
             
