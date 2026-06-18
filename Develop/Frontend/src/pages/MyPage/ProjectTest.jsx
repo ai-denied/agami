@@ -25,7 +25,7 @@ const ProjectTest = () => {
     fetchProjectDetails();
   }, [id]);
 
-  // iframe으로부터 캡챠 완료 토큰 수신 및 정밀 파싱
+  // iframe으로부터 캡챠 완료 토큰 수신 (백엔드 captcha_token 스펙 반영)
   useEffect(() => {
     const handleIframeMessage = (event) => {
       const data = event.data;
@@ -38,26 +38,25 @@ const ProjectTest = () => {
 
       let extractedToken = null;
 
-      // 1. 객체 형태로 수신된 경우
+      // 1. 객체 형태로 수신된 경우 (백엔드 스펙인 captcha_token을 우선 탐색)
       if (typeof data === 'object') {
-        if (data.token) extractedToken = data.token;
-        else if (data.data && data.data.token) extractedToken = data.data.token; // 뎁스가 깊은 경우 방어
+        extractedToken = data.captcha_token || data.token || (data.data && (data.data.captcha_token || data.data.token));
       } 
       // 2. 문자열(JSON)로 수신된 경우
       else if (typeof data === 'string') {
         try {
           const parsed = JSON.parse(data);
-          if (parsed.token) extractedToken = parsed.token;
-          else if (parsed.data && parsed.data.token) extractedToken = parsed.data.token;
+          extractedToken = parsed.captcha_token || parsed.token || (parsed.data && (parsed.data.captcha_token || parsed.data.token));
         } catch (e) {
-          // 파싱에 실패했지만 문자열 자체가 토큰일 가능성 배제 안 함
-          if (data.length > 15) extractedToken = data;
+          // 파싱 실패 시, 문자열 자체가 토큰일 가능성 (JSON 중괄호가 없는 경우)
+          if (data.length > 15 && !data.includes("{")) {
+            extractedToken = data;
+          }
         }
       }
 
       // 추출된 토큰이 있다면 상태 업데이트
       if (extractedToken) {
-        // 백엔드에서 토큰 자체를 객체로 던졌을 경우 [object Object]를 막고 내용물을 보여줌
         if (typeof extractedToken === 'object') {
           setTestToken(JSON.stringify(extractedToken, null, 2));
         } else {
@@ -76,12 +75,9 @@ const ProjectTest = () => {
   };
 
   const handleCopySnippet = () => {
-    const snippet = `curl -X POST https://agami-captcha.cloud/api/verify \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "secret_key": "${project?.secret_key}",
-    "token": "${testToken || "<발급된_토큰>"}"
-  }'`;
+    const snippet = `curl -X POST https://agami-captcha.cloud/api/v1/siteverify \\
+  -d "secret=${project?.secret_key}" \\
+  -d "token=${testToken || "<발급된_토큰>"}"`;
     navigator.clipboard.writeText(snippet);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
@@ -117,7 +113,7 @@ const ProjectTest = () => {
                 key={refreshKey}
                 src={`https://agami-captcha.cloud/widget/embed?kind=flashlight&difficulty=easy&client_key=${project.site_key}`}
                 width="100%" 
-                height="700px" /* 위젯이 잘리지 않도록 세로 700px로 대폭 확장 */
+                height="850px" /* 잘림 현상 해결을 위해 세로 850px로 대폭 확장 */
                 frameBorder="0"
                 title="Agami Captcha Widget"
                 scrolling="no"
@@ -127,7 +123,7 @@ const ProjectTest = () => {
             {testToken && (
               <div className="token-result-box">
                 <span className="success-badge">✅ 인증 완료 및 토큰 수신</span>
-                <span className="token-label">발급된 토큰:</span>
+                <span className="token-label">발급된 토큰 (captcha_token):</span>
                 <div className="token-string">{testToken}</div>
               </div>
             )}
@@ -145,18 +141,15 @@ const ProjectTest = () => {
                 </button>
               </div>
               <pre className="code-content">
-<code>{`curl -X POST https://agami-captcha.cloud/api/verify \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "secret_key": "${project.secret_key}",
-    "token": "${testToken ? (testToken.length > 50 ? testToken.substring(0, 50) + "..." : testToken) : "<상단_위젯에서_캡챠를_풀면_토큰이_채워집니다>"}"
-  }'`}</code>
+<code>{`curl -X POST https://agami-captcha.cloud/api/v1/siteverify \\
+  -d "secret=${project.secret_key}" \\
+  -d "token=${testToken ? (testToken.length > 50 ? testToken.substring(0, 50) + "..." : testToken) : "<상단_위젯에서_캡챠를_풀면_토큰이_채워집니다>"}"`}</code>
               </pre>
             </div>
             
             <div className="info-alert-box">
               <strong>💡 주의사항</strong>
-              <p>Secret Key는 절대로 브라우저(프론트엔드)에 노출되어서는 안 됩니다. 이 코드는 반드시 고객님의 백엔드 서버에서 실행되어야 합니다.</p>
+              <p>백엔드 코드를 보니 /siteverify 엔드포인트는 JSON이 아니라 Form Data 형식(-d)을 기대하고 있어 cURL 양식을 맞게 수정해 두었습니다. 이 코드는 반드시 고객님의 백엔드 서버에서 실행되어야 합니다.</p>
             </div>
           </div>
 

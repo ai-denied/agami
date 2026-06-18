@@ -73,7 +73,7 @@ body.dark-mode .btn-refresh-widget {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 700px; /* 기존 400px -> 700px 확장 */
+  min-height: 850px; /* 기존 700px -> 850px 확장 (잘림 방지) */
   overflow: hidden; 
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
@@ -117,7 +117,7 @@ body.dark-mode .token-label { color: #9ca3af; }
   font-size: 0.9rem;
   color: #111827;
   word-break: break-all;
-  white-space: pre-wrap; /* JSON 객체일 경우 줄바꿈 유지 */
+  white-space: pre-wrap; 
   background: #ffffff;
   padding: 14px;
   border-radius: 8px;
