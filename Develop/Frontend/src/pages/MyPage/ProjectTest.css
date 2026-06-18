@@ -1,16 +1,17 @@
 /* =============================================================================
-   ProjectTest 전용 레이아웃 (상하 배치)
+   ProjectTest 전용 레이아웃 (상하 배치 및 확장)
    ============================================================================= */
 
+/* 답답함을 해소하기 위해 최대 너비 대폭 확장 */
 .test-container {
-  max-width: 900px !important;
+  max-width: 1100px !important;
+  width: 100% !important;
 }
 
-/* 좌우 분할을 상하 스택(수직) 구조로 변경 */
 .test-vertical-layout {
   display: flex;
   flex-direction: column;
-  gap: 48px; /* 상하 간격을 넓게 주어 구분을 명확히 함 */
+  gap: 56px; 
   margin-top: 20px;
 }
 
@@ -19,8 +20,15 @@
   flex-direction: column;
 }
 
+.panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
 .panel-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #111827;
   margin-bottom: 8px;
@@ -31,22 +39,44 @@ body.dark-mode .panel-title { color: #ffffff; }
 .panel-desc {
   font-size: 0.95rem;
   color: #6b7280;
-  margin-bottom: 24px;
+  margin: 0;
   line-height: 1.5;
   transition: color 0.3s ease;
 }
 body.dark-mode .panel-desc { color: #a0aec0; }
+
+/* 새로고침 버튼 디자인 */
+.btn-refresh-widget {
+  background-color: #eef2ff;
+  color: #5da2ff;
+  border: 1px solid #5da2ff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+body.dark-mode .btn-refresh-widget {
+  background-color: rgba(93, 162, 255, 0.1);
+}
+.btn-refresh-widget:hover {
+  background-color: #5da2ff;
+  color: #ffffff;
+}
 
 /* --- 상단 위젯 영역 --- */
 .widget-render-box {
   background: #f8fbff;
   border: 2px dashed #c0d8ff;
   border-radius: 16px;
-  padding: 16px;
+  /* iframe이 여백 없이 꽉 차게 패딩 제거 */
+  padding: 0; 
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px; /* iframe 높이에 맞춰 넉넉하게 확보 */
+  overflow: hidden; /* 모서리 둥글게 유지 */
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 body.dark-mode .widget-render-box {
@@ -55,10 +85,10 @@ body.dark-mode .widget-render-box {
 }
 
 .token-result-box {
-  margin-top: 20px;
-  background: rgba(5, 196, 107, 0.1);
+  margin-top: 24px;
+  background: rgba(5, 196, 107, 0.08);
   border: 1px solid rgba(5, 196, 107, 0.3);
-  padding: 16px 20px;
+  padding: 20px 24px;
   border-radius: 12px;
   animation: slideDown 0.3s ease-out;
 }
@@ -71,27 +101,27 @@ body.dark-mode .widget-render-box {
   display: inline-block;
   color: #05c46b;
   font-weight: 800;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
+  margin-bottom: 12px;
+  font-size: 1.05rem;
 }
 
 .token-label {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: #4b5563;
-  margin-bottom: 4px;
-  font-weight: 600;
+  margin-bottom: 8px;
+  font-weight: 700;
 }
 body.dark-mode .token-label { color: #9ca3af; }
 
 .token-string {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
+  font-family: 'JetBrains Mono', monospace, Consolas;
+  font-size: 0.9rem;
   color: #111827;
   word-break: break-all;
   background: #ffffff;
-  padding: 12px;
-  border-radius: 6px;
+  padding: 14px;
+  border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
 body.dark-mode .token-string {
@@ -113,9 +143,9 @@ body.dark-mode .token-string {
   justify-content: space-between;
   align-items: center;
   background: #0f172a;
-  padding: 10px 16px;
+  padding: 12px 20px;
   color: #94a3b8;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
@@ -123,9 +153,10 @@ body.dark-mode .token-string {
   background: rgba(255,255,255,0.1);
   color: #ffffff;
   border: none;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -133,32 +164,32 @@ body.dark-mode .token-string {
 
 .code-content {
   margin: 0;
-  padding: 20px;
+  padding: 24px;
   color: #e2e8f0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem;
+  font-family: 'JetBrains Mono', monospace, Consolas;
+  font-size: 0.95rem;
   white-space: pre-wrap;
   word-break: break-all;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .info-alert-box {
   margin-top: 24px;
-  background: rgba(255, 168, 1, 0.1);
-  border-left: 4px solid #ffa801;
-  padding: 16px;
+  background: rgba(255, 168, 1, 0.08);
+  border-left: 5px solid #ffa801;
+  padding: 20px;
   border-radius: 0 8px 8px 0;
 }
 .info-alert-box strong {
   color: #d97706;
-  font-size: 0.95rem;
+  font-size: 1rem;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .info-alert-box p {
   margin: 0;
   color: #78350f;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   line-height: 1.5;
 }
 body.dark-mode .info-alert-box strong { color: #fbbf24; }

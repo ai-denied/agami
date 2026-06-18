@@ -11,6 +11,7 @@ const ProjectTest = () => {
   const [project, setProject] = useState(null);
   const [testToken, setTestToken] = useState("");
   const [isCopied, setIsCopied] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // 새로고침용 키
 
   // 프로젝트 정보 불러오기
   useEffect(() => {
@@ -28,16 +29,22 @@ const ProjectTest = () => {
   // iframe으로부터 캡챠 완료 토큰 수신 (postMessage 통신)
   useEffect(() => {
     const handleIframeMessage = (event) => {
-      // 위젯에서 보내는 데이터 파싱
+      // 🚨 디버깅: F12 콘솔창에서 위젯이 어떤 데이터를 뱉는지 확인 가능합니다.
+      console.log("[Agami Widget] 수신된 데이터:", event.data);
+
       const data = event.data;
       if (!data) return;
 
-      // 객체 형태로 { success: true, token: "..." } 가 넘어올 경우를 완벽 방어
-      if (typeof data === 'object' && (data.success || data.token)) {
-        // 객체 렌더링 에러(Error 31)를 막기 위해 명시적으로 string만 빼냅니다.
-        setTestToken(String(data.token || ""));
+      // 1. 객체 형태로 넘어올 경우
+      if (typeof data === 'object') {
+        if (data.token) {
+          setTestToken(String(data.token));
+        } else if (data.success && data.token === undefined) {
+          // 성공은 했는데 토큰 필드가 없을 경우를 대비한 방어 코드
+          setTestToken("토큰 필드 누락 (백엔드 위젯 코드 확인 필요)");
+        }
       } 
-      // 만약 문자열(JSON)로 넘어온다면
+      // 2. 문자열(JSON) 형태로 넘어올 경우
       else if (typeof data === 'string' && data.includes("token")) {
         try {
           const parsed = JSON.parse(data);
@@ -49,6 +56,12 @@ const ProjectTest = () => {
     window.addEventListener("message", handleIframeMessage);
     return () => window.removeEventListener("message", handleIframeMessage);
   }, []);
+
+  // 위젯 새로고침 함수
+  const handleRefreshWidget = () => {
+    setRefreshKey(prev => prev + 1);
+    setTestToken(""); // 새로고침 시 기존 토큰 초기화
+  };
 
   const handleCopySnippet = () => {
     const snippet = `curl -X POST https://agami-captcha.cloud/api/verify \\
@@ -74,30 +87,37 @@ const ProjectTest = () => {
           </div>
         </header>
 
-        {/* 상하 배치를 위해 레이아웃 변경 */}
         <div className="test-vertical-layout">
           
           {/* 상단: 진짜 iframe 위젯 영역 */}
           <div className="test-panel">
-            <h3 className="panel-title">1. 실환경 위젯 테스트</h3>
-            <p className="panel-desc">고객님의 <strong>Site Key</strong>가 적용된 실제 iframe 위젯입니다. 진짜 캡챠 검증을 시도해 보세요.</p>
+            <div className="panel-header-row">
+              <div>
+                <h3 className="panel-title">1. 실환경 위젯 테스트</h3>
+                <p className="panel-desc">고객님의 <strong>Site Key</strong>가 적용된 실제 iframe 위젯입니다.</p>
+              </div>
+              {/* 새로고침 버튼 추가 */}
+              <button className="btn-refresh-widget" onClick={handleRefreshWidget}>
+                ↻ 위젯 새로고침
+              </button>
+            </div>
             
             <div className="widget-render-box">
-              {/* 프론트 모형 대신 실제 서버와 통신하는 iframe 삽입 */}
+              {/* key 속성을 부여하여 새로고침 버튼 클릭 시 아예 강제로 다시 그리도록 처리 */}
               <iframe 
+                key={refreshKey}
                 src={`https://agami-captcha.cloud/widget/embed?kind=flashlight&difficulty=easy&client_key=${project.site_key}`}
                 width="100%" 
-                height="400px" 
+                height="500px" 
                 frameBorder="0"
                 title="Agami Captcha Widget"
                 scrolling="no"
-                style={{ borderRadius: '12px' }}
               ></iframe>
             </div>
 
             {testToken && (
               <div className="token-result-box">
-                <span className="success-badge">✅ 인증 성공</span>
+                <span className="success-badge">✅ 인증 완료 및 토큰 수신</span>
                 <span className="token-label">발급된 토큰:</span>
                 <div className="token-string">{testToken}</div>
               </div>
@@ -106,12 +126,12 @@ const ProjectTest = () => {
 
           {/* 하단: 백엔드 연동 가이드 영역 */}
           <div className="test-panel">
-            <h3 className="panel-title">2. 백엔드 검증 가이드</h3>
-            <p className="panel-desc">위젯에서 발급된 토큰을 고객님의 서버로 전송한 뒤, <strong>Secret Key</strong>와 함께 Agami API로 검증을 요청해야 합니다.</p>
+            <h3 className="panel-title">2. 백엔드 검증 테스트</h3>
+            <p className="panel-desc">아래의 cURL 코드를 복사하여 <strong>터미널(cmd)</strong>에 붙여넣고 엔터를 치시면 실제 검증 결과를 확인할 수 있습니다.</p>
             
             <div className="code-snippet-box">
               <div className="code-header">
-                <span>cURL 예시</span>
+                <span>cURL 예시 (명령 프롬프트/터미널 실행용)</span>
                 <button className="btn-copy-code" onClick={handleCopySnippet}>
                   {isCopied ? "복사완료!" : "코드 복사"}
                 </button>
@@ -121,14 +141,14 @@ const ProjectTest = () => {
   -H "Content-Type: application/json" \\
   -d '{
     "secret_key": "${project.secret_key}",
-    "token": "${testToken || "<상단에서_캡챠를_풀면_토큰이_채워집니다>"}"
+    "token": "${testToken || "<상단_위젯에서_캡챠를_풀면_토큰이_채워집니다>"}"
   }'`}</code>
               </pre>
             </div>
             
             <div className="info-alert-box">
               <strong>💡 주의사항</strong>
-              <p>Secret Key는 절대로 브라우저(프론트엔드)에 노출되어서는 안 됩니다. 반드시 백엔드 서버에서 호출해 주세요.</p>
+              <p>Secret Key는 절대로 브라우저(프론트엔드)에 노출되어서는 안 됩니다. 이 코드는 반드시 고객님의 백엔드 서버에서 실행되어야 합니다.</p>
             </div>
           </div>
 
