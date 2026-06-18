@@ -246,7 +246,12 @@ export default function Dashboard() {
                 <div className="log-list-container">
                   <div className="log-list">
                     {logs && logs.length > 0 ? logs.map((log, idx) => {
-                      const logClass = log.risk_band === 'high_risk' ? 'danger-log' : (log.risk_band === 'low_risk' ? 'safe-log' : 'warning-log');
+                      const logClass = log.risk_band === 'high_risk'
+                        ? 'danger-log'
+                        : (log.risk_band === 'low_risk'
+                          ? 'safe-log'
+                          : 'warning-log');
+
                       return (
                         <div key={idx} className={`log-item ${logClass}`}>
                           <span className="log-ip">{log.ip}</span>
@@ -255,7 +260,22 @@ export default function Dashboard() {
                         </div>
                       );
                     }) : (
-                      <div className="empty-log" style={{color: 'var(--text-secondary)', padding: '20px 0', fontSize: '13px'}}>해당 일자에 탐지된 내역이 없습니다.</div>
+                      <div
+                        className="empty-log"
+                        style={{
+                          height: '100%',
+                          minHeight: '180px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textAlign: 'center',
+                          color: 'var(--brand-color)',
+                          fontWeight: 600,
+                          fontSize: '14px'
+                        }}
+                      >
+                        현재 탐지된 이상 징후가 없습니다
+                      </div>
                     )}
                   </div>
                 </div>
@@ -264,14 +284,57 @@ export default function Dashboard() {
               <div className="chart-card bottom-row-height attack-chart-card">
                 <h3>주요 우회 공격 유형</h3>
                 <div className="chart-wrapper">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={attacks} margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
-                      <XAxis type="number" hide allowDecimals={false} />
-                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: '12px' }} width={140} />
-                      <Tooltip content={<CustomTooltip />} cursor={false} />
-                      <Bar dataKey="value" fill="var(--danger-color)" radius={[6, 6, 6, 6]} barSize={10} name="감지 건수" isAnimationActive={false} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {attacks && attacks.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        layout="vertical"
+                        data={attacks}
+                        margin={{ left: 0, right: 20, top: 0, bottom: 0 }}
+                      >
+                        <XAxis type="number" hide allowDecimals={false} />
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{
+                            fill: 'var(--text-secondary)',
+                            fontSize: '12px'
+                          }}
+                          width={140}
+                        />
+                        <Tooltip content={<CustomTooltip />} cursor={false} />
+                        <Bar
+                          dataKey="value"
+                          fill="var(--danger-color)"
+                          radius={[6, 6, 6, 6]}
+                          barSize={10}
+                          name="감지 건수"
+                          isAnimationActive={false}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '180px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        color: 'var(--brand-color)',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        background: 'rgba(var(--brand-rgb), 0.05)',
+                        border: '1px solid rgba(var(--brand-rgb), 0.15)',
+                        borderRadius: '12px'
+                      }}
+                    >
+                      탐지된 우회 공격 유형이 없습니다
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
