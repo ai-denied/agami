@@ -58,12 +58,16 @@ const Navbar = () => {
             <img src="/agami-home.svg" alt="Home" />
           </button>
           <div className="nav-links">
-            {/* 로그인 상태일 때만 '마이페이지' 노출 (대쉬보드 제거) */}
+            {/* 로그인 상태일 때만 '마이페이지' 노출 */}
             {user && (
               <button className="nav-item" onClick={() => navigate("/mypage")}>마이페이지</button>
             )}
             <button className="nav-item" onClick={() => navigate("/price")}>가격</button>
-            <button className="nav-item" onClick={() => navigate("/test")}>테스트</button>
+            
+            {/* 로그인하지 않은 상태(!user)일 때만 '소개' 메뉴 노출 */}
+            {!user && (
+              <button className="nav-item" onClick={() => navigate("/intro")}>소개</button>
+            )}
           </div>
         </div>
         <div className="nav-group right">

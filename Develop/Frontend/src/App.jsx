@@ -9,7 +9,7 @@ import Home from '@/pages/Home/Home';
 import Login from '@/pages/Login/Login'; 
 import Price from '@/pages/Price/Price';
 import PaymentSuccess from '@/pages/Price/PaymentSuccess';
-import Test from '@/pages/Test/Test';
+import Test from '@/pages/Intro/Intro';
 import AuthCallback from "@/pages/Login/AuthCallback";
 
 import MyPage from '@/pages/MyPage/MyPage'; 
@@ -72,7 +72,7 @@ function App() {
               <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
               
               <Route path="/price" element={<Price />} />
-              <Route path="/test" element={<Test />} />
+              <Route path="/test" element={<Intro />} />
               <Route path="/auth/:provider/callback" element={<AuthCallback />} />
               
               {/* 결제 성공 콜백 라우트 */}
