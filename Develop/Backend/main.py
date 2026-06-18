@@ -228,30 +228,35 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
 
-    for domain in domain_list:
-        # [수정됨] 웹 DB(agamidb)와 캡차 DB(captcha_db)를 교차 검증하여 과거 유령 데이터(Ghost Data) 자동 청소
-        existing_origins = captcha_db.execute(
-            text("""
-                SELECT ao.id, ak.client_key 
-                FROM allowed_origins ao
-                LEFT JOIN api_keys ak ON ao.api_key_id = ak.id
-                WHERE ao.origin = :o
-            """), 
-            {"o": domain}
-        ).fetchall()
+    # [정석 수정] 현재 회원의 tenant_id를 먼저 찾습니다.
+    tenant_id_record = captcha_db.execute(
+        text("SELECT id FROM tenants WHERE owner_user_id = :uid"), 
+        {"uid": user_id}
+    ).scalar()
 
-        for ao_id, client_key in existing_origins:
-            is_active_in_agamidb = False
-            if client_key:
-                is_active_in_agamidb = db.query(models.Project).filter(models.Project.site_key == client_key).first() is not None
+    if tenant_id_record:
+        tenant_id_str = str(tenant_id_record)
+        for domain in domain_list:
+            # 글로벌(전체) 검사가 아닌, '내 계정(tenant)'에 이 도메인이 있는지 검사
+            existing_origin = captcha_db.execute(
+                text("""
+                    SELECT ao.id, ak.revoked_at 
+                    FROM allowed_origins ao
+                    JOIN api_keys ak ON ao.api_key_id = ak.id
+                    WHERE ao.origin = :o AND ao.tenant_id = :tid
+                """), 
+                {"o": domain, "tid": tenant_id_str}
+            ).fetchone()
 
-            if is_active_in_agamidb:
-                raise HTTPException(status_code=400, detail=f"이미 다른 활성 프로젝트에 등록된 도메인입니다: {domain}")
-            else:
-                # 유령 데이터(삭제된 프로젝트의 도메인) 청소
-                captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
-                if client_key:
-                    captcha_db.execute(text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :ck AND revoked_at IS NULL"), {"ck": client_key})
+            if existing_origin:
+                ao_id, revoked_at = existing_origin
+                if revoked_at is None:
+                    # 내 계정의 다른 '활성화된' 프로젝트에서 이미 사용 중인 도메인
+                    raise HTTPException(status_code=400, detail=f"회원님의 다른 활성 프로젝트에 이미 등록된 도메인입니다: {domain}")
+                else:
+                    # 내 계정의 예전 '삭제된' 프로젝트에 남아있는 찌꺼기 도메인 -> 하드 삭제 후 새 등록 허용
+                    captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
+                    captcha_db.commit() # Unique 제약 조건 회피를 위해 즉시 커밋
 
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
@@ -267,8 +272,8 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     try:
         current_user = db.query(models.User).filter(models.User.id == user_id).first()
         current_plan = "pro" if current_user and current_user.plan == "Pro" else "free"
-        tenant_id_record = captcha_db.execute(text("SELECT id FROM tenants WHERE owner_user_id = :uid"), {"uid": user_id}).scalar()
-
+        
+        # 위에서 조회한 tenant_id_record 재사용
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
             captcha_db.execute(text("""INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())"""), {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id})
@@ -363,7 +368,7 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
+        user_id = int(payload.get("sub"))
     except Exception: raise HTTPException(status_code=401, detail="Invalid token")
 
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
@@ -376,33 +381,32 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     api_key_id_record = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": project.site_key}).scalar()
     
     if api_key_id_record:
-        for domain in domain_list:
-            # [수정됨] 업데이트 시에도 유령 데이터 자동 청소
-            existing_origins = captcha_db.execute(
-                text("""
-                    SELECT ao.id, ak.client_key 
-                    FROM allowed_origins ao
-                    LEFT JOIN api_keys ak ON ao.api_key_id = ak.id
-                    WHERE ao.origin = :o
-                """), 
-                {"o": domain}
-            ).fetchall()
-            
-            for ao_id, client_key in existing_origins:
-                # 수정 중인 자기 자신의 기존 도메인은 패스
-                if client_key == project.site_key:
-                    continue
-                    
-                is_active_in_agamidb = False
-                if client_key:
-                    is_active_in_agamidb = db.query(models.Project).filter(models.Project.site_key == client_key).first() is not None
+        tenant_id_record = captcha_db.execute(text("SELECT id FROM tenants WHERE owner_user_id = :uid"), {"uid": user_id}).scalar()
+        if tenant_id_record:
+            tenant_id_str = str(tenant_id_record)
+            for domain in domain_list:
+                # [정석 수정] 업데이트 시에도 '내 계정'의 도메인만 중복 검사
+                existing_origin = captcha_db.execute(
+                    text("""
+                        SELECT ao.id, ao.api_key_id, ak.revoked_at 
+                        FROM allowed_origins ao
+                        JOIN api_keys ak ON ao.api_key_id = ak.id
+                        WHERE ao.origin = :o AND ao.tenant_id = :tid
+                    """), 
+                    {"o": domain, "tid": tenant_id_str}
+                ).fetchone()
                 
-                if is_active_in_agamidb:
-                    raise HTTPException(status_code=400, detail=f"이미 다른 활성 프로젝트에 등록된 도메인입니다: {domain}")
-                else:
-                    captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
-                    if client_key:
-                        captcha_db.execute(text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :ck AND revoked_at IS NULL"), {"ck": client_key})
+                if existing_origin:
+                    ao_id, ak_id, revoked_at = existing_origin
+                    # 수정 중인 자기 자신의 기존 도메인은 패스
+                    if ak_id == api_key_id_record:
+                        continue
+                        
+                    if revoked_at is None:
+                        raise HTTPException(status_code=400, detail=f"회원님의 다른 활성 프로젝트에 이미 등록된 도메인입니다: {domain}")
+                    else:
+                        captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
+                        captcha_db.commit()
 
     project.name = data.name
     project.domains = data.domains
