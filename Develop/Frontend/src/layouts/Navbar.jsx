@@ -31,11 +31,14 @@ const Navbar = () => {
     localStorage.setItem("theme", newTheme ? "dark" : "light");
   };
 
+  // Navbar.jsx
   const handleLogout = async () => {
-    try { await api.post("/api/auth/logout"); } catch (e) { console.error(e); }
-    setUser(null);
+    try { 
+      await api.post("/api/auth/logout"); 
+    } catch (e) { 
+      console.error(e); 
+    }
     localStorage.clear();
-    // 방문 기록(hasVisitedAgami)은 건드리지 않음
     window.location.href = "/";
   };
 
