@@ -36,7 +36,6 @@ const ProjectTest = () => {
       // 1. 위젯 리사이징 (무한 증식 방지 로직 적용)
       if (data.type === 'agami-resize' && data.height) {
         setWidgetHeight(prev => {
-          // 기존 높이와 새 높이의 차이가 10px 이상일 때만 상태를 업데이트 (피드백 루프 원천 차단)
           if (Math.abs(prev - data.height) > 10) {
             return data.height;
           }
@@ -65,11 +64,12 @@ const ProjectTest = () => {
   const handleRefreshWidget = () => {
     setRefreshKey(prev => prev + 1);
     setTestToken(""); 
-    setWidgetHeight(600); // 새로고침 시 높이 초기화
+    setWidgetHeight(600); 
   };
 
   const handleCopySnippet = () => {
-    const snippet = `curl -X POST https://agami-captcha.cloud/api/v1/siteverify \\
+    // 💡 [수정] 복사되는 텍스트의 주소를 /api/v1 -> /v1 으로 수정했습니다.
+    const snippet = `curl -X POST https://agami-captcha.cloud/v1/siteverify \\
   -d "secret=${project?.secret_key}" \\
   -d "token=${testToken || "<발급된_토큰>"}"`;
     navigator.clipboard.writeText(snippet);
@@ -103,7 +103,6 @@ const ProjectTest = () => {
             </div>
             
             <div className="widget-render-box">
-              {/* transition을 제거하고 정확한 높이만 반영 */}
               <iframe 
                 key={refreshKey}
                 src={`https://agami-captcha.cloud/widget/embed?kind=flashlight&difficulty=easy&client_key=${project.site_key}`}
@@ -136,7 +135,8 @@ const ProjectTest = () => {
                 </button>
               </div>
               <pre className="code-content">
-<code>{`curl -X POST https://agami-captcha.cloud/api/v1/siteverify \\
+{/* 💡 [수정] 화면에 보여지는 텍스트의 주소를 /api/v1 -> /v1 으로 수정했습니다. */}
+<code>{`curl -X POST https://agami-captcha.cloud/v1/siteverify \\
   -d "secret=${project.secret_key}" \\
   -d "token=${testToken ? (testToken.length > 50 ? testToken.substring(0, 50) + "..." : testToken) : "<상단_위젯에서_캡챠를_풀면_토큰이_채워집니다>"}"`}</code>
               </pre>
