@@ -13,7 +13,6 @@ const ProjectTest = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   
-  // 위젯이 요구하는 높이를 실시간으로 반영하기 위한 상태 (기본 600px)
   const [widgetHeight, setWidgetHeight] = useState(600); 
 
   useEffect(() => {
@@ -28,30 +27,32 @@ const ProjectTest = () => {
     fetchProjectDetails();
   }, [id]);
 
-  // iframe 메시지 통신 (리사이징 & 토큰 수신)
   useEffect(() => {
     const handleIframeMessage = (event) => {
       const data = event.data;
       if (!data) return;
       if (data.source && data.source.includes('react-devtools')) return;
 
-      console.log("[Agami Widget] 수신된 데이터:", data);
-
-      // 1. 위젯 리사이징(크기 조절) 이벤트 처리
+      // 1. 위젯 리사이징 (무한 증식 방지 로직 적용)
       if (data.type === 'agami-resize' && data.height) {
-        // 위젯이 요구하는 높이에 약간의 여백(20px)을 더해 완벽히 담아냅니다.
-        setWidgetHeight(data.height + 20);
+        setWidgetHeight(prev => {
+          // 기존 높이와 새 높이의 차이가 10px 이상일 때만 상태를 업데이트 (피드백 루프 원천 차단)
+          if (Math.abs(prev - data.height) > 10) {
+            return data.height;
+          }
+          return prev;
+        });
       }
 
       // 2. 캡챠 인증 결과(토큰) 처리
       if (data.type === 'agami-result') {
         if (data.success && data.captchaToken) {
-          setTestToken(String(data.captchaToken)); // 낙타 표기법(captchaToken) 캡치 완벽 적용
+          setTestToken(String(data.captchaToken));
         } else if (data.success && data.token) {
           setTestToken(String(data.token));
         }
       } 
-      // 3. 만약 타입이 명시되지 않은 구형 포맷일 경우 방어 로직
+      // 3. 구형 포맷 방어
       else if (typeof data === 'object' && (data.captchaToken || data.captcha_token || data.token)) {
         setTestToken(String(data.captchaToken || data.captcha_token || data.token));
       }
@@ -102,7 +103,7 @@ const ProjectTest = () => {
             </div>
             
             <div className="widget-render-box">
-              {/* 높이가 widgetHeight 상태에 따라 고무줄처럼 자동으로 늘어납니다. */}
+              {/* transition을 제거하고 정확한 높이만 반영 */}
               <iframe 
                 key={refreshKey}
                 src={`https://agami-captcha.cloud/widget/embed?kind=flashlight&difficulty=easy&client_key=${project.site_key}`}
@@ -111,7 +112,6 @@ const ProjectTest = () => {
                 frameBorder="0"
                 title="Agami Captcha Widget"
                 scrolling="no"
-                style={{ transition: 'height 0.3s ease' }} /* 부드럽게 늘어나는 애니메이션 */
               ></iframe>
             </div>
 
