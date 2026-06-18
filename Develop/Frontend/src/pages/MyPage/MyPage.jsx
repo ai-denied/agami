@@ -42,6 +42,9 @@ const MyPage = () => {
                 <NavLink to={`/mypage/projects/${projectId}/dashboard`} className={({ isActive }) => isActive ? "active" : ""}>
                   <li>트래픽 대시보드</li>
                 </NavLink>
+                <NavLink to={`/mypage/projects/${projectId}/projecttest`} className={({ isActive }) => isActive ? "active" : ""}>
+                  <li>테스트</li>
+                </NavLink>
               </>
             ) : (
               <>

@@ -1,0 +1,164 @@
+/* =============================================================================
+   ProjectTest 전용 레이아웃 (Settings.css와 혼용하여 사용)
+   ============================================================================= */
+
+/* 컨테이너 최대 너비 확장 (좌우 패널을 위해 넓게 사용) */
+.test-container {
+  max-width: 1000px !important;
+}
+
+.test-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 20px;
+}
+
+.panel-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 8px;
+  transition: color 0.3s ease;
+}
+body.dark-mode .panel-title { color: #ffffff; }
+
+.panel-desc {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 24px;
+  line-height: 1.5;
+  transition: color 0.3s ease;
+}
+body.dark-mode .panel-desc { color: #a0aec0; }
+
+/* --- 좌측 위젯 영역 --- */
+.widget-render-box {
+  background: #f8fbff;
+  border: 2px dashed #c0d8ff;
+  border-radius: 16px;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 280px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+body.dark-mode .widget-render-box {
+  background: #1a1a1b;
+  border-color: #28282a;
+}
+
+.token-result-box {
+  margin-top: 20px;
+  background: rgba(5, 196, 107, 0.1);
+  border: 1px solid rgba(5, 196, 107, 0.3);
+  padding: 16px 20px;
+  border-radius: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.success-badge {
+  display: inline-block;
+  color: #05c46b;
+  font-weight: 800;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.token-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+body.dark-mode .token-label { color: #9ca3af; }
+
+.token-string {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: #111827;
+  word-break: break-all;
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+body.dark-mode .token-string {
+  background: #000000;
+  color: #e5e7eb;
+  border-color: #334155;
+}
+
+/* --- 우측 코드 스니펫 영역 --- */
+.code-snippet-box {
+  background: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f172a;
+  padding: 10px 16px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.btn-copy-code {
+  background: rgba(255,255,255,0.1);
+  color: #ffffff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-copy-code:hover { background: rgba(255,255,255,0.2); }
+
+.code-content {
+  margin: 0;
+  padding: 16px;
+  color: #e2e8f0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.info-alert-box {
+  margin-top: 24px;
+  background: rgba(255, 168, 1, 0.1);
+  border-left: 4px solid #ffa801;
+  padding: 16px;
+  border-radius: 0 8px 8px 0;
+}
+.info-alert-box strong {
+  color: #d97706;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 6px;
+}
+.info-alert-box p {
+  margin: 0;
+  color: #78350f;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+body.dark-mode .info-alert-box strong { color: #fbbf24; }
+body.dark-mode .info-alert-box p { color: #fcd34d; }
+
+@media (max-width: 900px) {
+  .test-grid-layout { grid-template-columns: 1fr; }
+}

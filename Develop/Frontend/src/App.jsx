@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'r
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import PrivateRoute from '@/routes/PrivateRoute'; 
-import Navbar from '@/layouts/Navbar'; 
+import Navbar from '@/layouts/Navbar';
 
-import Home from '@/pages/Home/Home'; 
+import Home from '@/pages/Home/Home';
 import Login from '@/pages/Login/Login'; 
 import Price from '@/pages/Price/Price';
 import PaymentSuccess from '@/pages/Price/PaymentSuccess';
@@ -16,7 +16,8 @@ import MyPage from '@/pages/MyPage/MyPage';
 import ProjectManager from '@/pages/MyPage/ProjectManager';
 import ProjectDetail from '@/pages/MyPage/ProjectDetail';
 import Dashboard from '@/pages/MyPage/Dashboard'; 
-import Settings from '@/pages/MyPage/Settings'; 
+import Settings from '@/pages/MyPage/Settings';
+import ProjectTest from '@/pages/MyPage/ProjectTest';
 
 // 로그인된 사용자의 접근을 막는 PublicRoute 래퍼
 const PublicRoute = ({ children }) => {
@@ -85,6 +86,7 @@ function App() {
                 <Route path="projects/:id" element={<Navigate to="info" replace />} />
                 <Route path="projects/:id/info" element={<ProjectDetail />} />
                 <Route path="projects/:id/dashboard" element={<Dashboard />} />
+                <Route path="projects/:id/projecttest" element={<ProjectTest />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Routes>
