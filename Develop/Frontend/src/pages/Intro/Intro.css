@@ -191,7 +191,7 @@ body.dark-mode .widget-body {
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - 65px);
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(2px);
     z-index: 100;
@@ -211,7 +211,7 @@ body.dark-mode .widget-body {
     top: 0;
     left: -280px; 
     width: 260px;
-    height: 100vh;
+    height: calc(100vh - 65px);
     z-index: 101; 
     padding: 20px 0 0 0; 
     box-shadow: 5px 0 25px rgba(0, 0, 0, 0.1);
@@ -286,5 +286,15 @@ body.dark-mode .widget-body {
   .intro-image-placeholder {
     height: 300px !important;
     font-size: 0.9rem;
+  }
+
+  .mobile-sidebar-toggle,
+  .mobile-sidebar-close,
+  .sidebar li {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .sidebar li.active {
+    box-shadow: none !important;
   }
 }
