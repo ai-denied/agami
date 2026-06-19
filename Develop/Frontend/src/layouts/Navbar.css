@@ -196,15 +196,17 @@ body.dark-mode {
 }
 
 /* =============================================================================
-   [모바일 850px 통일] Navbar 간격 확보 및 마이페이지 프로필 숨김
+   [모바일 850px 통일] Navbar 간격 확보 및 프로필 완전히 숨기기
    ============================================================================= */
 @media (max-width: 850px) {
   .menu-bar { padding: 0 10px; }
-  .nav-item { padding: 0 12px; font-size: 14px; margin: 0 2px; } /* 버튼 간격 확보 */
+  /* 버튼 간격을 넓혀 터치 영역 확보 */
+  .nav-item { padding: 0 14px; font-size: 14px; margin: 0 2px; }
   .home-logo-btn img { width: 35px; }
   
-  /* 마이페이지 접속 중일 때 우측 프로필(사진+이름) 통째로 숨김 */
+  /* 마이페이지에서는 우측 닉네임, 프사 모두 완전히 숨김 */
   .mypage-active-nav .user-profile-info { display: none !important; }
+  .mypage-active-nav .nav-profile-img { display: none !important; }
   .nav-nickname { display: none; }
   
   .theme-switch { width: 52px; height: 28px; margin-right: 5px; }

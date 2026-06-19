@@ -190,7 +190,7 @@ const ParticleNetwork = memo(({ windowSize, isMobile }) => {
         this.x = this.radius * sinPhi * Math.cos(currentTheta); this.y = this.radius * Math.cos(this.phi); this.z = this.radius * sinPhi * Math.sin(currentTheta) + this.radius;
         const perspective = 1000 / (1000 + this.z);
         this.projectedX = (canvas.width >> 1) + this.x * perspective;
-        // 💡 PC와 동일하게 정중앙에 고정 (올라가는 애니메이션은 바깥의 motion.div가 담당)
+        // PC와 동일하게 항상 캔버스의 정중앙에 고정시킵니다.
         this.projectedY = (canvas.height >> 1) + this.y * perspective;
         this.alpha = perspective;
       }
@@ -249,7 +249,7 @@ const MotionLiquidGlass = motion.create(LiquidGlass);
 
 const Home = () => {
   const navigate = useNavigate();
-  const isMobile = window.innerWidth <= 768; 
+  const isMobile = window.innerWidth <= 850; 
 
   const [isFirstVisit, setIsFirstVisit] = useState(null);
   const [isFeeding, setIsFeeding] = useState(false);
@@ -265,6 +265,7 @@ const Home = () => {
   const [targetFishPos, setTargetFishPos] = useState({ x: 50, y: 50 });
   const [isFound, setIsFound] = useState(false);
 
+  // 💡 [핵심 교정] 새로고침 시 무조건 최상단(1번째 화면)으로 고정하는 강력한 방어 로직
   useEffect(() => {
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
@@ -274,8 +275,7 @@ const Home = () => {
       window.scrollTo(0, 0);
     };
     forceScrollTop();
-    // 브라우저 렌더링 딜레이를 이기기 위해 50ms 후 한 번 더 쐐기를 박습니다.
-    const timer = setTimeout(forceScrollTop, 50);
+    const timer = setTimeout(forceScrollTop, 50); // 브라우저 렌더링 딜레이 방어
     return () => clearTimeout(timer);
   }, []);
 
@@ -405,7 +405,7 @@ const Home = () => {
           <div className="wave-layer-internal" />
         </motion.div>
 
-        {/* 💡 [핵심] PC버전의 maskImage 마스킹을 오리지널 100% 그대로 원상복구 */}
+        {/* 💡 PC버전 마스킹 및 구조 오리지널 상태 보존 */}
         <div className="fish-scene-layer" style={{ 
           position: "absolute", inset: 0, pointerEvents: "none", zIndex: 25,
           maskImage: `radial-gradient(circle 50vmax at 100% 50%, black 100%, transparent 100%)`,
@@ -423,7 +423,6 @@ const Home = () => {
           </>
         )}
 
-        {/* 모바일에서는 흰색 원으로 뭉쳐져 로고/버튼을 감싸게 됨 (CSS에서 제어) */}
         <motion.div className="left-section" initial={isFirstVisit ? { x: -1000, opacity: 0 } : { x: 0, opacity: 1 }} animate={{ x: 0, opacity: 1 }} transition={mainTransition} style={{ willChange: "transform, opacity" }}>
           <img src="/agami-text.png" alt="Agami Logo" className="main-logo" />
           <p className="logo-text">봇은 틈새 없이, 유저는 끊김 없이.<br />차세대 지능형 캡챠 서비스</p>
@@ -458,14 +457,14 @@ const Home = () => {
       </div>
 
       <div className="third-container">
-        {/* 💡 [핵심] 팝업창과 함께 구체+로고가 살짝 위로 밀려 올라가는 애니메이션 그룹 (모바일 전용) */}
+        {/* 💡 [핵심 교정] 로고가 구체 안에 있고, 모바일에서는 팝업창 등장 시 같이 올라가도록 그룹화 */}
         <motion.div 
           className="sphere-logo-group"
-          initial={isMobile ? { y: 100 } : { y: 0 }}
-          whileInView={isMobile ? { y: -80 } : { y: 0 }}
+          initial={isMobile ? { y: 0 } : { y: 0 }}
+          whileInView={isMobile ? { y: "-15vh" } : { y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 2, duration: 1, ease: "easeOut" }}
-          style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
+          style={isMobile ? { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '100%', height: '50vh' } : { position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
         >
           <ParticleNetwork windowSize={windowSize} isMobile={isMobile} />
 

@@ -84,30 +84,32 @@ body.dark-mode .price-card { background: rgba(0, 0, 0, 0.3); border: 1px solid r
 .mobile-slider-dots { display: none; }
 
 /* =============================================================================
-   [모바일 850px] Price 비율 튜닝 및 호버(애니메이션) 원천 삭제
+   [모바일 850px 통일] Price 화면 세로 삐져나옴 & 터치 호버 완벽 삭제
    ============================================================================= */
 @media (max-width: 850px) {
-  .pricing-wrapper { padding-top: var(--nav-height); height: 100vh; overflow-y: auto; }
-  .pricing-content { height: auto; min-height: calc(100vh - var(--nav-height)); padding: 20px 0; justify-content: flex-start; }
+  .pricing-wrapper { padding-top: var(--nav-height); height: 100vh; overflow-y: hidden; }
+  .pricing-content { height: 100%; margin-top: 0; padding: 20px 10px; justify-content: center; }
+  .pricing-content .liquid-glass-box { padding: 20px 15px !important; }
   
-  .pricing-header h1 { font-size: 1.6rem; margin-bottom: 5px; padding: 0 20px; }
-  .pricing-header p { font-size: 0.9rem; margin-bottom: 20px; padding: 0 20px; }
+  .pricing-header h1 { font-size: 1.5rem; margin-bottom: 5px; }
+  .pricing-header p { font-size: 0.85rem; margin-bottom: 10px; }
   
+  /* 양쪽으로 카드가 살짝 보이도록 계산된 10vw 패딩 적용 */
   .pricing-container { 
     display: flex; flex-wrap: nowrap; overflow-x: auto; 
     scroll-snap-type: x mandatory; scrollbar-width: none; 
-    gap: 15px; padding: 0 20px 20px 20px; /* 양옆 여백 확보 */
-    justify-content: flex-start !important; /* 💡 [핵심] Basic 카드가 왼쪽으로 잘리는 현상 완벽 해결 */
+    gap: 15px; padding: 0 10vw; margin: 0 -15px; /* 양쪽 잘림 방지 */
   }
   .pricing-container::-webkit-scrollbar { display: none; }
   
+  /* 카드 높이를 줄여서 세로로 뚫고 나가지 않도록 방어 */
   .price-card { 
-    min-width: 85vw !important; max-width: 85vw !important; 
-    scroll-snap-align: center; padding: 25px 20px !important; 
-    transform: none !important; 
+    min-width: 80vw !important; max-width: 80vw !important; 
+    scroll-snap-align: center; padding: 20px 15px !important; 
+    transform: none !important; /* 호버 이벤트 100% 무효화 */
   }
 
-  /* 💡 모바일 강제 솔리드 버튼 (버블 애니메이션 및 투명도 삭제) */
+  /* 💡 모바일 호버 애니메이션(버블 포함) 원천 차단하고 파란색 솔리드로 고정 */
   .price-card .bubble-btn-shared { 
     background-color: var(--brand-color) !important; 
     color: #ffffff !important; 
@@ -117,7 +119,7 @@ body.dark-mode .price-card { background: rgba(0, 0, 0, 0.3); border: 1px solid r
   }
   .price-card .bubble-wrapper { display: none !important; }
   
-  .mobile-slider-dots { display: flex !important; justify-content: center; gap: 8px; margin-top: 10px; }
+  .mobile-slider-dots { display: flex !important; justify-content: center; gap: 8px; margin-top: 15px; }
   .mobile-slider-dots .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); transition: all 0.3s ease; }
   .mobile-slider-dots .dot.active { background: #ffffff; width: 24px; border-radius: 4px; }
 }
