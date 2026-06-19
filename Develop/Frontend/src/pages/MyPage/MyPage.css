@@ -162,28 +162,38 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   box-sizing: border-box;
 }
 
-/* =============================================================================
-   💡 [수정] 모바일 환경(850px 이하) 마이페이지 잘림 현상 방지
-   ============================================================================= */
+/* src/pages/MyPage/MyPage.css (이전에 추가했던 미디어 쿼리를 아래 코드로 교체) */
+
 @media (max-width: 850px) {
-  /* 껍데기의 패딩을 없애고 100% 확장하여 스크롤이 화면 끝까지 닿게 함 */
-  .mypage-wrapper { padding: 0 !important; }
-  .mypage-layout { flex-direction: column; padding-top: 65px !important; }
-  
+  .mypage-layout { flex-direction: column; }
   .mypage-sidebar {
     width: 100%; height: auto; padding: 15px 20px;
     border-right: none; border-bottom: 1px solid #e0e7f3;
   }
   body.dark-mode .mypage-sidebar { border-bottom-color: #28282a; }
-  
   .sidebar-profile { flex-direction: row; justify-content: flex-start; padding-bottom: 15px; margin-bottom: 10px; }
   .sidebar-profile .profile-img { width: 40px; height: 40px; margin-bottom: 0; margin-right: 15px; }
   
-  .sidebar-menu-list { flex-direction: row; overflow-x: auto; white-space: nowrap; padding-bottom: 5px; }
+  .sidebar-menu-list {
+    flex-direction: row; overflow-x: auto; white-space: nowrap; padding-bottom: 5px;
+  }
   .sidebar-menu-list::-webkit-scrollbar { display: none; }
-  .sidebar-menu-list li { margin: 0 10px 0 0; padding: 10px 16px; border-radius: 8px; }
-  .menu-divider { display: none; }
   
-  /* 실제 굴러다니는 알맹이에만 여백을 줌 */
-  .mypage-main { padding: 20px !important; overflow-x: hidden; }
+  /* 💡 끝부분 짤림 방지: 모바일에서는 음수 마진 삭제 및 강제 여백 확보 */
+  .sidebar-menu-list li {
+    margin: 0 10px 0 0 !important; 
+    padding: 10px 16px; 
+    border-radius: 8px;
+    flex-shrink: 0; /* 글씨가 구겨지는 현상 방지 */
+  }
+  
+  /* 💡 끝부분 짤림 방지: 스크롤 영역 마지막에 여백 공간 생성 */
+  .sidebar-menu-list::after {
+    content: "";
+    padding-right: 20px;
+    display: block;
+  }
+
+  .menu-divider { display: none; }
+  .mypage-main { padding: 20px 15px; }
 }

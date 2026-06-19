@@ -300,55 +300,51 @@ body.dark-mode .price-card:hover {
 }
 .btn-sys-ok:hover { opacity: 0.9; }
 
+/* src/pages/Price/Price.css 마지막에 추가 (기존 내용 유지) */
+
+/* ... (기존 상단 내용) ... */
+
 /* =============================================================================
-   💡 [수정] 모바일 환경(768px 이하) 가로 스와이프 슬라이더 구현
+   모바일 가로 스와이프(Snap) 완벽 구현
    ============================================================================= */
 @media (max-width: 768px) {
-  .pricing-wrapper { padding-top: var(--nav-height); }
-  .pricing-content { height: auto; margin-top: 0; padding: 20px 0; }
-  .pricing-header h1 { font-size: 28px; }
-  .pricing-header p { font-size: 15px; }
-
-  /* 세로 나열 해제 및 가로 스크롤 스냅(Swipe) 적용 */
-  .pricing-container { 
+  .pricing-container {
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none; /* 파이어폭스 스크롤바 숨김 */
+    flex-direction: row !important;
+    flex-wrap: nowrap !important; /* 강제로 일렬로 나열 */
+    overflow-x: auto; /* 좌우 스크롤 허용 */
+    scroll-snap-type: x mandatory; /* 스와이프 스냅 활성화 */
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
     gap: 16px;
-    padding: 0 20px 20px 20px;
+    scrollbar-width: none; /* 파이어폭스 스크롤바 숨김 */
   }
-  .pricing-container::-webkit-scrollbar { display: none; } /* 크롬 스크롤바 숨김 */
   
-  .price-card { 
-    min-width: 85vw; /* 화면 넓이의 85% 차지하여 양옆 카드 살짝 보임 */
-    scroll-snap-align: center; 
+  .pricing-container::-webkit-scrollbar {
+    display: none; /* 크롬, 사파리 스크롤바 숨김 */
+  }
+  
+  .price-card {
+    flex: 0 0 100% !important; /* 카드가 화면 꽉 차게 */
+    scroll-snap-align: center; /* 스와이프 시 멈추는 지점 */
+    max-width: 100%;
   }
 
-  /* 하단 슬라이드 위치 표시 점(Dot) */
-  .mobile-pagination-dots {
+  /* 도트 인디케이터 스타일 */
+  .carousel-dots {
     display: flex;
     justify-content: center;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 16px;
   }
-  .mobile-pagination-dots .dot {
-    width: 8px; height: 8px;
-    background-color: rgba(255, 255, 255, 0.4);
+  .carousel-dots .dot {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.4);
+    transition: background 0.3s ease;
   }
-  .mobile-pagination-dots .dot.active {
-    background-color: #ffffff;
-    width: 24px;
-    border-radius: 4px;
+  .carousel-dots .dot.active {
+    background: #ffffff;
   }
-  body.dark-mode .mobile-pagination-dots .dot { background-color: rgba(255,255,255,0.2); }
-  body.dark-mode .mobile-pagination-dots .dot.active { background-color: #5da2ff; }
-}
-
-/* PC에서는 모바일 인디케이터 숨김 */
-@media (min-width: 769px) {
-  .mobile-pagination-dots { display: none; }
 }
