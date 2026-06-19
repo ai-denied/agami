@@ -10,17 +10,49 @@ const CAPTCHA_TYPES = [
 
 const Intro = () => {
   const [selectedType, setSelectedType] = useState(CAPTCHA_TYPES[0]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // 💡 모바일 사이드바 상태
+
+  // 항목 선택 시 모바일 사이드바 자동 닫힘 처리
+  const handleSelect = (type) => {
+    setSelectedType(type);
+    setIsSidebarOpen(false);
+  };
 
   return (
     <div className="page-wrapper">
       <div className="layout-container">
-        <nav className="sidebar">
+        
+        {/* 💡 모바일 전용 토글 버튼 */}
+        <button 
+          className="mobile-sidebar-toggle" 
+          onClick={() => setIsSidebarOpen(true)}
+          aria-label="메뉴 열기"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
+        {/* 💡 모바일 전용 오버레이 (클릭 시 닫힘) */}
+        <div 
+          className={`mobile-sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`} 
+          onClick={() => setIsSidebarOpen(false)} 
+        />
+
+        <nav className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+          {/* 모바일 전용 사이드바 헤더 (닫기 버튼 포함) */}
+          <div className="sidebar-header-mobile">
+            <h3>캡챠 종류</h3>
+            <button className="mobile-sidebar-close" onClick={() => setIsSidebarOpen(false)}>✕</button>
+          </div>
           <ul>
             {CAPTCHA_TYPES.map((type) => (
               <li 
                 key={type.id} 
                 className={selectedType.id === type.id ? 'active' : ''}
-                onClick={() => setSelectedType(type)}
+                onClick={() => handleSelect(type)}
               >
                 {type.title}
               </li>
@@ -30,27 +62,26 @@ const Intro = () => {
 
         <Scrollbar className="main-content">
           <section className="captcha-description" style={{ borderTop: 'none', marginTop: 0 }}>
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '10px', color: 'var(--text-primary)' }}>
+            <h2 className="content-title" style={{ fontSize: '1.8rem', marginBottom: '10px', color: 'var(--text-primary)' }}>
               {selectedType.title}
             </h2>
-            <p style={{ fontSize: '1.1rem', marginBottom: '30px', color: 'var(--text-secondary)' }}>
+            <p className="content-desc" style={{ fontSize: '1.1rem', marginBottom: '30px', color: 'var(--text-secondary)' }}>
               {selectedType.desc}
             </p>
             
-            {/* 실제 캡챠 로직을 제거하고 소개용 사진/영상 영역으로 변경 */}
             <div className="intro-image-placeholder" style={{
               width: '100%', height: '400px', background: 'var(--bg-card)', 
               borderRadius: '16px', display: 'flex', alignItems: 'center', 
               justifyContent: 'center', border: '1px solid var(--border-color)',
               color: 'var(--text-secondary)'
             }}>
-              {/* 각 캡챠별로 보여줄 이미지나 영상을 이곳에 넣으시면 됩니다. */}
               {selectedType.id === 'handlight' && <span>[손전등 캡챠 데모 소개 사진 / 영상]</span>}
               {selectedType.id === 'face' && <span>[안면 인식 캡챠 데모 소개 사진 / 영상]</span>}
               {selectedType.id === 'emotion' && <span>[감정 추론 캡챠 데모 소개 사진 / 영상]</span>}
             </div>
           </section>
         </Scrollbar>
+
       </div>
     </div>
   );
