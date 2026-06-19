@@ -750,7 +750,7 @@ const Home = () => {
           }
           animate={{ x: 0, opacity: 1 }}
           transition={mainTransition}
-          style={{ buyPass: true, willChange: "transform, opacity" }}
+          style={{ willChange: "transform, opacity" }}
         >
           <img src="/agami-text.png" alt="Agami Logo" className="main-logo" />
           <p className="logo-text">

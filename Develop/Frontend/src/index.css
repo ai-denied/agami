@@ -15,11 +15,6 @@ body,
   overflow: hidden; 
 }
 
-#root {
-  min-width: 1200px;
-  min-height: 720px;
-}
-
 html,
 body {
   /* [교정 2] 가로 스크롤은 허용하되, 우측의 빈 시스템 세로 스크롤바 트랙을 소멸시킵니다. */

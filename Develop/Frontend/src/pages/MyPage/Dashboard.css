@@ -31,9 +31,9 @@ body.dark-mode, .dark-mode {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 100%; /* 콘텐츠에 맞춰 늘어나도록 수정 */
-  padding: 40px; /* MyPage에서 빼앗은 여백을 대시보드에 부여 */
-  box-sizing: border-box; /* 패딩이 튀어나가지 않도록 통제 */
+  min-height: 100%; 
+  padding: 40px; 
+  box-sizing: border-box; 
   background-color: transparent; 
   color: var(--text-primary);
   font-family: 'Pretendard', sans-serif;
@@ -293,21 +293,31 @@ body.dark-mode .metric-bar-track { background-color: rgba(255,255,255,0.05); }
 .metric-bar-fill.critical { background-color: var(--danger-color); }
 .metric-bar-fill.abandoned { background-color: #94a3b8; }
 
+/* 💡 정중앙 정렬을 위해 log-list-container를 flex로 전환 */
 .log-list-container {
   flex-grow: 1;
-  overflow-y: scroll; 
+  overflow-y: auto; /* 스크롤바가 필요할 때만 생기게 수정 */
   background-color: rgba(93, 162, 255, 0.03); 
   border: 1px solid rgba(93, 162, 255, 0.05);
   border-radius: 16px;
   padding: 12px;
   margin-top: 4px;
+  display: flex;
+  flex-direction: column;
 }
 body.dark-mode .log-list-container {
   background-color: rgba(255, 255, 255, 0.02);
   border-color: rgba(255, 255, 255, 0.03);
 }
 
-.log-list { display: flex; flex-direction: column; gap: 10px; }
+/* 💡 내부 flex 아이템이 100% 채우도록 flex-grow 설정 */
+.log-list { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+  flex-grow: 1;
+}
+
 .log-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 12px; font-size: 0.85rem; }
 .danger-log { background-color: var(--danger-bg); color: var(--danger-color); }
 .warning-log { background-color: var(--warning-bg); color: var(--warning-color); }
@@ -316,6 +326,37 @@ body.dark-mode .log-list-container {
 .log-ip { font-family: monospace; font-weight: 700; width: 100px; }
 .log-reason { flex-grow: 1; margin-left: 16px; color: inherit; font-weight: 600; }
 .risk-score { font-weight: 800; font-family: monospace; color: inherit; }
+
+/* 💡 새로 추가된 빈 화면 로그 클래스 (정중앙 자동배치) */
+.empty-log {
+  margin: auto; /* 상하좌우 남는 공간을 모두 분배하여 완벽한 중앙 배치 */
+  color: var(--brand-color);
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* 💡 새로 추가된 우회 공격 차트 빈 화면 클래스 (로그 박스와 완벽하게 동일한 디자인) */
+.empty-chart-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--brand-color);
+  font-weight: 600;
+  font-size: 14px;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  background-color: rgba(93, 162, 255, 0.03); 
+  border: 1px solid rgba(93, 162, 255, 0.05);
+  border-radius: 16px;
+}
+body.dark-mode .empty-chart-box {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.03);
+}
 
 .custom-chart-tooltip {
   background-color: var(--bg-card);

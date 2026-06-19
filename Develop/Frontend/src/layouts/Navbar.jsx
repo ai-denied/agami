@@ -38,8 +38,9 @@ const Navbar = () => {
     } catch (e) { 
       console.error(e); 
     }
-    localStorage.clear();
-    window.location.href = "/";
+    setUser(null); // 전역 Auth 상태 초기화
+    localStorage.removeItem("accessToken"); // clear() 대신 인증 토큰만 삭제하여 테마(theme) 설정은 유지시킴
+    navigate("/"); // 부드러운 화면 전환 (SPA 방식)
   };
 
   if (isFirstVisit === null) return null;

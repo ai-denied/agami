@@ -21,7 +21,11 @@ import ProjectTest from '@/pages/MyPage/ProjectTest';
 
 // 로그인된 사용자의 접근을 막는 PublicRoute 래퍼
 const PublicRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>보안 세션 확인 중...</div>;
+  }
   
   if (user) {
     return <Navigate to="/mypage/projects" replace />;

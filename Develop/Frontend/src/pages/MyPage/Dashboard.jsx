@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate, useParams } from 'react-router-dom'; // 💡 useParams 추가
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import './Dashboard.css';
 import { 
@@ -28,7 +28,7 @@ const CustomTooltip = ({ active, payload }) => {
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
-  const { id: projectId } = useParams(); // 💡 URL에서 project_id 추출
+  const { id: projectId } = useParams();
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
@@ -42,7 +42,6 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // 💡 API 주소에 project_id 파라미터 추가
       const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}&target_date=${targetDate}&project_id=${projectId}`, {
         withCredentials: true
       });
@@ -260,20 +259,8 @@ export default function Dashboard() {
                         </div>
                       );
                     }) : (
-                      <div
-                        className="empty-log"
-                        style={{
-                          height: '100%',
-                          minHeight: '180px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          textAlign: 'center',
-                          color: 'var(--brand-color)',
-                          fontWeight: 600,
-                          fontSize: '14px'
-                        }}
-                      >
+                      // 💡 CSS 클래스로 분리 적용
+                      <div className="empty-log">
                         현재 탐지된 이상 징후가 없습니다
                       </div>
                     )}
@@ -315,23 +302,8 @@ export default function Dashboard() {
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        minHeight: '180px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        textAlign: 'center',
-                        color: 'var(--brand-color)',
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        background: 'rgba(var(--brand-rgb), 0.05)',
-                        border: '1px solid rgba(var(--brand-rgb), 0.15)',
-                        borderRadius: '12px'
-                      }}
-                    >
+                    // 💡 CSS 클래스로 분리 적용 (연한 파란색 배경)
+                    <div className="empty-chart-box">
                       탐지된 우회 공격 유형이 없습니다
                     </div>
                   )}

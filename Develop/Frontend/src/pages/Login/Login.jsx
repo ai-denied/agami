@@ -110,7 +110,7 @@ const Login = () => {
         </div>
 
         <p className="login-footer">
-          Agami의 지능형 보안 서비스를 만나보세요.
+          agami의 지능형 보안 서비스를 만나보세요.
         </p>
       </LiquidGlass>
     </div>

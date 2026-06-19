@@ -172,29 +172,10 @@ body.dark-mode .token-string {
   line-height: 1.6;
 }
 
-.info-alert-box {
-  margin-top: 24px;
-  background: rgba(255, 168, 1, 0.08);
-  border-left: 5px solid #ffa801;
-  padding: 20px;
-  border-radius: 0 8px 8px 0;
-}
-.info-alert-box strong {
-  color: #d97706;
-  font-size: 1rem;
-  display: block;
-  margin-bottom: 8px;
-}
-.info-alert-box p {
-  margin: 0;
-  color: #78350f;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
 .platform-tabs {
   display: flex;
   gap: 8px;
+  margin-top: 24px;
   margin-bottom: 12px;
 }
 
@@ -212,6 +193,3 @@ body.dark-mode .token-string {
   color: white;
   border-color: #5da2ff;
 }
-
-body.dark-mode .info-alert-box strong { color: #fbbf24; }
-body.dark-mode .info-alert-box p { color: #fcd34d; }

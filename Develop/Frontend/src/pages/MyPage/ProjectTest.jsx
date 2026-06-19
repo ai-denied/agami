@@ -181,11 +181,6 @@ const ProjectTest = () => {
                 <code>{getCurlSnippet()}</code>
               </pre>
             </div>
-            
-            <div className="info-alert-box">
-              <strong>💡 주의사항</strong>
-              <p>이 코드는 반드시 고객님의 백엔드 서버에서 실행되어야 합니다.</p>
-            </div>
           </div>
 
         </div>
