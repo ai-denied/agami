@@ -37,16 +37,13 @@ const Price = () => {
       return;
     }
 
-    // 현재 유저의 플랜 (없으면 기본값 'basic')
     const currentPlan = (user.plan || "basic").toLowerCase();
 
-    // 1. 엔터프라이즈 문의하기 처리
     if (planName === "enterprise") {
       showAlert("엔터프라이즈 요금제는 고객센터를 통해 맞춤형으로 제공됩니다.\nsupport@agami.com으로 문의해주세요.");
       return;
     }
 
-    // 2. 이미 사용 중이거나 하위 플랜인 경우 차단
     if (planHierarchy[planName] === planHierarchy[currentPlan]) {
       showAlert(`이미 ${plan.name} 플랜을 사용 중입니다.`);
       return;
@@ -58,7 +55,6 @@ const Price = () => {
       return;
     }
 
-    // 3. Pro 결제 진행 (Basic -> Pro)
     if (planName === "pro") {
       try {
         const response = await api.post("/api/payment/ready");
@@ -73,35 +69,46 @@ const Price = () => {
     }
   };
 
-  // 💡 컨테이너 스크롤 시 현재 인덱스 계산 로직
+  // 💡 정밀한 스크롤 스냅 위치 계산 로직 (Throttling 적용)
+  const scrollTimeout = useRef(null);
   const handleScroll = () => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-    const card = container.children[0];
-    if (!card) return;
-    
-    const style = window.getComputedStyle(container);
-    const gap = parseFloat(style.gap) || 0;
-    const itemWidth = card.offsetWidth + gap;
-    const newIndex = Math.round(container.scrollLeft / itemWidth);
-    
-    if (newIndex !== activeSlide) {
-      setActiveSlide(newIndex);
-    }
+    if (scrollTimeout.current) return;
+    scrollTimeout.current = setTimeout(() => {
+      if (!containerRef.current) {
+        scrollTimeout.current = null;
+        return;
+      }
+      const container = containerRef.current;
+      const centerPosition = container.scrollLeft + container.clientWidth / 2;
+      
+      let closestIndex = 0;
+      let minDistance = Infinity;
+
+      Array.from(container.children).forEach((child, index) => {
+        const childCenter = child.offsetLeft + child.offsetWidth / 2 - container.offsetLeft;
+        const distance = Math.abs(centerPosition - childCenter);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIndex = index;
+        }
+      });
+      
+      if (closestIndex !== activeSlide) {
+        setActiveSlide(closestIndex);
+      }
+      scrollTimeout.current = null;
+    }, 50);
   };
 
-  // 💡 하단 점 클릭 시 해당 카드로 스크롤 이동
+  // 💡 하단 인디케이터 점 클릭 시 카드 스크롤 이동
   const scrollToSlide = (index) => {
     if (!containerRef.current) return;
     const container = containerRef.current;
-    const card = container.children[0];
-    if (!card) return;
+    const child = container.children[index];
+    if (!child) return;
 
-    const style = window.getComputedStyle(container);
-    const gap = parseFloat(style.gap) || 0;
-    const itemWidth = card.offsetWidth + gap;
-
-    container.scrollTo({ left: index * itemWidth, behavior: "smooth" });
+    const scrollPosition = child.offsetLeft - container.offsetLeft - (container.clientWidth / 2) + (child.offsetWidth / 2);
+    container.scrollTo({ left: scrollPosition, behavior: "smooth" });
     setActiveSlide(index);
   };
 
@@ -149,7 +156,7 @@ const Price = () => {
             ))}
           </div>
 
-          {/* 💡 모바일 전용 슬라이드 인디케이터 (PC에서는 CSS로 숨김 처리) */}
+          {/* 💡 모바일 전용 슬라이드 인디케이터 (PC에서는 CSS로 자동 숨김 처리) */}
           <div className="slider-dots">
             {plans.map((_, index) => (
               <div
@@ -162,7 +169,6 @@ const Price = () => {
         </LiquidGlass>
       </div>
 
-      {/* 자체 Alert 모달 */}
       {alertModal.show && (
         <div className="custom-sys-modal-overlay" onClick={closeAlert}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>

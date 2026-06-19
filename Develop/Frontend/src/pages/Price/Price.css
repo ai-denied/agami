@@ -244,98 +244,136 @@ body.dark-mode .price-card:hover {
 }
 .btn-sys-ok:hover { opacity: 0.9; }
 
-/* ---------------------------------------------------
-   모바일 슬라이더 인디케이터 (PC에서는 숨김)
---------------------------------------------------- */
-.slider-dots {
-  display: none;
-}
+/* 모바일 전용 인디케이터 초기 숨김 */
+.slider-dots { display: none; }
 
-/* ---------------------------------------------------
-   [핵심] 모바일 전용 반응형 레이아웃 (900px 이하)
---------------------------------------------------- */
+/* =============================================================================
+   [핵심] 모바일 전용 반응형 레이아웃 및 호버/비율 강제 교정 (900px 이하)
+   ============================================================================= */
 @media (max-width: 900px) {
+  
   .pricing-wrapper {
-    height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden !important; /* 💡 세로 스크롤 잘림 완벽 해결을 위해 외부 스크롤 원천 차단 */
+    display: flex;
+    align-items: center;
     padding-top: var(--nav-height);
+    box-sizing: border-box;
   }
 
   .pricing-content {
-    height: auto;
+    height: 100%;
+    max-height: 100%;
     margin-top: 0;
-    padding: 30px 20px;
+    padding: 20px 15px 30px 15px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  /* 글라스 박스 내부 패딩 축소 */
+  /* 💡 글라스 박스 내부 패딩 축소 및 높이 비율 동기화 */
   .pricing-content .liquid-glass-box {
-    padding: 30px 20px !important;
+    padding: 24px 0 !important; 
+    height: max-content;
+    max-height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pricing-header {
+    padding: 0 20px; 
   }
 
   .pricing-header h1 {
-    font-size: 2.2rem;
+    font-size: clamp(24px, 6vw, 32px);
+    margin-bottom: 4px;
   }
 
   .pricing-header p {
-    font-size: 0.95rem;
-    padding: 0 10px;
+    font-size: clamp(13px, 3.5vw, 15px);
+    margin-bottom: 16px;
     word-break: keep-all;
   }
 
   /* 💡 컨테이너 가로 스크롤 및 스냅 설정 */
   .pricing-container {
+    display: flex;
+    flex-direction: row;
     justify-content: flex-start;
+    align-items: stretch;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch; /* iOS 터치 스크롤 부드럽게 */
+    -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    padding-bottom: 10px;
-    
-    /* 스크롤바 완전 숨김 */
+    padding: 0 20px 10px 20px; 
+    gap: 15px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
+  .pricing-container::-webkit-scrollbar { display: none; }
 
-  .pricing-container::-webkit-scrollbar {
-    display: none;
+  /* 💡 카드 비율 유동적 조정 (가로폭을 줄여 다음 카드가 보이게 유도) */
+  .price-card {
+    flex: 0 0 85%; 
+    max-width: 85%;
+    scroll-snap-align: center;
+    padding: 20px 16px; 
   }
 
-  /* 💡 각 요금제 카드가 화면 내에서 100%를 차지하도록 강제 */
-  .price-card {
-    flex: 0 0 100%;
-    max-width: 100%;
-    scroll-snap-align: center;
-    padding: 30px 20px;
+  /* 💡 폰트 사이즈 및 여백 최적화 (세로 넘침 및 짤림 방지) */
+  .plan-name { font-size: 1.25rem; margin-bottom: 4px; }
+  .plan-desc { font-size: 0.8rem; height: 32px; margin-bottom: 8px; }
+  .plan-price .amount { font-size: 1.8rem; }
+  .feature-list { margin: 10px 0; }
+  .feature-list li { padding: 4px 0; font-size: 0.8rem; }
+
+  /* 💡 부풀어 오르던 뚱뚱한 버튼 크기 강제 축소 */
+  .price-card .bubble-btn-shared.primary {
+    padding: 12px 0;
+    font-size: 0.95rem;
+    margin-top: 10px;
+    width: 100%;
   }
 
   /* 💡 모바일 인디케이터 표시 */
   .slider-dots {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-top: 20px;
+    gap: 10px;
+    margin-top: 15px;
   }
 
   .slider-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background-color: rgba(0, 0, 0, 0.15);
     cursor: pointer;
     transition: all 0.3s ease;
   }
+  body.dark-mode .slider-dot { background-color: rgba(255, 255, 255, 0.2); }
+  .slider-dot.active { background-color: var(--brand-color); transform: scale(1.3); }
 
-  body.dark-mode .slider-dot {
-    background-color: rgba(255, 255, 255, 0.2);
+  /* --- 호버 무력화 (애니메이션, 팽창 현상 전면 제거) --- */
+  .price-card:hover {
+    transform: none !important;
+    background: rgba(255, 255, 255, 0.4) !important;
   }
-
-  .slider-dot.active {
-    background-color: var(--brand-color);
-    transform: scale(1.3);
+  body.dark-mode .price-card:hover {
+    background: rgba(0, 0, 0, 0.3) !important;
   }
-
-  body.dark-mode .slider-dot.active {
-    background-color: var(--brand-color);
+  .price-card:hover .cta-button-shared,
+  .price-card:hover .bubble-btn-shared.primary {
+    background-color: transparent !important;
+    color: var(--btn-blue) !important;
+    box-shadow: none !important;
   }
+  
+  .bubble-btn-shared:hover { transform: none !important; }
+  .bubble-btn-shared:hover .bubble { animation: none !important; display: none !important; }
+  .bubble-btn-shared.primary:hover::before { bottom: -100% !important; }
+  .bubble-btn-shared.primary:hover { color: var(--btn-blue) !important; }
 }
