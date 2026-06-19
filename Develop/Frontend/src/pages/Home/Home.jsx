@@ -634,54 +634,29 @@ const Home = () => {
   }, [isFeeding, windowSize]);
 
   if (isFirstVisit === null) return null;
-  
-  const scrollToSection = (targetTop, duration = 800) => {
-    const element = wrapperRef.current;
-    if (!element) return;
 
-    // 부드러운 스크롤 연산을 위해 이동 중 스냅(Snap) 임시 차단
-    element.style.scrollSnapType = "none";
-
-    const startPosition = element.scrollTop;
-    const distance = targetTop - startPosition;
-    let startTime = null;
-
-    const animation = (currentTime) => {
-      if (startTime === null) startTime = currentTime;
-      const timeElapsed = currentTime - startTime;
-      const progress = Math.min(timeElapsed / duration, 1);
-
-      // 자연스러운 가속 및 감속을 위한 Easing 수학 공식 적용 (easeInOutCubic)
-      const ease = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-
-      element.scrollTop = startPosition + distance * ease;
-
-      if (timeElapsed < duration) {
-        requestAnimationFrame(animation);
-      } else {
-        // 스크롤이 완전히 끝난 후 스냅 기능 원상 복구
-        element.style.scrollSnapType = "y mandatory";
-      }
-    };
-
-    requestAnimationFrame(animation);
-  };
-
-  // 모바일일 때는 1초(1000ms), PC일 때는 0.6초(600ms)로 전환 속도 지정
   const scrollToFirst = () => {
-    scrollToSection(0, isMobile ? 1000 : 600);
+    if (wrapperRef.current) {
+      wrapperRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
-
   const scrollToSecond = () => {
-    const currentH = Math.max(windowSize.height, 720);
-    scrollToSection(currentH, isMobile ? 1000 : 600);
+    if (wrapperRef.current) {
+      const currentH = Math.max(windowSize.height, 720);
+      wrapperRef.current.scrollTo({
+        top: currentH,
+        behavior: "smooth",
+      });
+    }
   };
-
   const scrollToThird = () => {
-    const currentH = Math.max(windowSize.height, 720);
-    scrollToSection(currentH * 2, isMobile ? 1000 : 600);
+    if (wrapperRef.current) {
+      const currentH = Math.max(windowSize.height, 720);
+      wrapperRef.current.scrollTo({
+        top: currentH * 2,
+        behavior: "smooth",
+      });
+    }
   };
 
   const toggleFeeding = () => {
