@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,10 @@ const Price = () => {
   const [alertModal, setAlertModal] = useState({ show: false, message: "" });
   const closeAlert = () => setAlertModal({ show: false, message: "" });
   const showAlert = (message) => setAlertModal({ show: true, message });
+
+  // 💡 모바일 슬라이더 관련 상태 및 Ref 추가
+  const [activeSlide, setActiveSlide] = useState(0);
+  const containerRef = useRef(null);
 
   // 요금제 등급 (비교용)
   const planHierarchy = {
@@ -39,7 +43,6 @@ const Price = () => {
     // 1. 엔터프라이즈 문의하기 처리
     if (planName === "enterprise") {
       showAlert("엔터프라이즈 요금제는 고객센터를 통해 맞춤형으로 제공됩니다.\nsupport@agami.com으로 문의해주세요.");
-      // window.location.href = "mailto:support@agami.com"; // 실제 메일 연동 시 주석 해제
       return;
     }
 
@@ -50,7 +53,6 @@ const Price = () => {
     }
     
     if (planHierarchy[planName] < planHierarchy[currentPlan]) {
-      // (예) 현재 Pro인데 Basic을 누른 경우
       const currentPlanDisplay = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
       showAlert(`현재 상위 요금제인 ${currentPlanDisplay} 플랜을 사용 중입니다.\n다운그레이드는 마이페이지에서 신청해주세요.`);
       return;
@@ -71,6 +73,38 @@ const Price = () => {
     }
   };
 
+  // 💡 컨테이너 스크롤 시 현재 인덱스 계산 로직
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const card = container.children[0];
+    if (!card) return;
+    
+    const style = window.getComputedStyle(container);
+    const gap = parseFloat(style.gap) || 0;
+    const itemWidth = card.offsetWidth + gap;
+    const newIndex = Math.round(container.scrollLeft / itemWidth);
+    
+    if (newIndex !== activeSlide) {
+      setActiveSlide(newIndex);
+    }
+  };
+
+  // 💡 하단 점 클릭 시 해당 카드로 스크롤 이동
+  const scrollToSlide = (index) => {
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const card = container.children[0];
+    if (!card) return;
+
+    const style = window.getComputedStyle(container);
+    const gap = parseFloat(style.gap) || 0;
+    const itemWidth = card.offsetWidth + gap;
+
+    container.scrollTo({ left: index * itemWidth, behavior: "smooth" });
+    setActiveSlide(index);
+  };
+
   const plans = [
     { name: "Basic", price: "0", description: "개인 개발자 및 테스트용", features: ["월 1,000회 무료 호출", "표준 캡챠 유형 제공", "기본 분석 데이터"], buttonText: "무료로 시작하기" },
     { name: "Pro", price: "49,000", description: "성장하는 비즈니스를 위한 최적의 선택", features: ["월 100,000회 호출", "모든 캡챠 유형 제공", "상세 분석 대시보드", "도메인 화이트리스트"], buttonText: "Pro 시작하기" },
@@ -87,7 +121,11 @@ const Price = () => {
             <p>비즈니스의 규모에 맞는 최적의 플랜을 선택하세요.</p>
           </div>
 
-          <div className="pricing-container">
+          <div 
+            className="pricing-container" 
+            ref={containerRef} 
+            onScroll={handleScroll}
+          >
             {plans.map((plan, index) => (
               <div key={index} className="price-card">
                 <div className="card-top">
@@ -108,6 +146,17 @@ const Price = () => {
                   </BubbleBtn>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* 💡 모바일 전용 슬라이드 인디케이터 (PC에서는 CSS로 숨김 처리) */}
+          <div className="slider-dots">
+            {plans.map((_, index) => (
+              <div
+                key={index}
+                className={`slider-dot ${activeSlide === index ? "active" : ""}`}
+                onClick={() => scrollToSlide(index)}
+              />
             ))}
           </div>
         </LiquidGlass>

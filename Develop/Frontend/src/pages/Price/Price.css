@@ -40,8 +40,6 @@ body.dark-mode {
   max-width: 1200px;
   padding: 0 20px; 
   margin-top: var(--nav-height); 
-  
-  /* [수정] 네비바를 제외한 화면 전체 높이를 활용하고 내부 콘텐츠를 중앙 정렬 */
   height: calc(100vh - var(--nav-height));
   display: flex;
   flex-direction: column;
@@ -62,7 +60,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
 }
 
 .pricing-header h1 {
-  font-size: 2.5rem; /* 크기 미세 축소 */
+  font-size: 2.5rem; 
   font-weight: 800;
   color: var(--brand-color);
   text-align: center;
@@ -72,7 +70,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
 .pricing-header p {
   color: var(--text-main);
   text-align: center;
-  margin-bottom: 30px; /* 여백 축소 */
+  margin-bottom: 30px; 
 }
 
 .pricing-container {
@@ -89,7 +87,7 @@ body.dark-mode .pricing-content .liquid-glass-box {
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 28px;
-  padding: 35px 25px; /* 패딩 최적화 */
+  padding: 35px 25px; 
   flex: 1;
   min-width: 250px; 
   max-width: 320px; 
@@ -153,12 +151,12 @@ body.dark-mode .price-card:hover {
 .feature-list {
   list-style: none;
   padding: 0;
-  margin: 15px 0; /* 마진 축소 */
+  margin: 15px 0; 
   flex-grow: 1;
 }
 
 .feature-list li { 
-  padding: 6px 0; /* 간격 축소 */
+  padding: 6px 0; 
   color: var(--text-sub);
   font-size: 0.85rem; 
   display: flex; 
@@ -185,60 +183,6 @@ body.dark-mode .price-card:hover {
   border: 1px solid var(--brand-color) !important;
   color: var(--brand-color) !important;
   transition: all 0.3s ease-in-out !important;
-}
-
-/* ---------------------------------------------------
-   [핵심 추가] 노트북 등 세로 해상도가 낮은 화면 대응 (Height Media Query)
---------------------------------------------------- */
-@media (max-height: 850px) {
-  .pricing-content .liquid-glass-box {
-    padding: 25px !important;
-  }
-  .pricing-header h1 {
-    font-size: 2rem;
-    margin-bottom: 2px;
-  }
-  .pricing-header p {
-    margin-bottom: 15px;
-  }
-  .price-card {
-    padding: 20px 20px;
-  }
-  .plan-price .amount {
-    font-size: 1.8rem;
-  }
-  .feature-list {
-    margin: 10px 0;
-  }
-  .feature-list li {
-    padding: 4px 0;
-    font-size: 0.8rem;
-  }
-}
-
-/* 가로 해상도 대응 (기존 모바일/태블릿 규격 유지) */
-@media (max-width: 950px) {
-  .pricing-wrapper {
-    height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
-    padding-top: var(--nav-height);
-  }
-  
-  .pricing-content {
-    height: auto;
-    margin-top: 0;
-    padding: 40px 20px;
-  }
-
-  .pricing-container { 
-    flex-wrap: wrap; 
-  }
-  
-  .price-card { 
-    max-width: 400px; 
-    width: 100%; 
-  }
 }
 
 /* ---------------------------------------------------
@@ -299,3 +243,99 @@ body.dark-mode .price-card:hover {
   flex: 1;
 }
 .btn-sys-ok:hover { opacity: 0.9; }
+
+/* ---------------------------------------------------
+   모바일 슬라이더 인디케이터 (PC에서는 숨김)
+--------------------------------------------------- */
+.slider-dots {
+  display: none;
+}
+
+/* ---------------------------------------------------
+   [핵심] 모바일 전용 반응형 레이아웃 (900px 이하)
+--------------------------------------------------- */
+@media (max-width: 900px) {
+  .pricing-wrapper {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    padding-top: var(--nav-height);
+  }
+
+  .pricing-content {
+    height: auto;
+    margin-top: 0;
+    padding: 30px 20px;
+  }
+
+  /* 글라스 박스 내부 패딩 축소 */
+  .pricing-content .liquid-glass-box {
+    padding: 30px 20px !important;
+  }
+
+  .pricing-header h1 {
+    font-size: 2.2rem;
+  }
+
+  .pricing-header p {
+    font-size: 0.95rem;
+    padding: 0 10px;
+    word-break: keep-all;
+  }
+
+  /* 💡 컨테이너 가로 스크롤 및 스냅 설정 */
+  .pricing-container {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; /* iOS 터치 스크롤 부드럽게 */
+    scroll-behavior: smooth;
+    padding-bottom: 10px;
+    
+    /* 스크롤바 완전 숨김 */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .pricing-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 💡 각 요금제 카드가 화면 내에서 100%를 차지하도록 강제 */
+  .price-card {
+    flex: 0 0 100%;
+    max-width: 100%;
+    scroll-snap-align: center;
+    padding: 30px 20px;
+  }
+
+  /* 💡 모바일 인디케이터 표시 */
+  .slider-dots {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .slider-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  body.dark-mode .slider-dot {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .slider-dot.active {
+    background-color: var(--brand-color);
+    transform: scale(1.3);
+  }
+
+  body.dark-mode .slider-dot.active {
+    background-color: var(--brand-color);
+  }
+}
