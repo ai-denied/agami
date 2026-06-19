@@ -34,7 +34,8 @@ body.dark-mode .layout-container {
   min-height: 0; 
   background: #ffffff;
   border-right: 1px solid #e0e7f3;
-  padding: 30px 20px;
+  /* 💡 PC에서도 좌우 패딩을 0으로 설정하여 내부 리스트가 꽉 차게 만듭니다. */
+  padding: 30px 0;
   box-sizing: border-box;
   transition: background 0.3s ease, border-color 0.3s ease, left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto; 
@@ -52,10 +53,11 @@ body.dark-mode .sidebar {
   margin: 0;
 }
 
+/* 💡 모바일과 동일하게 마진을 없애고 둥근 모서리(border-radius)를 직각(0)으로 변경 */
 .sidebar li {
-  padding: 15px 20px;
-  margin-bottom: 10px;
-  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 0;
+  border-radius: 0;
   cursor: pointer;
   color: #6b7891;
   font-weight: 600;
@@ -157,11 +159,10 @@ body.dark-mode .widget-body {
    [5] 반응형 모바일 (900px 이하) - 햄버거 토글 슬라이드 로직
    ============================================================================= */
 @media (max-width: 900px) {
-  /* 💡 햄버거 메뉴 버튼 생성 */
   .mobile-sidebar-toggle {
     display: flex;
     position: absolute;
-    top: 85px; /* 네비게이션(65px) + 여백(20px) */
+    top: 85px; 
     left: 20px;
     z-index: 40;
     background: #ffffff;
@@ -175,6 +176,7 @@ body.dark-mode .widget-body {
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent; 
   }
 
   body.dark-mode .mobile-sidebar-toggle {
@@ -183,7 +185,6 @@ body.dark-mode .widget-body {
     border-color: #28282a;
   }
 
-  /* 💡 뒷배경을 어둡게 처리하는 오버레이 */
   .mobile-sidebar-overlay {
     display: block;
     position: fixed;
@@ -195,8 +196,9 @@ body.dark-mode .widget-body {
     backdrop-filter: blur(2px);
     z-index: 100;
     opacity: 0;
-    pointer-events: none; /* 닫혀있을 땐 클릭 방해 금지 */
+    pointer-events: none; 
     transition: opacity 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .mobile-sidebar-overlay.visible {
@@ -204,15 +206,14 @@ body.dark-mode .widget-body {
     pointer-events: auto;
   }
 
-  /* 💡 사이드바를 좌측 바깥으로 숨겨두고 열리면 당겨옴 */
   .sidebar {
     position: fixed;
     top: 0;
     left: -280px; 
     width: 260px;
     height: 100vh;
-    z-index: 101; /* 오버레이보다 한 단계 위 */
-    padding-top: 20px;
+    z-index: 101; 
+    padding: 20px 0 0 0; 
     box-shadow: 5px 0 25px rgba(0, 0, 0, 0.1);
     visibility: hidden;
   }
@@ -226,13 +227,12 @@ body.dark-mode .widget-body {
     visibility: visible;
   }
 
-  /* 모바일 사이드바 내부 타이틀 및 닫기 버튼 */
   .sidebar-header-mobile {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    margin-bottom: 10px;
+    padding: 0 20px 15px 20px; 
     border-bottom: 1px solid #e0e7f3;
   }
 
@@ -258,18 +258,23 @@ body.dark-mode .widget-body {
     cursor: pointer;
     color: #6b7891;
     padding: 0 5px;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body.dark-mode .mobile-sidebar-close {
     color: #a0aec0;
   }
 
-  /* 햄버거 버튼이 차지하는 공간만큼 콘텐츠 영역 하강 */
+  .sidebar li {
+    /* 💡 터치 시 발생하는 파란색 박스 잔상 완벽 제거 (모바일 전용 유지) */
+    -webkit-tap-highlight-color: transparent; 
+    box-shadow: none !important; 
+  }
+
   .main-content {
     padding: 100px 20px 40px 20px; 
   }
   
-  /* 모바일 화면 크기에 맞춘 폰트 및 박스 비율 축소 */
   .content-title {
     font-size: 1.5rem !important;
   }
