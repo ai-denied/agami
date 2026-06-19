@@ -207,39 +207,26 @@ body.dark-mode .captcha-description p {
   color: #a0aec0;
 }
 
-/* --- 모바일 반응형 (Intro 사이드바) --- */
+/* --- 모바일 반응형 (Intro 사이드바 잘림 해결) --- */
 @media (max-width: 850px) {
-  .layout-container {
-    flex-direction: column;
-  }
+  .layout-container { flex-direction: column; }
   .sidebar {
-    width: 100vw !important; /* 상위 여백 무시하고 화면 끝까지 뻗음 */
-    height: auto;
-    padding: 15px 0 !important; /* 내부 패딩 삭제하여 텍스트 잘림 해결 */
-    border-right: none;
-    border-bottom: 1px solid #e0e7f3;
+    width: 100% !important; height: auto; padding: 15px 0 !important;
+    border-right: none; border-bottom: 1px solid #e0e7f3;
   }
-  body.dark-mode .sidebar {
-    border-bottom-color: #28282a;
-  }
+  body.dark-mode .sidebar { border-bottom-color: #28282a; }
   .sidebar ul {
-    display: flex;
-    overflow-x: auto;
-    white-space: nowrap;
-    gap: 10px;
-    padding: 0 20px !important; /* 잘림을 막기 위해 리스트 자체에만 안전 여백 부여 */
+    display: flex; overflow-x: auto; white-space: nowrap; gap: 10px;
+    padding: 0 20px !important; margin: 0;
   }
-  .sidebar ul::-webkit-scrollbar {
-    display: none;
-  }
+  .sidebar ul::-webkit-scrollbar { display: none; }
+  
+  /* 💡 글씨를 찌부시키지 않고 우측 여백을 보장 */
   .sidebar li {
-    margin: 0;
-    padding: 10px 16px;
-    border-radius: 8px;
+    margin: 0 10px 0 0 !important; padding: 10px 16px !important;
+    border-radius: 8px; flex-shrink: 0 !important;
   }
-  .main-content {
-    width: 100vw !important;
-    padding: 20px !important;
-    box-sizing: border-box !important;
-  }
+  .sidebar ul::after { content: ''; padding-right: 10px; }
+
+  .main-content { width: 100% !important; padding: 20px !important; box-sizing: border-box !important; }
 }

@@ -162,53 +162,32 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   box-sizing: border-box;
 }
 
-/* --- 모바일 반응형 (MyPage 사이드바) --- */
+/* --- 모바일 반응형 (MyPage 사이드바 잘림 해결) --- */
 @media (max-width: 850px) {
-  .mypage-layout {
-    flex-direction: column;
-  }
+  .mypage-layout { flex-direction: column; }
   .mypage-sidebar {
-    width: 100vw !important;
-    height: auto;
-    padding: 15px 0 !important;
-    border-right: none;
-    border-bottom: 1px solid #e0e7f3;
+    width: 100% !important; height: auto; padding: 15px 0 !important;
+    border-right: none; border-bottom: 1px solid #e0e7f3;
   }
-  body.dark-mode .mypage-sidebar {
-    border-bottom-color: #28282a;
-  }
+  body.dark-mode .mypage-sidebar { border-bottom-color: #28282a; }
   .sidebar-profile {
-    flex-direction: row;
-    justify-content: flex-start;
-    padding: 0 20px 15px 20px !important;
-    margin-bottom: 10px;
+    flex-direction: row; justify-content: flex-start;
+    padding: 0 20px 15px 20px !important; margin-bottom: 10px;
   }
-  .sidebar-profile .profile-img {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 0;
-    margin-right: 15px;
-  }
+  .sidebar-profile .profile-img { width: 40px; height: 40px; margin-bottom: 0; margin-right: 15px; }
   .sidebar-menu-list {
-    flex-direction: row;
-    overflow-x: auto;
-    white-space: nowrap;
-    padding: 0 20px !important;
+    flex-direction: row; overflow-x: auto; white-space: nowrap;
+    padding: 0 20px !important; margin: 0;
   }
-  .sidebar-menu-list::-webkit-scrollbar {
-    display: none; 
-  }
+  .sidebar-menu-list::-webkit-scrollbar { display: none; }
+  
+  /* 💡 글씨를 찌부시키지 않고 우측 여백을 보장 */
   .sidebar-menu-list li {
-    margin: 0 10px 0 0 !important;
-    padding: 10px 16px !important;
-    border-radius: 8px !important;
+    margin: 0 10px 0 0 !important; padding: 10px 16px !important;
+    border-radius: 8px !important; flex-shrink: 0 !important;
   }
-  .menu-divider {
-    display: none; 
-  }
-  .mypage-main {
-    width: 100vw !important;
-    padding: 20px !important;
-    box-sizing: border-box !important;
-  }
+  .sidebar-menu-list::after { content: ''; padding-right: 10px; }
+  
+  .menu-divider { display: none; }
+  .mypage-main { width: 100% !important; padding: 20px !important; box-sizing: border-box !important; }
 }

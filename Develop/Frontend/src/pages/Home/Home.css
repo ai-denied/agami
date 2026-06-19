@@ -419,36 +419,53 @@ body.dark-mode .second-container {
   backdrop-filter: blur(5px);
 }
 
+/* src/pages/Home/Home.css (기존 내용 유지하되, 맨 밑에 이 부분만 교체) */
+
 /* =============================================================================
    💡 [핵심] 모바일 환경(768px 이하) 전용 UI/UX 찌그러짐 완벽 교정
    - PC버전에는 단 1%의 영향도 주지 않도록 철저히 격리했습니다.
    ============================================================================= */
 @media (max-width: 768px) {
-  /* 1. 첫 번째 컨테이너 (메인) */
+  /* 💡 1. 모바일 환경에서만 손가락 스와이프 스크롤 완전 차단 (버튼으로만 이동) */
+  .home-main-wrapper { 
+    overflow-y: hidden !important; 
+  }
+
   .home-container { 
     align-items: center; 
     justify-content: center; 
     position: relative;
   }
   
-  /* PC 버전의 이상한 작아지는 원 효과 삭제 */
-  .circle { display: none !important; } 
+  /* 💡 첫 화면 파도 배경 원상 복구 및 위치 보정 */
+  .circle { 
+    display: block !important; 
+    right: 50% !important;
+    top: 50% !important;
+    transform: translate(50%, -50%) !important; 
+    opacity: 0.8 !important; 
+  }
   
-  /* 로고와 텍스트를 감싸는 예쁜 하얀색 원으로 변형 */
+  /* 모바일 물고기 마스킹 충돌 방지 */
+  .fish-scene-layer { 
+    display: none !important; 
+  }
+  
+  /* 💡 로고와 버튼을 묶어주는 비율 좋은 하얀 원 */
   .left-section {
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 320px !important;
-    height: 320px !important;
-    background: rgba(255, 255, 255, 0.85) !important;
+    width: 280px !important;
+    height: 280px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
     border-radius: 50% !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
-    padding: 0 !important;
+    padding: 0 20px !important;
     box-shadow: 0 20px 50px rgba(0,0,0,0.1);
     backdrop-filter: blur(10px);
     z-index: 50;
@@ -456,42 +473,44 @@ body.dark-mode .second-container {
   }
   
   body.dark-mode .left-section {
-    background: rgba(26, 26, 27, 0.85) !important;
+    background: rgba(26, 26, 27, 0.9) !important;
   }
   
-  .main-logo { width: 180px !important; margin-bottom: 15px !important; }
-  .logo-text { font-size: 14px !important; margin-bottom: 25px !important; }
+  /* 로고 및 버튼 사이 간격/비율 완벽 최적화 */
+  .main-logo { width: 140px !important; margin-bottom: 10px !important; }
+  .logo-text { font-size: 13px !important; margin-bottom: 20px !important; }
+  .left-section .bubble-btn-shared { padding: 10px 30px !important; font-size: 15px !important; margin-top: 0 !important; }
   
-  /* 2. 두 번째 컨테이너 (Spotlight 게임 스와이프 버그 해결) */
-  .second-container {
-    touch-action: none; /* 스와이프 시 위아래 페이지 스크롤 강제 차단 */
-  }
+  .bot-fixed-area { display: none !important; }
+
+  /* 2. 두 번째 컨테이너 (폰트 줄임 및 화살표 완벽 중앙 배치) */
+  .second-container h1 { font-size: 24px !important; margin-bottom: 10px !important; }
+  .second-container p { font-size: 14px !important; padding: 0 20px; }
   
-  /* 화살표 버튼 정중앙 및 크기 보정 */
   .scroll-down-btn {
-    width: 44px !important; 
-    height: 44px !important;
-    bottom: 25px !important; 
     left: 50% !important;
-    margin-left: -22px !important; /* width의 절반을 빼서 완벽한 정중앙 정렬 */
-    transform: none !important; 
+    transform: translateX(-50%) !important;
+    margin-left: 0 !important;
+    bottom: 30px !important;
+    width: 48px !important;
+    height: 48px !important;
   }
-  
-  /* 3. 세 번째 컨테이너 (로고 중앙 & 팝업 하단 분리 배치) */
+
+  /* 3. 세 번째 컨테이너 */
   .third-container {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-end !important; /* 팝업을 맨 아래로 안착시킴 */
+    justify-content: flex-end !important; 
     padding-bottom: 30px !important;
-    position: relative;
   }
   
+  /* 로고와 구체는 Home.jsx의 motion.div로 묶어서 같이 올라가게 되므로 위치만 정중앙 셋팅 */
   .third-logo-wrapper {
     position: absolute !important;
-    top: 40% !important; /* 지오데식 구의 정중앙 좌표 */
+    top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
   }
+  
+  .third-logo { width: 220px !important; }
   
   .third-content-wrapper {
     position: relative !important;
@@ -503,7 +522,7 @@ body.dark-mode .second-container {
   }
 
   .liquid-glass-box { padding: 30px 20px !important; }
-  .box-title { font-size: 20px; margin-bottom: 10px; }
-  .box-desc { font-size: 13.5px; line-height: 1.5; }
-  .box-btn { padding: 12px 0; font-size: 15px; border-radius: 14px; }
+  .box-title { font-size: 20px !important; margin-bottom: 10px !important; }
+  .box-desc { font-size: 13.5px !important; line-height: 1.5 !important; }
+  .box-btn { padding: 12px 0 !important; font-size: 15px !important; border-radius: 14px !important; }
 }
