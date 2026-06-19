@@ -425,6 +425,11 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
    ============================================================================= */
 @media (max-width: 900px) {
   
+  /* 💡 터치가 아닌 사용자의 수동 스크롤을 원천 차단 */
+  .home-main-wrapper {
+    overflow: hidden !important;
+  }
+  
   /* --- 공통 호버 및 동적 액션 무력화 --- */
   .box-btn:hover, 
   .scroll-down-btn:hover, 
@@ -475,13 +480,13 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     height: 150vmax;
     top: 50%;
     right: 50%;
-    opacity: 0.2; 
+    opacity: 0.5; /* 💡 메인 파동 투명도를 높여달라는 요청 반영 (0.35 -> 0.5) */
     z-index: 5; 
     transform: translate(50%, -50%) !important; 
   }
   
   .fish-scene-layer { 
-    display: none !important; /* 모바일 성능 렉의 원인인 레이어 자체를 차단 */
+    display: none !important;
   }
 
   /* --- 2. 스포트라이트 컨테이너 --- */
@@ -500,13 +505,23 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     margin-top: 15px;
   }
 
+  /* 💡 하단 이동 화살표 정중앙 맞춤 */
+  .scroll-down-btn {
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+  }
+
   /* --- 3. 로고 애니메이션 컨테이너 --- */
   .third-logo { 
     width: clamp(200px, 60vw, 320px); 
+    height: auto !important;
+    object-fit: contain; /* 💡 로고 객체가 세로로 찌그러지는 현상 방지 */
   }
   
   .third-content-wrapper {
     padding: 0 20px 30px 20px;
+    align-items: center;
   }
   
   .box-title { 
@@ -517,9 +532,10 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     font-size: clamp(13px, 3.5vw, 15px); 
   }
 
-  /* --- LiquidGlass 박스 내부 여백 축소 --- */
+  /* 💡 LiquidGlass 박스 위아래 팽창 현상 차단 */
   .third-content-wrapper .liquid-glass-box {
-    padding: 24px !important;
-    height: auto !important; /* 모바일에서 고정 높이 해제 */
+    padding: 30px 24px !important;
+    height: max-content !important; 
+    flex-shrink: 0;
   }
 }

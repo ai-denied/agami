@@ -246,8 +246,8 @@ const ScaredFish = memo(({
 });
 ScaredFish.displayName = "ScaredFish";
 
-// --- 지오데식 구 파티클 배경 그래픽 ---
-const ParticleNetwork = memo(({ windowSize }) => {
+// --- 지오데식 구 파티클 배경 그래픽 (발열 차단 및 모바일 최적화) ---
+const ParticleNetwork = memo(({ windowSize, isMobile }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -377,7 +377,9 @@ const ParticleNetwork = memo(({ windowSize }) => {
       sphereParticles = [];
       bgParticles = [];
       const radius = getSphereRadius();
-      const detail = 8;
+      
+      // 💡 핵심 발열 차단: 모바일 환경에서는 구를 이루는 정점(detail) 개수를 극한으로 제한합니다.
+      const detail = isMobile ? 4 : 8;
 
       for (let i = 0; i <= detail; i++) {
         const phi = (Math.PI * i) / detail;
@@ -388,8 +390,11 @@ const ParticleNetwork = memo(({ windowSize }) => {
         }
       }
 
-      for (let i = 0; i < 35; i++) {
-        bgParticles.push(new BGParticle());
+      // 💡 핵심 발열 차단: 모바일 환경에서는 배경 로봇 입자를 아예 메모리에 올리지 않습니다.
+      if (!isMobile) {
+        for (let i = 0; i < 35; i++) {
+          bgParticles.push(new BGParticle());
+        }
       }
     };
 
@@ -420,11 +425,13 @@ const ParticleNetwork = memo(({ windowSize }) => {
       ctx.fillStyle = "#010c1b"; 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      for (let i = 0; i < bgParticles.length; i++) {
-        bgParticles[i].update();
-        bgParticles[i].draw();
+      if (!isMobile) {
+        for (let i = 0; i < bgParticles.length; i++) {
+          bgParticles[i].update();
+          bgParticles[i].draw();
+        }
+        drawBGNetwork();
       }
-      drawBGNetwork();
 
       for (let i = 0; i < sphereParticles.length; i++) {
         sphereParticles[i].update(time);
@@ -441,7 +448,7 @@ const ParticleNetwork = memo(({ windowSize }) => {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [windowSize]); 
+  }, [windowSize, isMobile]); 
 
   return (
     <canvas
@@ -468,9 +475,7 @@ const Home = () => {
     height: window.innerHeight,
   });
 
-  // PC, 모바일 환경 판별 변수 (900px 이하 모바일 렌더링 최적화)
   const isMobile = windowSize.width <= 900;
-  // 첫 방문이고 PC 환경일 때만 무거운 애니메이션 렌더링 허용
   const shouldAnimateIntro = isFirstVisit && !isMobile;
 
   const mousePos = useRef({ x: -1000, y: -1000 });
@@ -574,14 +579,24 @@ const Home = () => {
     }
   };
 
+  // 💡 마우스 및 "터치(Touch)" 이벤트를 동시에 감지하여 모바일 조작을 완벽 지원합니다.
   const lastSecondMv = useRef(0);
-  const handleSecondMouseMove = (e) => {
+  const handleSpotlightMove = (e) => {
     const now = performance.now();
     if (now - lastSecondMv.current < 16) return;
     lastSecondMv.current = now;
     
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
     const rect = e.currentTarget.getBoundingClientRect();
-    setSpotlightPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    setSpotlightPos({ x: clientX - rect.left, y: clientY - rect.top });
   };
 
   const handleFishClick = (e) => {
@@ -638,7 +653,7 @@ const Home = () => {
   };
 
   const toggleFeeding = () => {
-    if (isMobile) return; // 모바일에서는 먹이 시스템 차단
+    if (isMobile) return;
     setIsFeeding(!isFeeding);
     if (!hasFed) setHasFed(true);
   };
@@ -663,8 +678,7 @@ const Home = () => {
       className="home-main-wrapper" 
       ref={wrapperRef} 
       style={{ 
-        contentVisibility: "auto", 
-        overflow: isFirstVisit ? "hidden" : "auto" 
+        contentVisibility: "auto"
       }}
     >
       <div className="home-container" onMouseMove={!isMobile ? handleMouseMove : undefined}>
@@ -691,7 +705,6 @@ const Home = () => {
             WebkitMaskRepeat: "no-repeat"
           }}
         >
-          {/* 💡 모바일 환경(900px 이하)에서는 로봇과 물고기 렌더링 스크립트 완벽 차단 */}
           {!isMobile && foods.map((f) => (
             <FoodBot key={f.id} x={f.x} y={f.y} color={f.color} />
           ))}
@@ -762,7 +775,6 @@ const Home = () => {
           </BubbleBtn>
         </motion.div>
 
-        {/* 💡 모바일 환경에서는 화면을 가리는 고정 봇 아이콘 삭제 */}
         {!isMobile && (
           <motion.div
             className="bot-fixed-area"
@@ -792,7 +804,12 @@ const Home = () => {
         )}
       </div>
 
-      <div className="second-container" onMouseMove={handleSecondMouseMove}>
+      <div 
+        className="second-container" 
+        onMouseMove={handleSpotlightMove} 
+        onTouchMove={handleSpotlightMove}
+        onTouchStart={handleSpotlightMove}
+      >
         <div
           className="light-sea-layer"
           style={{
@@ -807,7 +824,7 @@ const Home = () => {
             style={{ left: `${targetFishPos.x}%`, top: `${targetFishPos.y}%` }}
             initial={{ scale: 0 }}
             animate={{
-              scale: isFound ? 1.8 : 1, // 모바일 프레임 드랍을 막기 위해 폭발 애니메이션의 keyframes 간소화
+              scale: isFound ? 1.8 : 1,
               rotate: isFound && !isMobile ? 360 : 0,
             }}
             onClick={handleFishClick}
@@ -856,7 +873,7 @@ const Home = () => {
       </div>
 
       <div className="third-container">
-        <ParticleNetwork windowSize={windowSize} />
+        <ParticleNetwork windowSize={windowSize} isMobile={isMobile} />
 
         <div className="third-logo-wrapper">
           <motion.div
@@ -865,12 +882,13 @@ const Home = () => {
             viewport={{ once: true }}
             transition={!isMobile ? { duration: 1.5, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}
           >
+            {/* 💡 요청하신 로고 플로팅 애니메이션은 모바일에서도 유지됩니다. */}
             <motion.img
               src="/agami-logo-text.png"
               alt="Agami Logo Text"
               className="third-logo"
-              animate={!isMobile ? { y: [0, -20, 0] } : { y: 0 }}
-              transition={!isMobile ? { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 } : { duration: 0 }}
+              animate={{ y: [0, -20, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
               style={{ position: "relative", willChange: "transform" }}
             />
           </motion.div>
@@ -882,7 +900,7 @@ const Home = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={!isMobile ? { delay: 2, duration: 1, ease: "easeOut" } : { duration: 0 }}
-            style={{ width: "100%", maxWidth: "800px", height: !isMobile ? "300px" : "auto", willChange: "transform, opacity" }}
+            style={{ width: "100%", maxWidth: "800px", willChange: "transform, opacity" }}
           >
             <h2 className="box-title">보안을 넘어선 새로운 연결</h2>
             <p className="box-desc">
