@@ -11,7 +11,6 @@ import LiquidGlass from "@/components/LiquidGlass/LiquidGlass";
 import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
 import "./Home.css";
 
-// 캔버스 이미지 객체를 컴포넌트 외부에 선언하여 불필요한 재생성과 로딩 지연을 원천 차단합니다.
 const canvasFishImg = new Image();
 canvasFishImg.src = "/agami-fish-right.svg";
 
@@ -38,8 +37,7 @@ const FoodBot = memo(({ x, y, color }) => (
 ));
 FoodBot.displayName = "FoodBot";
 
-
-// --- 반응형 물고기 컴포넌트 (성능 최적화 버전) ---
+// --- 반응형 물고기 컴포넌트 ---
 const ScaredFish = memo(({
   index,
   isFeeding,
@@ -81,7 +79,6 @@ const ScaredFish = memo(({
     };
   }, [index]);
 
-  // 최초 초기 좌표 연산 (windowSize 의존성 제거를 위해 내부 동적 연산으로 대체)
   const initialPositions = useMemo(() => {
     const currentW = Math.max(window.innerWidth, 1200);
     const currentH = Math.max(window.innerHeight, 720);
@@ -125,7 +122,6 @@ const ScaredFish = memo(({
     let frameCount = 0;
 
     const animate = (time) => {
-      // 루프 내부에서 window 크기를 실시간 참조하여 루프 리셋 현상을 방지합니다.
       const currentW = Math.max(window.innerWidth, 1200);
       const currentH = Math.max(window.innerHeight, 720);
 
@@ -250,9 +246,7 @@ const ScaredFish = memo(({
 });
 ScaredFish.displayName = "ScaredFish";
 
-
-
-// --- 지오데식 구 파티클 배경 그래픽 (연결선 연산 제거 버전) ---
+// --- 지오데식 구 파티클 배경 그래픽 ---
 const ParticleNetwork = memo(({ windowSize }) => {
   const canvasRef = useRef(null);
 
@@ -432,7 +426,6 @@ const ParticleNetwork = memo(({ windowSize }) => {
       }
       drawBGNetwork();
 
-      // 중첩 루프 구조의 연결선 그리기 함수(drawSphereLines)를 제거하여 드로우콜 및 연산량을 획기적으로 낮춤
       for (let i = 0; i < sphereParticles.length; i++) {
         sphereParticles[i].update(time);
       }
@@ -460,8 +453,6 @@ const ParticleNetwork = memo(({ windowSize }) => {
 });
 ParticleNetwork.displayName = "ParticleNetwork";
 
-
-
 const MotionLiquidGlass = motion.create(LiquidGlass);
 
 const Home = () => {
@@ -476,6 +467,11 @@ const Home = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+
+  // PC, 모바일 환경 판별 변수 (900px 이하 모바일 렌더링 최적화)
+  const isMobile = windowSize.width <= 900;
+  // 첫 방문이고 PC 환경일 때만 무거운 애니메이션 렌더링 허용
+  const shouldAnimateIntro = isFirstVisit && !isMobile;
 
   const mousePos = useRef({ x: -1000, y: -1000 });
   const allFishRefs = useRef([]);
@@ -547,7 +543,7 @@ const Home = () => {
 
   useEffect(() => {
     let interval;
-    if (isFeeding) {
+    if (isFeeding && !isMobile) {
       interval = setInterval(() => {
         setFoods((prev) => [
           ...prev.slice(-12),
@@ -561,7 +557,7 @@ const Home = () => {
       }, 450);
     }
     return () => clearInterval(interval);
-  }, [isFeeding]);
+  }, [isFeeding, isMobile]);
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -642,6 +638,7 @@ const Home = () => {
   };
 
   const toggleFeeding = () => {
+    if (isMobile) return; // 모바일에서는 먹이 시스템 차단
     setIsFeeding(!isFeeding);
     if (!hasFed) setHasFed(true);
   };
@@ -655,10 +652,11 @@ const Home = () => {
     { id: 5, top: "35%", size: 95, delay: 0.9 },
   ];
 
-  const mainTransition = isFirstVisit
+  const mainTransition = shouldAnimateIntro
     ? { delay: 3.5, duration: 1.5, ease: [0.4, 0, 0.2, 1] }
     : { duration: 0 };
 
+  const spotlightRadius = isMobile ? 100 : 160;
 
   return (
     <div 
@@ -669,10 +667,10 @@ const Home = () => {
         overflow: isFirstVisit ? "hidden" : "auto" 
       }}
     >
-      <div className="home-container" onMouseMove={handleMouseMove}>
+      <div className="home-container" onMouseMove={!isMobile ? handleMouseMove : undefined}>
         <motion.div
           className="circle"
-          initial={isFirstVisit ? { scale: 2.5 } : { scale: 1 }}
+          initial={shouldAnimateIntro ? { scale: 2.5 } : { scale: 1 }}
           animate={{ scale: 1 }}
           transition={mainTransition}
           style={{ x: "50%", y: "-50%", willChange: "transform" }}
@@ -693,10 +691,11 @@ const Home = () => {
             WebkitMaskRepeat: "no-repeat"
           }}
         >
-          {foods.map((f) => (
+          {/* 💡 모바일 환경(900px 이하)에서는 로봇과 물고기 렌더링 스크립트 완벽 차단 */}
+          {!isMobile && foods.map((f) => (
             <FoodBot key={f.id} x={f.x} y={f.y} color={f.color} />
           ))}
-          {Array.from({ length: 18 }).map((_, i) => (
+          {!isMobile && Array.from({ length: 18 }).map((_, i) => (
             <ScaredFish
               key={i}
               index={i}
@@ -708,7 +707,7 @@ const Home = () => {
           ))}
         </div>
 
-        {isFirstVisit && (
+        {shouldAnimateIntro && (
           <>
             <motion.img
               src="bot.svg"
@@ -746,7 +745,7 @@ const Home = () => {
         <motion.div
           className="left-section"
           initial={
-            isFirstVisit ? { x: -1000, opacity: 0 } : { x: 0, opacity: 1 }
+            shouldAnimateIntro ? { x: -1000, opacity: 0 } : { x: 0, opacity: 1 }
           }
           animate={{ x: 0, opacity: 1 }}
           transition={mainTransition}
@@ -763,39 +762,42 @@ const Home = () => {
           </BubbleBtn>
         </motion.div>
 
-        <motion.div
-          className="bot-fixed-area"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: isFirstVisit ? 5 : 0 }}
-        >
-          <AnimatePresence>
-            {!hasFed && !isFeeding && (
-              <motion.div
-                className="bot-speech-bubble"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-              >
-                봇을 클릭 후 마우스를 움직여보세요!
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div
-            className={`bot-container ${isFeeding ? "active" : ""}`}
-            onClick={toggleFeeding}
+        {/* 💡 모바일 환경에서는 화면을 가리는 고정 봇 아이콘 삭제 */}
+        {!isMobile && (
+          <motion.div
+            className="bot-fixed-area"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: isFirstVisit ? 5 : 0 }}
           >
-            <img src="/bot.svg" alt="Bot" className="bot-image" />
-          </div>
-        </motion.div>
+            <AnimatePresence>
+              {!hasFed && !isFeeding && (
+                <motion.div
+                  className="bot-speech-bubble"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                >
+                  봇을 클릭 후 마우스를 움직여보세요!
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <div
+              className={`bot-container ${isFeeding ? "active" : ""}`}
+              onClick={toggleFeeding}
+            >
+              <img src="/bot.svg" alt="Bot" className="bot-image" />
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <div className="second-container" onMouseMove={handleSecondMouseMove}>
         <div
           className="light-sea-layer"
           style={{
-            maskImage: `radial-gradient(circle 160px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
-            WebkitMaskImage: `radial-gradient(circle 160px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
+            maskImage: `radial-gradient(circle ${spotlightRadius}px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
+            WebkitMaskImage: `radial-gradient(circle ${spotlightRadius}px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
             willChange: "mask-image",
             zIndex: 2
           }}
@@ -805,8 +807,8 @@ const Home = () => {
             style={{ left: `${targetFishPos.x}%`, top: `${targetFishPos.y}%` }}
             initial={{ scale: 0 }}
             animate={{
-              scale: isFound ? [1, 1.8, 0] : 1,
-              rotate: isFound ? 360 : 0,
+              scale: isFound ? 1.8 : 1, // 모바일 프레임 드랍을 막기 위해 폭발 애니메이션의 keyframes 간소화
+              rotate: isFound && !isMobile ? 360 : 0,
             }}
             onClick={handleFishClick}
           >
@@ -835,8 +837,8 @@ const Home = () => {
         <motion.button
           className="scroll-down-btn"
           onClick={scrollToThird}
-          animate={{ y: [0, 10, 0] }}
-          transition={{ y: { repeat: Infinity, duration: 1.5 } }}
+          animate={!isMobile ? { y: [0, 10, 0] } : { y: 0 }}
+          transition={!isMobile ? { y: { repeat: Infinity, duration: 1.5 } } : { duration: 0 }}
         >
           <svg
             width="60"
@@ -858,27 +860,17 @@ const Home = () => {
 
         <div className="third-logo-wrapper">
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            initial={!isMobile ? { opacity: 0, y: 50, scale: 0.9 } : { opacity: 1, y: 0, scale: 1 }}
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true }}
-            transition={{
-              duration: 1.5,
-              ease: [0.22, 1, 0.36, 1],
-            }}
+            transition={!isMobile ? { duration: 1.5, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}
           >
             <motion.img
               src="/agami-logo-text.png"
               alt="Agami Logo Text"
               className="third-logo"
-              animate={{
-                y: [0, -20, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1.5,
-              }}
+              animate={!isMobile ? { y: [0, -20, 0] } : { y: 0 }}
+              transition={!isMobile ? { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 } : { duration: 0 }}
               style={{ position: "relative", willChange: "transform" }}
             />
           </motion.div>
@@ -886,11 +878,11 @@ const Home = () => {
 
         <div className="third-content-wrapper">
           <MotionLiquidGlass
-            initial={{ opacity: 0, y: 150 }}
+            initial={!isMobile ? { opacity: 0, y: 150 } : { opacity: 1, y: 0 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 2, duration: 1, ease: "easeOut" }}
-            style={{ width: "100%", maxWidth: "800px", height: "300px", willChange: "transform, opacity" }}
+            transition={!isMobile ? { delay: 2, duration: 1, ease: "easeOut" } : { duration: 0 }}
+            style={{ width: "100%", maxWidth: "800px", height: !isMobile ? "300px" : "auto", willChange: "transform, opacity" }}
           >
             <h2 className="box-title">보안을 넘어선 새로운 연결</h2>
             <p className="box-desc">

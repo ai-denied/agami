@@ -1,5 +1,3 @@
-
-
 /* =============================================================================
    [1] 테마별 변수 제어 (오리지널 동일)
    ============================================================================= */
@@ -53,25 +51,17 @@ body.no-scroll {
 
 .home-main-wrapper {
   width: 100%;
-  
-  /* [교정 1] 부모의 높이 가변성에 영향을 받지 않도록 래퍼 자체를 뷰포트 높이로 완벽히 가둡니다. */
   height: 100vh;
-  height: 100dvh; /* 모바일 환경의 동적 뷰포트 높이 변화 대응 */
-  
-  /* [교정 2] !important를 제거하여 Home.jsx의 인라인 스크롤 잠금 제어가 정상 작동하도록 허용합니다. */
+  height: 100dvh; 
   overflow-y: auto; 
   overflow-x: hidden; 
-  
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   position: relative;
-  
-  /* 홈 화면 내부에서 스크롤바 구조 숨김 (Firefox / IE) */
   scrollbar-width: none; 
   -ms-overflow-style: none; 
 }
 
-/* 홈 화면 내부에서 스크롤바 구조 숨김 (WebKit 엔진: Chrome, Safari, Edge) */
 .home-main-wrapper::-webkit-scrollbar {
   width: 0px !important;
   height: 0px !important;
@@ -321,7 +311,6 @@ body.dark-mode .second-container {
 .main-logo { width: 60%; }
 .logo-text { font-size: 20px; font-weight: 500; color: #929292; line-height: 1.6; }
 
-/* [완벽 복원] 원본 100vmax 크기와 translate 위치를 온전하게 보존 */
 .circle {
   position: absolute;
   top: 50%;
@@ -419,25 +408,6 @@ body.dark-mode .second-container {
   backdrop-filter: blur(5px);
 }
 
-@media (max-width: 900px) {
-  .home-container { align-items: center; justify-content: center; }
-  .left-section {
-    width: 100%;
-    height: 100%;
-    padding-left: 32px;
-    padding-right: 32px;
-    align-items: center;
-    text-align: center;
-  }
-  .main-logo { width: clamp(180px, 45vw, 280px); }
-  .logo-text { font-size: 16px; line-height: 1.5; }
-  .circle { right: -45%; opacity: 0.35; z-index: 5; transform: translate(0, -50%) !important; }
-  .left-section { z-index: 50; }
-  .fish-scene-layer { opacity: 0.45; }
-  .bot-fixed-area { top: 84px; right: 20px; transform: scale(0.8); transform-origin: top right; }
-  .bot-speech-bubble { display: none; }
-}
-
 .wave-bg-layer {
   --wave-base-color: #5da2ff;
   --wave-layer-color1: rgba(255, 255, 255, 0.2);
@@ -449,3 +419,107 @@ body.dark-mode .second-container {
 body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1: rgba(0, 150, 255, 0.08); --wave-layer-color2: rgba(0, 50, 150, 0.2); }
 .wave-bg-layer::before, .wave-bg-layer::after { content: ""; position: absolute; width: 300vmax; height: 300vmax; top: -275vmax; left: -100vmax; border-radius: 43%; background-color: var(--wave-layer-color1); animation: wave-rotate 12s infinite linear; transition: background-color 0.3s ease; }
 .wave-bg-layer::after { border-radius: 40%; background-color: var(--wave-layer-color2); animation-duration: 18s; top: -270vmax; }
+
+/* =============================================================================
+   [핵심] 모바일 전용 반응형 레이아웃 및 애니메이션 제거 로직 (900px 이하)
+   ============================================================================= */
+@media (max-width: 900px) {
+  
+  /* --- 공통 호버 및 동적 액션 무력화 --- */
+  .box-btn:hover, 
+  .scroll-down-btn:hover, 
+  .bubble-btn-shared:hover {
+    transform: none !important;
+  }
+  
+  .bubble-btn-shared:hover .bubble {
+    animation: none !important;
+    display: none !important;
+  }
+  
+  .bubble-btn-shared.primary:hover::before {
+    bottom: -100% !important;
+  }
+  
+  .bubble-btn-shared.fill:hover {
+    box-shadow: 0 10px 20px rgba(93, 162, 255, 0.3) !important;
+  }
+
+  /* --- 1. 홈 컨테이너 (첫 접속) --- */
+  .home-container { 
+    align-items: center; 
+    justify-content: center; 
+  }
+  
+  .left-section {
+    width: 100%;
+    height: 100%;
+    padding: 0 24px;
+    align-items: center;
+    text-align: center;
+    z-index: 50;
+  }
+  
+  .main-logo { 
+    width: clamp(160px, 50vw, 280px); 
+  }
+  
+  .logo-text { 
+    font-size: clamp(14px, 3.5vw, 18px);
+    line-height: 1.5; 
+    word-break: keep-all;
+  }
+  
+  .circle { 
+    width: 150vmax;
+    height: 150vmax;
+    top: 50%;
+    right: 50%;
+    opacity: 0.2; 
+    z-index: 5; 
+    transform: translate(50%, -50%) !important; 
+  }
+  
+  .fish-scene-layer { 
+    display: none !important; /* 모바일 성능 렉의 원인인 레이어 자체를 차단 */
+  }
+
+  /* --- 2. 스포트라이트 컨테이너 --- */
+  .second-container h1 { 
+    font-size: clamp(24px, 6vw, 36px); 
+  }
+  
+  .second-container p { 
+    font-size: clamp(14px, 4vw, 18px);
+    padding: 0 20px;
+    word-break: keep-all; 
+  }
+
+  .game-tip {
+    font-size: 13px;
+    margin-top: 15px;
+  }
+
+  /* --- 3. 로고 애니메이션 컨테이너 --- */
+  .third-logo { 
+    width: clamp(200px, 60vw, 320px); 
+  }
+  
+  .third-content-wrapper {
+    padding: 0 20px 30px 20px;
+  }
+  
+  .box-title { 
+    font-size: clamp(20px, 5vw, 24px); 
+  }
+  
+  .box-desc { 
+    font-size: clamp(13px, 3.5vw, 15px); 
+  }
+
+  /* --- LiquidGlass 박스 내부 여백 축소 --- */
+  .third-content-wrapper .liquid-glass-box {
+    padding: 24px !important;
+    height: auto !important; /* 모바일에서 고정 높이 해제 */
+  }
+}
