@@ -246,7 +246,7 @@ const ScaredFish = memo(({
 });
 ScaredFish.displayName = "ScaredFish";
 
-// --- 지오데식 구 파티클 배경 그래픽 (발열 차단 및 모바일 최적화) ---
+// --- 지오데식 구 파티클 배경 그래픽 ---
 const ParticleNetwork = memo(({ windowSize, isMobile }) => {
   const canvasRef = useRef(null);
 
@@ -377,8 +377,6 @@ const ParticleNetwork = memo(({ windowSize, isMobile }) => {
       sphereParticles = [];
       bgParticles = [];
       const radius = getSphereRadius();
-      
-      // 💡 핵심 발열 차단: 모바일 환경에서는 구를 이루는 정점(detail) 개수를 극한으로 제한합니다.
       const detail = isMobile ? 4 : 8;
 
       for (let i = 0; i <= detail; i++) {
@@ -390,7 +388,6 @@ const ParticleNetwork = memo(({ windowSize, isMobile }) => {
         }
       }
 
-      // 💡 핵심 발열 차단: 모바일 환경에서는 배경 로봇 입자를 아예 메모리에 올리지 않습니다.
       if (!isMobile) {
         for (let i = 0; i < 35; i++) {
           bgParticles.push(new BGParticle());
@@ -579,7 +576,6 @@ const Home = () => {
     }
   };
 
-  // 💡 마우스 및 "터치(Touch)" 이벤트를 동시에 감지하여 모바일 조작을 완벽 지원합니다.
   const lastSecondMv = useRef(0);
   const handleSpotlightMove = (e) => {
     const now = performance.now();
@@ -851,11 +847,15 @@ const Home = () => {
             어둠 속에서 숨겨진 물고기를 찾아보세요!
           </span>
         </div>
+        
+        {/* 💡 [교정 2] x 좌표를 명시적으로 고정하여 Framer Motion의 덮어쓰기 방지 */}
         <motion.button
           className="scroll-down-btn"
           onClick={scrollToThird}
-          animate={!isMobile ? { y: [0, 10, 0] } : { y: 0 }}
+          initial={{ x: "-50%" }}
+          animate={!isMobile ? { x: "-50%", y: [0, 10, 0] } : { x: "-50%", y: 0 }}
           transition={!isMobile ? { y: { repeat: Infinity, duration: 1.5 } } : { duration: 0 }}
+          style={{ x: "-50%" }}
         >
           <svg
             width="60"
@@ -873,7 +873,8 @@ const Home = () => {
       </div>
 
       <div className="third-container">
-        <ParticleNetwork windowSize={windowSize} isMobile={isMobile} />
+        {/* 💡 [교정 3] 모바일 환경(isMobile)일 경우 무거운 지오데식 구 파티클 네트워크 자체를 렌더링에서 완전히 배제 */}
+        {!isMobile && <ParticleNetwork windowSize={windowSize} isMobile={isMobile} />}
 
         <div className="third-logo-wrapper">
           <motion.div
@@ -882,7 +883,6 @@ const Home = () => {
             viewport={{ once: true }}
             transition={!isMobile ? { duration: 1.5, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}
           >
-            {/* 💡 요청하신 로고 플로팅 애니메이션은 모바일에서도 유지됩니다. */}
             <motion.img
               src="/agami-logo-text.png"
               alt="Agami Logo Text"

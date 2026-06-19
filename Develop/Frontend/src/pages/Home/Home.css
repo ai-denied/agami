@@ -421,16 +421,14 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
 .wave-bg-layer::after { border-radius: 40%; background-color: var(--wave-layer-color2); animation-duration: 18s; top: -270vmax; }
 
 /* =============================================================================
-   [핵심] 모바일 전용 반응형 레이아웃 및 애니메이션 제거 로직 (900px 이하)
+   [핵심] 모바일 전용 반응형 레이아웃 및 애니메이션 제어 로직 (900px 이하)
    ============================================================================= */
 @media (max-width: 900px) {
   
-  /* 💡 터치가 아닌 사용자의 수동 스크롤을 원천 차단 */
   .home-main-wrapper {
     overflow: hidden !important;
   }
   
-  /* --- 공통 호버 및 동적 액션 무력화 --- */
   .box-btn:hover, 
   .scroll-down-btn:hover, 
   .bubble-btn-shared:hover {
@@ -465,6 +463,13 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     z-index: 50;
   }
   
+  /* 💡 [교정 1] "알아보기" 버튼 패딩 및 폰트 축소 */
+  .left-section .bubble-btn-shared.primary {
+    padding: 12px 36px;
+    font-size: 16px;
+    margin-top: 30px;
+  }
+  
   .main-logo { 
     width: clamp(160px, 50vw, 280px); 
   }
@@ -480,7 +485,7 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     height: 150vmax;
     top: 50%;
     right: 50%;
-    opacity: 0.5; /* 💡 메인 파동 투명도를 높여달라는 요청 반영 (0.35 -> 0.5) */
+    opacity: 0.5; 
     z-index: 5; 
     transform: translate(50%, -50%) !important; 
   }
@@ -505,18 +510,20 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     margin-top: 15px;
   }
 
-  /* 💡 하단 이동 화살표 정중앙 맞춤 */
   .scroll-down-btn {
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 0;
+    bottom: 30px;
   }
 
   /* --- 3. 로고 애니메이션 컨테이너 --- */
+  .third-logo-wrapper {
+    /* 💡 [교정 3] 로고 위치를 화면 중앙(50%)에서 위쪽(30%)으로 끌어올려 글라스 박스와의 겹침 방지 */
+    top: 30% !important;
+  }
+
   .third-logo { 
-    width: clamp(200px, 60vw, 320px); 
+    width: clamp(180px, 50vw, 260px); /* 글라스 박스 공간 확보를 위해 크기 미세 축소 */
     height: auto !important;
-    object-fit: contain; /* 💡 로고 객체가 세로로 찌그러지는 현상 방지 */
+    object-fit: contain;
   }
   
   .third-content-wrapper {
@@ -532,7 +539,6 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     font-size: clamp(13px, 3.5vw, 15px); 
   }
 
-  /* 💡 LiquidGlass 박스 위아래 팽창 현상 차단 */
   .third-content-wrapper .liquid-glass-box {
     padding: 30px 24px !important;
     height: max-content !important; 
