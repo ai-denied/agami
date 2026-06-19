@@ -206,3 +206,39 @@ body.dark-mode .captcha-description h3 {
 body.dark-mode .captcha-description p {
   color: #a0aec0;
 }
+
+/* --- 모바일 반응형 (Intro 사이드바) --- */
+@media (max-width: 850px) {
+  .layout-container {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    padding: 15px 20px;
+    border-right: none;
+    border-bottom: 1px solid #e0e7f3;
+  }
+  body.dark-mode .sidebar {
+    border-bottom-color: #28282a;
+  }
+  .sidebar ul {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 10px;
+    padding-bottom: 5px;
+  }
+  .sidebar ul::-webkit-scrollbar {
+    display: none;
+  }
+  .sidebar li {
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 8px;
+  }
+  .main-content {
+    min-width: 0;
+    padding: 20px 15px;
+  }
+}

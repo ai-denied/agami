@@ -161,3 +161,52 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   overflow-y: auto;
   box-sizing: border-box;
 }
+
+/* --- 모바일 반응형 (MyPage 사이드바) --- */
+@media (max-width: 850px) {
+  .mypage-layout {
+    flex-direction: column;
+  }
+  .mypage-sidebar {
+    width: 100%;
+    height: auto;
+    padding: 15px 20px;
+    border-right: none;
+    border-bottom: 1px solid #e0e7f3;
+  }
+  body.dark-mode .mypage-sidebar {
+    border-bottom-color: #28282a;
+  }
+  .sidebar-profile {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding-bottom: 15px;
+    margin-bottom: 10px;
+  }
+  .sidebar-profile .profile-img {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0;
+    margin-right: 15px;
+  }
+  .sidebar-menu-list {
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 5px;
+  }
+  .sidebar-menu-list::-webkit-scrollbar {
+    display: none; /* 모바일에서 스크롤바 숨김 */
+  }
+  .sidebar-menu-list li {
+    margin: 0 10px 0 0;
+    padding: 10px 16px;
+    border-radius: 8px;
+  }
+  .menu-divider {
+    display: none; /* 가로 모드에서는 구분선 생략 */
+  }
+  .mypage-main {
+    padding: 20px 15px; /* 모바일용 여백 축소 */
+  }
+}

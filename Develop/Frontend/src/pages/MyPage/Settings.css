@@ -445,3 +445,24 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
   flex: 1;
 }
 .btn-sys-danger:hover { background: #dc2626; }
+
+/* --- 모바일 반응형 (세팅 및 테스트 페이지) --- */
+@media (max-width: 768px) {
+  .settings-page-wrapper { padding: 20px 15px; }
+  .settings-container { padding: 24px 20px; }
+  .settings-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .btn-delete-project { width: 100%; }
+  
+  .key-display-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .key-display-label { width: 100%; }
+  .btn-copy-action { width: 100%; text-align: center; }
+  
+  .plan-info-box { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .btn-outline-primary { width: 100%; text-align: center; }
+  
+  .panel-header-row { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .btn-refresh-widget { width: 100%; text-align: center; }
+  .platform-tabs { overflow-x: auto; white-space: nowrap; padding-bottom: 5px; }
+  .code-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .btn-copy-code { width: 100%; }
+}

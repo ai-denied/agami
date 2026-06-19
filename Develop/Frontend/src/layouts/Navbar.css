@@ -194,3 +194,24 @@ body.dark-mode {
   font-size: 14px;
   letter-spacing: 0.5px;
 }
+
+/* --- 모바일 반응형 (네비게이션 바) --- */
+@media (max-width: 768px) {
+  .menu-bar { padding: 0 5px; }
+  .nav-item { padding: 0 10px; font-size: 14px; letter-spacing: 0; }
+  
+  .home-logo-btn img { width: 35px; } /* 로고 축소 */
+  
+  .nav-nickname { display: none; } /* 모바일에서는 닉네임 숨김, 프사만 노출 */
+  .user-profile-info { padding: 0 5px; }
+  
+  /* 테마 스위치 축소 */
+  .theme-switch { width: 52px; height: 28px; margin-right: 5px; }
+  .switch-handle { width: 20px; height: 20px; top: 4px; left: 4px; }
+  .theme-switch.active .switch-handle { transform: translateX(24px); }
+  .label-light, .label-dark { font-size: 8px; width: 22px; }
+}
+@media (max-width: 480px) {
+  /* 아주 작은 화면에서는 텍스트 링크의 패딩을 더 줄임 */
+  .nav-item { padding: 0 6px; font-size: 13px; }
+}
