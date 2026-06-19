@@ -162,32 +162,20 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   box-sizing: border-box;
 }
 
-/* --- 모바일 반응형 (MyPage 사이드바 잘림 해결) --- */
+/* =============================================================================
+   [모바일 850px 통일] 레이아웃 가로 삐져나옴(Overflow) 원천 차단
+   ============================================================================= */
 @media (max-width: 850px) {
-  .mypage-layout { flex-direction: column; }
-  .mypage-sidebar {
-    width: 100% !important; height: auto; padding: 15px 0 !important;
-    border-right: none; border-bottom: 1px solid #e0e7f3;
+  .layout-container, .mypage-layout { flex-direction: column; overflow-x: hidden !important; width: 100vw !important; }
+  .sidebar, .mypage-sidebar { 
+    width: 100vw !important; border-right: none; border-bottom: 1px solid #e0e7f3; 
+    padding: 15px 0 !important; box-sizing: border-box !important;
   }
-  body.dark-mode .mypage-sidebar { border-bottom-color: #28282a; }
-  .sidebar-profile {
-    flex-direction: row; justify-content: flex-start;
-    padding: 0 20px 15px 20px !important; margin-bottom: 10px;
-  }
-  .sidebar-profile .profile-img { width: 40px; height: 40px; margin-bottom: 0; margin-right: 15px; }
-  .sidebar-menu-list {
-    flex-direction: row; overflow-x: auto; white-space: nowrap;
-    padding: 0 20px !important; margin: 0;
-  }
-  .sidebar-menu-list::-webkit-scrollbar { display: none; }
+  .sidebar ul, .sidebar-menu-list { padding: 0 20px !important; }
   
-  /* 💡 글씨를 찌부시키지 않고 우측 여백을 보장 */
-  .sidebar-menu-list li {
-    margin: 0 10px 0 0 !important; padding: 10px 16px !important;
-    border-radius: 8px !important; flex-shrink: 0 !important;
+  .main-content, .mypage-main { 
+    width: 100vw !important; max-width: 100vw !important;
+    padding: 20px 15px !important; box-sizing: border-box !important; 
+    overflow-x: hidden !important; 
   }
-  .sidebar-menu-list::after { content: ''; padding-right: 10px; }
-  
-  .menu-divider { display: none; }
-  .mypage-main { width: 100% !important; padding: 20px !important; box-sizing: border-box !important; }
 }

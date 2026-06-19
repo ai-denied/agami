@@ -49,15 +49,13 @@ const Price = () => {
     { name: "Enterprise", description: "대규모 트래픽과 최고 수준의 보안이 필요한 기업", price: "문의", features: ["맞춤형 인증 한도 제공", "SLA 보장 및 전담 엔지니어", "커스텀 캡챠 모델 구축", "무제한 도메인 등록 지원", "24/7 연중무휴 핫라인 지원"], buttonText: "도입 문의하기" }
   ];
 
-  // 💡 [핵심] 스크롤 비율을 계산해 0, 1, 2번째 닷을 정확히 활성화
   const handleScroll = () => {
     if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    const maxScroll = scrollWidth - clientWidth;
-    if (maxScroll <= 0) return;
-    const ratio = scrollLeft / maxScroll;
-    const index = Math.round(ratio * (pricingPlans.length - 1));
-    setActiveIndex(index);
+    const { scrollLeft, clientWidth } = scrollRef.current;
+    // 카드가 차지하는 뷰포트 너비(약 85vw)를 기준으로 현재 인덱스 도출
+    const cardWidth = clientWidth * 0.85; 
+    const index = Math.round(scrollLeft / cardWidth);
+    setActiveIndex(Math.min(index, pricingPlans.length - 1));
   };
 
   return (

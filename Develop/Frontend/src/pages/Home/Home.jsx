@@ -265,14 +265,18 @@ const Home = () => {
   const [targetFishPos, setTargetFishPos] = useState({ x: 50, y: 50 });
   const [isFound, setIsFound] = useState(false);
 
-  // 💡 [핵심] 새로고침 시 무조건 최상단(메인)으로 고정
   useEffect(() => {
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
-    if (wrapperRef.current) {
-      wrapperRef.current.scrollTop = 0;
-    }
+    const forceScrollTop = () => {
+      if (wrapperRef.current) wrapperRef.current.scrollTop = 0;
+      window.scrollTo(0, 0);
+    };
+    forceScrollTop();
+    // 브라우저 렌더링 딜레이를 이기기 위해 50ms 후 한 번 더 쐐기를 박습니다.
+    const timer = setTimeout(forceScrollTop, 50);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

@@ -195,23 +195,20 @@ body.dark-mode {
   letter-spacing: 0.5px;
 }
 
-/* --- 모바일 반응형 (네비게이션 바) --- */
-@media (max-width: 768px) {
-  .menu-bar { padding: 0 5px; }
-  .nav-item { padding: 0 10px; font-size: 14px; letter-spacing: 0; }
+/* =============================================================================
+   [모바일 850px 통일] Navbar 간격 확보 및 마이페이지 프로필 숨김
+   ============================================================================= */
+@media (max-width: 850px) {
+  .menu-bar { padding: 0 10px; }
+  .nav-item { padding: 0 12px; font-size: 14px; margin: 0 2px; } /* 버튼 간격 확보 */
+  .home-logo-btn img { width: 35px; }
   
-  .home-logo-btn img { width: 35px; } /* 로고 축소 */
+  /* 마이페이지 접속 중일 때 우측 프로필(사진+이름) 통째로 숨김 */
+  .mypage-active-nav .user-profile-info { display: none !important; }
+  .nav-nickname { display: none; }
   
-  .nav-nickname { display: none; } /* 모바일에서는 닉네임 숨김, 프사만 노출 */
-  .user-profile-info { padding: 0 5px; }
-  
-  /* 테마 스위치 축소 */
   .theme-switch { width: 52px; height: 28px; margin-right: 5px; }
   .switch-handle { width: 20px; height: 20px; top: 4px; left: 4px; }
   .theme-switch.active .switch-handle { transform: translateX(24px); }
   .label-light, .label-dark { font-size: 8px; width: 22px; }
-}
-@media (max-width: 480px) {
-  /* 아주 작은 화면에서는 텍스트 링크의 패딩을 더 줄임 */
-  .nav-item { padding: 0 6px; font-size: 13px; }
 }

@@ -193,3 +193,16 @@ body.dark-mode .token-string {
   color: white;
   border-color: #5da2ff;
 }
+
+/* =============================================================================
+   [모바일 850px 통일] 대시보드 / 테스트 가시성 및 너비 통제
+   ============================================================================= */
+@media (max-width: 850px) {
+  .chart-card, .sub-card, .log-card, .test-panel { 
+    padding: 15px !important; width: 100% !important; box-sizing: border-box !important; 
+  }
+  .code-snippet-box, .widget-render-box {
+    max-width: 100% !important; overflow-x: auto !important;
+  }
+  .code-content code { font-size: 12px !important; }
+}

@@ -419,110 +419,68 @@ body.dark-mode .second-container {
   backdrop-filter: blur(5px);
 }
 
-/* src/pages/Home/Home.css (기존 내용 유지하되, 맨 밑에 이 부분만 교체) */
-
 /* =============================================================================
-   💡 [핵심] 모바일 환경(768px 이하) 전용 UI/UX 찌그러짐 완벽 교정
-   - PC버전에는 단 1%의 영향도 주지 않도록 철저히 격리했습니다.
+   [모바일 850px 통일] Home UI 완벽 교정 (PC 절대 영향 없음)
    ============================================================================= */
-@media (max-width: 768px) {
-  /* 💡 1. 모바일 환경에서만 손가락 스와이프 스크롤 완전 차단 (버튼으로만 이동) */
-  .home-main-wrapper { 
-    overflow-y: hidden !important; 
-  }
-
-  .home-container { 
-    align-items: center; 
-    justify-content: center; 
-    position: relative;
-  }
+@media (max-width: 850px) {
+  .home-main-wrapper { overflow-y: hidden !important; }
+  .home-container { align-items: center; justify-content: center; position: relative; }
   
-  /* 💡 첫 화면 파도 배경 원상 복구 및 위치 보정 */
+  /* 배경을 꽉 차는 파도만 남김 (작아지는 효과, 마스킹 소멸) */
   .circle { 
-    display: block !important; 
-    right: 50% !important;
-    top: 50% !important;
-    transform: translate(50%, -50%) !important; 
-    opacity: 0.8 !important; 
+    width: 100vw !important; height: 100vh !important; 
+    border-radius: 0 !important; transform: none !important; 
+    top: 0 !important; left: 0 !important; right: auto !important; 
+    opacity: 1 !important; display: block !important; 
   }
+  .fish-scene-layer { display: none !important; }
   
-  /* 모바일 물고기 마스킹 충돌 방지 */
-  .fish-scene-layer { 
-    display: none !important; 
-  }
-  
-  /* 💡 로고와 버튼을 묶어주는 비율 좋은 하얀 원 */
+  /* 완벽한 하얀색 정원 안에 로고/버튼 안착 */
   .left-section {
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
+    position: absolute !important; top: 50% !important; left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 280px !important;
-    height: 280px !important;
+    width: 320px !important; height: 320px !important;
     background: rgba(255, 255, 255, 0.9) !important;
     border-radius: 50% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
     padding: 0 20px !important;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
+    justify-content: center !important; align-items: center !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1) !important;
     z-index: 50;
-    text-align: center;
   }
+  body.dark-mode .left-section { background: rgba(26, 26, 27, 0.9) !important; }
   
-  body.dark-mode .left-section {
-    background: rgba(26, 26, 27, 0.9) !important;
-  }
-  
-  /* 로고 및 버튼 사이 간격/비율 완벽 최적화 */
-  .main-logo { width: 140px !important; margin-bottom: 10px !important; }
-  .logo-text { font-size: 13px !important; margin-bottom: 20px !important; }
-  .left-section .bubble-btn-shared { padding: 10px 30px !important; font-size: 15px !important; margin-top: 0 !important; }
-  
+  .main-logo { width: 150px !important; margin-bottom: 12px !important; }
+  .logo-text { font-size: 14px !important; margin-bottom: 24px !important; }
+  .left-section .bubble-btn-shared { padding: 12px 36px !important; font-size: 16px !important; margin-top: 0 !important; }
   .bot-fixed-area { display: none !important; }
 
-  /* 2. 두 번째 컨테이너 (폰트 줄임 및 화살표 완벽 중앙 배치) */
-  .second-container h1 { font-size: 24px !important; margin-bottom: 10px !important; }
-  .second-container p { font-size: 14px !important; padding: 0 20px; }
-  
+  /* 두 번째 화면 폰트 및 화살표 완벽 중앙 */
+  .second-container h1 { font-size: 22px !important; margin-bottom: 10px !important; }
+  .second-container p { font-size: 14px !important; }
   .scroll-down-btn {
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    margin-left: 0 !important;
-    bottom: 30px !important;
-    width: 48px !important;
-    height: 48px !important;
+    width: 44px !important; height: 44px !important;
+    left: 50% !important; bottom: 25px !important;
+    margin: 0 !important; transform: translateX(-50%) !important;
   }
 
-  /* 3. 세 번째 컨테이너 */
-  .third-container {
-    justify-content: flex-end !important; 
-    padding-bottom: 30px !important;
-  }
+  /* 세 번째 화면 지오데식+로고 동기화 / 팝업 하단 안착 */
+  .third-container { position: relative; justify-content: flex-end !important; padding-bottom: 20px !important; }
   
-  /* 로고와 구체는 Home.jsx의 motion.div로 묶어서 같이 올라가게 되므로 위치만 정중앙 셋팅 */
-  .third-logo-wrapper {
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
+  .sphere-logo-group {
+    position: absolute !important; top: 38% !important; left: 50% !important;
     transform: translate(-50%, -50%) !important;
+    width: 100vw !important; height: 50vh !important;
   }
-  
-  .third-logo { width: 220px !important; }
+  .particle-canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
+  .third-logo-wrapper { top: 50% !important; transform: translate(-50%, -50%) !important; }
+  .third-logo { width: 200px !important; }
   
   .third-content-wrapper {
-    position: relative !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    padding: 0 20px !important;
-    box-sizing: border-box !important;
-    z-index: 20;
+    position: relative !important; z-index: 20;
+    width: 100% !important; padding: 0 15px !important; box-sizing: border-box !important;
   }
-
-  .liquid-glass-box { padding: 30px 20px !important; }
-  .box-title { font-size: 20px !important; margin-bottom: 10px !important; }
-  .box-desc { font-size: 13.5px !important; line-height: 1.5 !important; }
-  .box-btn { padding: 12px 0 !important; font-size: 15px !important; border-radius: 14px !important; }
+  .liquid-glass-box { padding: 25px 20px !important; }
+  .box-title { font-size: 18px !important; margin-bottom: 8px !important; }
+  .box-desc { font-size: 13px !important; }
+  .box-btn { padding: 12px 0 !important; font-size: 14px !important; border-radius: 12px !important; }
 }
