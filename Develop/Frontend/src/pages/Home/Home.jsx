@@ -482,6 +482,17 @@ const Home = () => {
   const [targetFishPos, setTargetFishPos] = useState({ x: 50, y: 50 });
   const [isFound, setIsFound] = useState(false);
 
+  // 💡 [핵심] 브라우저 스크롤 복원 차단 및 마운트 시 최상단 강제 고정 로직
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    if (wrapperRef.current) {
+      wrapperRef.current.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     let timeoutId = null;
     const handleResize = () => {
@@ -848,7 +859,6 @@ const Home = () => {
           </span>
         </div>
         
-        {/* 💡 [교정 2] x 좌표를 명시적으로 고정하여 Framer Motion의 덮어쓰기 방지 */}
         <motion.button
           className="scroll-down-btn"
           onClick={scrollToThird}
@@ -873,7 +883,6 @@ const Home = () => {
       </div>
 
       <div className="third-container">
-        {/* 💡 [교정 3] 모바일 환경(isMobile)일 경우 무거운 지오데식 구 파티클 네트워크 자체를 렌더링에서 완전히 배제 */}
         {!isMobile && <ParticleNetwork windowSize={windowSize} isMobile={isMobile} />}
 
         <div className="third-logo-wrapper">
