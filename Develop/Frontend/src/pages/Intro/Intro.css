@@ -207,38 +207,24 @@ body.dark-mode .captcha-description p {
   color: #a0aec0;
 }
 
-/* --- 모바일 반응형 (Intro 사이드바) --- */
+/* =============================================================================
+   💡 [수정] 모바일 환경(850px 이하) Intro 페이지 잘림 현상 방지
+   ============================================================================= */
 @media (max-width: 850px) {
-  .layout-container {
-    flex-direction: column;
-  }
+  /* 껍데기 패딩 원천 차단 */
+  .page-wrapper { padding: 0 !important; }
+  .layout-container { flex-direction: column; padding-top: 65px !important; }
+  
   .sidebar {
-    width: 100%;
-    height: auto;
-    padding: 15px 20px;
-    border-right: none;
-    border-bottom: 1px solid #e0e7f3;
+    width: 100%; height: auto; padding: 15px 20px;
+    border-right: none; border-bottom: 1px solid #e0e7f3;
   }
-  body.dark-mode .sidebar {
-    border-bottom-color: #28282a;
-  }
-  .sidebar ul {
-    display: flex;
-    overflow-x: auto;
-    white-space: nowrap;
-    gap: 10px;
-    padding-bottom: 5px;
-  }
-  .sidebar ul::-webkit-scrollbar {
-    display: none;
-  }
-  .sidebar li {
-    margin: 0;
-    padding: 10px 16px;
-    border-radius: 8px;
-  }
-  .main-content {
-    min-width: 0;
-    padding: 20px 15px;
-  }
+  body.dark-mode .sidebar { border-bottom-color: #28282a; }
+  
+  .sidebar ul { display: flex; overflow-x: auto; white-space: nowrap; gap: 10px; padding-bottom: 5px; }
+  .sidebar ul::-webkit-scrollbar { display: none; }
+  .sidebar li { margin: 0; padding: 10px 16px; border-radius: 8px; }
+  
+  /* 실제 알맹이에만 여백 부여 */
+  .main-content { min-width: 0; padding: 20px !important; }
 }
