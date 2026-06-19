@@ -419,33 +419,96 @@ body.dark-mode .second-container {
   backdrop-filter: blur(5px);
 }
 
-@media (max-width: 900px) {
-  .home-container { align-items: center; justify-content: center; }
+@media (max-width: 768px) {
+  /* 1. 첫 번째 컨테이너 (메인) */
+  .home-container { 
+    align-items: center; 
+    justify-content: center; 
+  }
+  
   .left-section {
     width: 100%;
     height: 100%;
-    padding-left: 32px;
-    padding-right: 32px;
+    padding: 0 20px; /* 불필요한 좌우 150px 패딩 삭삭 깎아냄 */
     align-items: center;
     text-align: center;
   }
-  .main-logo { width: clamp(180px, 45vw, 280px); }
-  .logo-text { font-size: 16px; line-height: 1.5; }
-  .circle { right: -45%; opacity: 0.35; z-index: 5; transform: translate(0, -50%) !important; }
-  .left-section { z-index: 50; }
-  .fish-scene-layer { opacity: 0.45; }
-  .bot-fixed-area { top: 84px; right: 20px; transform: scale(0.8); transform-origin: top right; }
-  .bot-speech-bubble { display: none; }
-}
+  
+  .main-logo { 
+    width: 220px; 
+    margin-bottom: 20px;
+  }
+  
+  .logo-text { 
+    font-size: 15px; 
+    line-height: 1.5; 
+    margin-bottom: 30px;
+  }
+  
+  .circle { 
+    right: 50%; 
+    top: 50%;
+    transform: translate(50%, -50%) !important; 
+    opacity: 0.2; /* 배경 너무 연해지는 것 방지, 원본 서클만 투명도 부여 */
+  }
+  
+  .fish-scene-layer { 
+    /* 모바일에서 배경을 하얗게 탈색시키던 원인인 maskImage 강제 소멸 */
+    mask-image: none !important; 
+    -webkit-mask-image: none !important; 
+  }
+  
+  .bot-fixed-area { 
+    display: none !important; /* 모바일에서 거추장스러운 봇 완전 삭제 */
+  }
 
-.wave-bg-layer {
-  --wave-base-color: #5da2ff;
-  --wave-layer-color1: rgba(255, 255, 255, 0.2);
-  --wave-layer-color2: rgba(255, 255, 255, 0.1);
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
-  background-color: var(--wave-base-color); overflow: hidden; transition: background-color 0.3s ease;
+  /* 2. 두 번째 컨테이너 (Spotlight 게임) */
+  .second-container h1 { 
+    font-size: 26px; 
+    margin-bottom: 15px;
+  }
+  .second-container p { 
+    font-size: 15px; 
+    padding: 0 20px; 
+  }
+
+  /* 3. 세 번째 컨테이너 (찌부된 텍스트 박스 완벽 복원) */
+  .third-container {
+    justify-content: flex-start; /* 중앙 정렬 해제하고 위아래로 밀기 */
+  }
+  
+  .third-logo-wrapper { 
+    top: 25% !important; /* 로고를 위로 바짝 끌어올려 공간 확보 */
+    transform: translate(-50%, -50%) scale(0.85) !important;
+  }
+  
+  .third-logo { 
+    width: 240px; 
+  }
+  
+  .third-content-wrapper { 
+    padding: 0 20px 20px 20px; 
+    bottom: 5%; /* 아래쪽에 안전하게 안착 */
+  }
+
+  /* 모바일용 글래스 박스 내부 글씨 및 버튼 축소 */
+  .liquid-glass-box {
+    padding: 25px 20px !important; 
+  }
+  
+  .box-title { 
+    font-size: 20px; 
+    margin-bottom: 10px;
+  }
+  
+  .box-desc { 
+    font-size: 13.5px; 
+    line-height: 1.5; 
+  }
+  
+  .box-btn { 
+    padding: 12px 0; 
+    font-size: 15px; 
+    border-radius: 14px;
+  }
 }
-body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1: rgba(0, 150, 255, 0.08); --wave-layer-color2: rgba(0, 50, 150, 0.2); }
-.wave-bg-layer::before, .wave-bg-layer::after { content: ""; position: absolute; width: 300vmax; height: 300vmax; top: -275vmax; left: -100vmax; border-radius: 43%; background-color: var(--wave-layer-color1); animation: wave-rotate 12s infinite linear; transition: background-color 0.3s ease; }
-.wave-bg-layer::after { border-radius: 40%; background-color: var(--wave-layer-color2); animation-duration: 18s; top: -270vmax; }

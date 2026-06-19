@@ -1,4 +1,6 @@
-/* index.css 수정 */
+/* src/index.css (전체 교체) */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,15 +11,16 @@ body,
   margin: 0;
   padding: 0;
   width: 100%;
-  
-  /* [교정 1] min-height를 100%로 고정하여 뷰포트를 벗어나지 않도록 통제합니다. */
   height: 100%; 
   overflow: hidden; 
+  /* 💡 폰트 강제 적용 */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html,
 body {
-  /* [교정 2] 가로 스크롤은 허용하되, 우측의 빈 시스템 세로 스크롤바 트랙을 소멸시킵니다. */
   overflow-x: auto; 
   overflow-y: hidden; 
 }

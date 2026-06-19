@@ -1,3 +1,4 @@
+/* src/pages/Login/AuthCallback.jsx (전체 교체) */
 import React, { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom"; 
 import { motion } from "framer-motion";
@@ -17,17 +18,14 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const code = searchParams.get("code");
-    
-    // provider가 없거나 코드가 없으면 방어 코드로 차단
     if (!code || !provider || hasCalled.current) return;
     hasCalled.current = true;
 
-    // 백엔드 통신을 통한 로그인 처리
     api.get(`/api/auth/${provider}/callback`, { params: { code } })
       .then(async () => {
+        // 💡 [핵심] 사파리(아이폰) 쿠키 저장 지연 시간 확보 (300ms)
+        await new Promise(resolve => setTimeout(resolve, 300));
         await checkAuth();
-        
-        // ✅ 수정된 부분: Home("/")이 아닌 대시보드로 이동하도록 변경
         navigate("/mypage/projects", { replace: true });
       })
       .catch((err) => {
