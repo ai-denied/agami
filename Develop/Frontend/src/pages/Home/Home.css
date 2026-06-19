@@ -56,7 +56,6 @@ body.no-scroll {
   overflow-y: auto; 
   overflow-x: hidden; 
   scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
   position: relative;
   scrollbar-width: none; 
   -ms-overflow-style: none; 
