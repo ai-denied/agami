@@ -348,7 +348,63 @@ body.dark-mode .price-card:hover {
   body.dark-mode .mobile-pagination-dots .dot.active { background-color: #5da2ff; }
 }
 
-/* PC에서는 모바일 인디케이터 숨김 */
-@media (min-width: 769px) {
-  .mobile-pagination-dots { display: none; }
+/* --- 모바일에서만 보이는 슬라이드 인디케이터 (PC 숨김) --- */
+.mobile-slider-dots { display: none; }
+
+@media (max-width: 768px) {
+  .pricing-wrapper {
+    height: 100vh;
+    height: 100dvh;
+    padding-top: var(--nav-height);
+  }
+  
+  .pricing-content {
+    height: auto;
+    margin-top: 0;
+    padding: 40px 10px; /* 좌우 여백을 줄여 카드 슬라이드 공간 확보 */
+  }
+
+  /* 💡 세로로 무너진 카드를 가로 스크롤 스와이프로 묶음 */
+  .pricing-container { 
+    display: flex;
+    flex-wrap: nowrap; 
+    overflow-x: auto;
+    scroll-snap-type: x mandatory; /* 스와이프 스냅 강제 */
+    scrollbar-width: none; /* 파이어폭스 스크롤바 숨김 */
+    padding: 0 10px; 
+    gap: 15px;
+  }
+  
+  .pricing-container::-webkit-scrollbar {
+    display: none; /* 크롬/사파리 스크롤바 숨김 */
+  }
+  
+  .price-card { 
+    min-width: 80vw; /* 화면 넓이의 80%만 차지하게 하여 다음 카드가 살짝 보이도록 유도 */
+    max-width: 80vw;
+    scroll-snap-align: center; /* 카드 정중앙 스냅 */
+  }
+
+  /* 💡 모바일용 닷 활성화 및 애니메이션 구현 */
+  .mobile-slider-dots {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    gap: 8px; 
+    margin-top: 25px;
+  }
+  
+  .mobile-slider-dots .dot { 
+    width: 8px; 
+    height: 8px; 
+    border-radius: 50%; 
+    background: rgba(255, 255, 255, 0.4); 
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-slider-dots .dot.active { 
+    background: #ffffff; 
+    width: 24px; 
+    border-radius: 4px; 
+  }
 }

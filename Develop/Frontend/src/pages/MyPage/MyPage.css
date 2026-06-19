@@ -162,38 +162,53 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
   box-sizing: border-box;
 }
 
-/* src/pages/MyPage/MyPage.css (이전에 추가했던 미디어 쿼리를 아래 코드로 교체) */
-
+/* --- 모바일 반응형 (MyPage 사이드바) --- */
 @media (max-width: 850px) {
-  .mypage-layout { flex-direction: column; }
+  .mypage-layout {
+    flex-direction: column;
+  }
   .mypage-sidebar {
-    width: 100%; height: auto; padding: 15px 20px;
-    border-right: none; border-bottom: 1px solid #e0e7f3;
+    width: 100vw !important;
+    height: auto;
+    padding: 15px 0 !important;
+    border-right: none;
+    border-bottom: 1px solid #e0e7f3;
   }
-  body.dark-mode .mypage-sidebar { border-bottom-color: #28282a; }
-  .sidebar-profile { flex-direction: row; justify-content: flex-start; padding-bottom: 15px; margin-bottom: 10px; }
-  .sidebar-profile .profile-img { width: 40px; height: 40px; margin-bottom: 0; margin-right: 15px; }
-  
+  body.dark-mode .mypage-sidebar {
+    border-bottom-color: #28282a;
+  }
+  .sidebar-profile {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0 20px 15px 20px !important;
+    margin-bottom: 10px;
+  }
+  .sidebar-profile .profile-img {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0;
+    margin-right: 15px;
+  }
   .sidebar-menu-list {
-    flex-direction: row; overflow-x: auto; white-space: nowrap; padding-bottom: 5px;
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0 20px !important;
   }
-  .sidebar-menu-list::-webkit-scrollbar { display: none; }
-  
-  /* 💡 끝부분 짤림 방지: 모바일에서는 음수 마진 삭제 및 강제 여백 확보 */
+  .sidebar-menu-list::-webkit-scrollbar {
+    display: none; 
+  }
   .sidebar-menu-list li {
-    margin: 0 10px 0 0 !important; 
-    padding: 10px 16px; 
-    border-radius: 8px;
-    flex-shrink: 0; /* 글씨가 구겨지는 현상 방지 */
+    margin: 0 10px 0 0 !important;
+    padding: 10px 16px !important;
+    border-radius: 8px !important;
   }
-  
-  /* 💡 끝부분 짤림 방지: 스크롤 영역 마지막에 여백 공간 생성 */
-  .sidebar-menu-list::after {
-    content: "";
-    padding-right: 20px;
-    display: block;
+  .menu-divider {
+    display: none; 
   }
-
-  .menu-divider { display: none; }
-  .mypage-main { padding: 20px 15px; }
+  .mypage-main {
+    width: 100vw !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+  }
 }
