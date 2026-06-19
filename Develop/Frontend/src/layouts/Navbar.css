@@ -194,23 +194,3 @@ body.dark-mode {
   font-size: 14px;
   letter-spacing: 0.5px;
 }
-
-/* =============================================================================
-   [모바일 850px 통일] Navbar 간격 확보 및 프로필 완전히 숨기기
-   ============================================================================= */
-@media (max-width: 850px) {
-  .menu-bar { padding: 0 10px; }
-  /* 버튼 간격을 넓혀 터치 영역 확보 */
-  .nav-item { padding: 0 14px; font-size: 14px; margin: 0 2px; }
-  .home-logo-btn img { width: 35px; }
-  
-  /* 마이페이지에서는 우측 닉네임, 프사 모두 완전히 숨김 */
-  .mypage-active-nav .user-profile-info { display: none !important; }
-  .mypage-active-nav .nav-profile-img { display: none !important; }
-  .nav-nickname { display: none; }
-  
-  .theme-switch { width: 52px; height: 28px; margin-right: 5px; }
-  .switch-handle { width: 20px; height: 20px; top: 4px; left: 4px; }
-  .theme-switch.active .switch-handle { transform: translateX(24px); }
-  .label-light, .label-dark { font-size: 8px; width: 22px; }
-}
