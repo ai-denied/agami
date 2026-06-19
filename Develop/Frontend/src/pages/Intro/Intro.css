@@ -159,30 +159,24 @@ body.dark-mode .widget-body {
    [5] 반응형 모바일 (900px 이하) - 햄버거 토글 슬라이드 로직
    ============================================================================= */
 @media (max-width: 900px) {
-
   .mobile-sidebar-toggle {
     display: flex;
-    position: fixed;
-    top: 80px;
+    position: absolute;
+    top: 85px; 
     left: 20px;
-    z-index: 998;
-
+    z-index: 40;
     background: #ffffff;
     color: #1d2a44;
     border: 1px solid #e0e7f3;
     border-radius: 10px;
-
     width: 46px;
     height: 46px;
-
     align-items: center;
     justify-content: center;
-
     cursor: pointer;
-
-    box-shadow: 0 4px 10px rgba(0,0,0,.05);
-
-    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent; 
   }
 
   body.dark-mode .mobile-sidebar-toggle {
@@ -193,23 +187,18 @@ body.dark-mode .widget-body {
 
   .mobile-sidebar-overlay {
     display: block;
-
     position: fixed;
-    top: 65px;
+    top: 0;
     left: 0;
-
     width: 100vw;
-    height: calc(100dvh - 65px);
-
-    background: rgba(0,0,0,.4);
+    height: calc(100vh - 65px);
+    background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(2px);
-
-    z-index: 999;
-
+    z-index: 100;
     opacity: 0;
-    pointer-events: none;
-
-    transition: opacity .3s ease;
+    pointer-events: none; 
+    transition: opacity 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .mobile-sidebar-overlay.visible {
@@ -219,31 +208,18 @@ body.dark-mode .widget-body {
 
   .sidebar {
     position: fixed;
-
-    top: 65px;
-    left: -260px;
-
+    top: 0;
+    left: -280px; 
     width: 260px;
-    height: calc(100dvh - 65px);
-
-    background: #ffffff;
-
-    z-index: 1001;
-
-    padding: 20px 0 0 0;
-
-    overflow-y: auto;
-
+    height: calc(100vh - 65px);
+    z-index: 101; 
+    padding: 20px 0 0 0; 
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.1);
     visibility: hidden;
-
-    box-shadow: none;
-
-    transition: left .3s ease;
   }
 
   body.dark-mode .sidebar {
-    background: #141415;
-    border-right: 1px solid #28282a;
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.6);
   }
 
   .sidebar.open {
@@ -255,10 +231,8 @@ body.dark-mode .widget-body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
-    padding: 0 20px 15px;
     margin-bottom: 10px;
-
+    padding: 0 20px 15px 20px; 
     border-bottom: 1px solid #e0e7f3;
   }
 
@@ -268,6 +242,7 @@ body.dark-mode .widget-body {
 
   .sidebar-header-mobile h3 {
     margin: 0;
+    font-size: 1.2rem;
     color: #1d2a44;
   }
 
@@ -278,46 +253,48 @@ body.dark-mode .widget-body {
   .mobile-sidebar-close {
     background: none;
     border: none;
-
     font-size: 24px;
+    font-weight: bold;
     cursor: pointer;
-
     color: #6b7891;
-
-    outline: none;
+    padding: 0 5px;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .sidebar li,
-  .sidebar li:hover,
-  .sidebar li:focus,
-  .sidebar li:active,
-  .sidebar li:focus-visible {
-    outline: none !important;
-    box-shadow: none !important;
+  body.dark-mode .mobile-sidebar-close {
+    color: #a0aec0;
+  }
+
+  .sidebar li {
+    /* 💡 터치 시 발생하는 파란색 박스 잔상 완벽 제거 (모바일 전용 유지) */
+    -webkit-tap-highlight-color: transparent; 
+    box-shadow: none !important; 
+  }
+
+  .main-content {
+    padding: 100px 20px 40px 20px; 
+  }
+  
+  .content-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .content-desc {
+    font-size: 1rem !important;
+  }
+  
+  .intro-image-placeholder {
+    height: 300px !important;
+    font-size: 0.9rem;
+  }
+
+  .mobile-sidebar-toggle,
+  .mobile-sidebar-close,
+  .sidebar li {
     -webkit-tap-highlight-color: transparent;
   }
 
   .sidebar li.active {
-    background: #5da2ff;
-    color: #fff;
     box-shadow: none !important;
-  }
-
-  .main-content {
-    padding: 30px 20px 40px 20px;
-  }
-
-  .content-title {
-    font-size: 1.5rem !important;
-  }
-
-  .content-desc {
-    font-size: 1rem !important;
-  }
-
-  .intro-image-placeholder {
-    height: 300px !important;
-    font-size: 0.9rem;
   }
 }
