@@ -9,6 +9,7 @@ import "./Home.css";
 const canvasFishImg = new Image(); canvasFishImg.src = "/agami-fish-right.svg";
 const canvasBotImg = new Image(); canvasBotImg.src = "/bot-blue.svg";
 
+// --- 먹이 로봇 컴포넌트 ---
 const FoodBot = memo(({ x, y, color }) => (
   <motion.img src="/bot.svg" className="food-bot"
     initial={{ opacity: 1, top: y, left: x, x: "-50%", y: "-50%", scale: 0.5 }}
@@ -22,6 +23,7 @@ const FoodBot = memo(({ x, y, color }) => (
 ));
 FoodBot.displayName = "FoodBot";
 
+// --- 반응형 물고기 컴포넌트 ---
 const ScaredFish = memo(({ index, isFeeding, mousePos, allFishRefs, isFirstVisit }) => {
   const fishProps = useMemo(() => {
     const totalFish = 25; const goldenAngle = Math.PI * (3 - Math.sqrt(5));
@@ -127,6 +129,7 @@ const ScaredFish = memo(({ index, isFeeding, mousePos, allFishRefs, isFirstVisit
 });
 ScaredFish.displayName = "ScaredFish";
 
+// --- 지오데식 구 파티클 ---
 const ParticleNetwork = memo(({ windowSize, isMobile }) => {
   const canvasRef = useRef(null);
 
@@ -137,10 +140,11 @@ const ParticleNetwork = memo(({ windowSize, isMobile }) => {
 
     const getSphereRadius = () => {
       const currentW = Math.max(windowSize.width, 1200); const currentH = Math.max(windowSize.height, 720);
-      return isMobile ? Math.min(currentW, currentH) * 0.35 : Math.min(currentW, currentH) * 0.38;
+      return isMobile ? Math.min(currentW, currentH) * 0.25 : Math.min(currentW, currentH) * 0.38;
     };
 
     const updateCanvasSize = () => {
+      // 💡 모바일일 때는 실제 기기 크기, PC일 때는 최소 1200px 확보
       canvas.width = isMobile ? windowSize.width : Math.max(windowSize.width, 1200);
       canvas.height = isMobile ? windowSize.height : Math.max(windowSize.height, 720);
       init();
@@ -189,8 +193,8 @@ const ParticleNetwork = memo(({ windowSize, isMobile }) => {
         const rotationSpeed = time * 0.0004; const currentTheta = this.theta + rotationSpeed; const sinPhi = Math.sin(this.phi);
         this.x = this.radius * sinPhi * Math.cos(currentTheta); this.y = this.radius * Math.cos(this.phi); this.z = this.radius * sinPhi * Math.sin(currentTheta) + this.radius;
         const perspective = 1000 / (1000 + this.z);
-        // 중앙 정렬 완벽 고정
         this.projectedX = (canvas.width >> 1) + this.x * perspective;
+        // 💡 캔버스의 완벽한 중앙에 구가 위치하도록 고정
         this.projectedY = (canvas.height >> 1) + this.y * perspective;
         this.alpha = perspective;
       }
@@ -241,7 +245,7 @@ const ParticleNetwork = memo(({ windowSize, isMobile }) => {
     return () => { cancelAnimationFrame(animationFrameId); };
   }, [windowSize, isMobile]); 
 
-  return <canvas ref={canvasRef} className="particle-canvas" style={{ opacity: 0.8, willChange: "transform", pointerEvents: "none" }} />;
+  return <canvas ref={canvasRef} className="particle-canvas" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.8, willChange: "transform", pointerEvents: "none" }} />;
 });
 ParticleNetwork.displayName = "ParticleNetwork";
 
@@ -256,9 +260,6 @@ const Home = () => {
   const [hasFed, setHasFed] = useState(false);
   const [foods, setFoods] = useState([]);
   
-  // 💡 [수정 2] 3번째 섹션의 팝업 등장 감지 상태
-  const [isGlassVisible, setIsGlassVisible] = useState(false);
-
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
 
   const mousePos = useRef({ x: -1000, y: -1000 });
@@ -268,7 +269,7 @@ const Home = () => {
   const [targetFishPos, setTargetFishPos] = useState({ x: 50, y: 50 });
   const [isFound, setIsFound] = useState(false);
 
-  // 💡 [수정 1] 접속 시 무조건 첫 번째 컨테이너에 완벽 고정
+  // 💡 [수정] 처음에 중간 화면으로 스크롤이 내려가 있는 버그 방지 (강제 최상단 유지)
   useEffect(() => {
     if (wrapperRef.current) {
       wrapperRef.current.scrollTo(0, 0);
@@ -348,7 +349,9 @@ const Home = () => {
   };
 
   const handleSecondMouseMove = (e) => updateSpotlightPos(e.clientX, e.clientY, e.currentTarget);
+  // 💡 [수정] 모바일 터치 시 기본 스크롤 동작 방어 로직 추가
   const handleSecondTouchMove = (e) => {
+    if (e.cancelable) e.preventDefault(); 
     if (e.touches && e.touches.length > 0) updateSpotlightPos(e.touches[0].clientX, e.touches[0].clientY, e.currentTarget);
   };
 
@@ -391,13 +394,12 @@ const Home = () => {
   return (
     <div className="home-main-wrapper" ref={wrapperRef} style={{ contentVisibility: "auto", overflow: isFirstVisit ? "hidden" : "auto" }}>
       
-      {/* --- 첫 번째 컨테이너 --- */}
       <div className="home-container" onMouseMove={handleMouseMove} onTouchMove={handleTouchMove}>
-        <motion.div className="circle" initial={isFirstVisit ? { scale: 2.5 } : { scale: 1 }} animate={{ scale: 1 }} transition={mainTransition} style={{ x: "50%", y: "-50%", willChange: "transform" }}>
+        <motion.div className="circle" initial={isFirstVisit && !isMobile ? { scale: 2.5 } : { scale: 1 }} animate={{ scale: 1 }} transition={mainTransition}>
           <div className="wave-layer-internal" />
         </motion.div>
 
-        <div className="fish-scene-layer" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 25, }}>
+        <div className="fish-scene-layer" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 25 }}>
           {!isMobile && foods.map((f) => ( <FoodBot key={f.id} x={f.x} y={f.y} color={f.color} /> ))}
           {Array.from({ length: isMobile ? 10 : 18 }).map((_, i) => ( <ScaredFish key={i} index={i} isFeeding={isFeeding} mousePos={mousePos} allFishRefs={allFishRefs} isFirstVisit={isFirstVisit} /> ))}
         </div>
@@ -409,7 +411,7 @@ const Home = () => {
           </>
         )}
 
-        <motion.div className="left-section" initial={isFirstVisit ? { x: -1000, opacity: 0 } : { x: 0, opacity: 1 }} animate={{ x: 0, opacity: 1 }} transition={mainTransition} style={{ willChange: "transform, opacity" }}>
+        <motion.div className="left-section" initial={isFirstVisit && !isMobile ? { x: -1000, opacity: 0 } : { x: 0, opacity: 1 }} animate={{ x: 0, opacity: 1 }} transition={mainTransition} style={{ willChange: "transform, opacity" }}>
           <img src="/agami-text.png" alt="Agami Logo" className="main-logo" />
           <p className="logo-text">봇은 틈새 없이, 유저는 끊김 없이.<br />차세대 지능형 캡챠 서비스</p>
           <BubbleBtn onClick={scrollToSecond} variant="primary">알아보기</BubbleBtn>
@@ -425,8 +427,8 @@ const Home = () => {
         )}
       </div>
 
-      {/* --- 두 번째 컨테이너 (터치 스크롤 차단 적용) --- */}
-      <div className="second-container" onMouseMove={handleSecondMouseMove} onTouchMove={handleSecondTouchMove} style={{ touchAction: isMobile ? "none" : "auto" }}>
+      {/* 💡 [수정] 터치 시 스크롤 방지 로직 연결 */}
+      <div className="second-container" onMouseMove={handleSecondMouseMove} onTouchMove={handleSecondTouchMove}>
         <div className="light-sea-layer" style={{ maskImage: `radial-gradient(circle 160px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`, WebkitMaskImage: `radial-gradient(circle 160px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`, willChange: "mask-image", zIndex: 2 }}>
           <motion.div className="hidden-fish-wrapper" style={{ left: `${targetFishPos.x}%`, top: `${targetFishPos.y}%` }} initial={{ scale: 0 }} animate={{ scale: isFound ? [1, 1.8, 0] : 1, rotate: isFound ? 360 : 0 }} onClick={handleFishClick}>
             <img src="/agami-fish.svg" alt="hidden-fish" className="hidden-fish-img" />
@@ -443,35 +445,23 @@ const Home = () => {
         </motion.button>
       </div>
 
-      {/* --- 세 번째 컨테이너 --- */}
       <div className="third-container">
-        
-        {/* 💡 [수정 2] 구 모양과 로고를 하나로 묶고 완벽하게 중앙 정렬, 팝업이 뜰 때 같이 올라감 */}
+        {/* 💡 [수정] 지오데식 구와 로고를 세트로 묶어서 팝업과 함께 위로 밀어 올림 */}
         <motion.div 
-          className="third-graphics-wrapper"
-          animate={{ y: isMobile ? (isGlassVisible ? -110 : 0) : 0, scale: isMobile ? (isGlassVisible ? 0.85 : 1) : 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="sphere-logo-group"
+          initial={{ y: 0 }}
+          whileInView={{ y: isMobile ? -140 : 0 }} 
+          transition={{ delay: 2, duration: 1, ease: "easeOut" }}
+          style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}
         >
           <ParticleNetwork windowSize={windowSize} isMobile={isMobile} />
-          <motion.img 
-            src="/agami-logo-text.png" 
-            className="third-logo" 
-            animate={{ y: [0, -15, 0] }} 
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} 
-          />
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }} style={{ position: 'absolute', zIndex: 10 }}>
+            <motion.img src="/agami-logo-text.png" alt="Agami Logo Text" className="third-logo" animate={{ y: [0, -20, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 }} />
+          </motion.div>
         </motion.div>
 
         <div className="third-content-wrapper">
-          {/* 💡 팝업 감지 이벤트 등록 */}
-          <MotionLiquidGlass 
-            onViewportEnter={() => setIsGlassVisible(true)}
-            onViewportLeave={() => setIsGlassVisible(false)}
-            viewport={{ margin: "0px 0px -100px 0px" }}
-            initial={{ opacity: 0, y: 150 }} 
-            whileInView={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }} 
-            style={{ width: "100%", maxWidth: "800px", willChange: "transform, opacity" }}
-          >
+          <MotionLiquidGlass initial={{ opacity: 0, y: 150 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 2, duration: 1, ease: "easeOut" }} style={{ width: "100%", maxWidth: "800px", willChange: "transform, opacity" }}>
             <h2 className="box-title">보안을 넘어선 새로운 연결</h2>
             <p className="box-desc">agami는 단순한 인증을 넘어 사용자 친화적인 인터페이스와<br />강력한 지능형 보안 엔진을 결합하여 최상의 디지털 환경을 제공합니다.</p>
             <div className="box-btn-group">

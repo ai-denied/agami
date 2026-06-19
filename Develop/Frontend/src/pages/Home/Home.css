@@ -1,7 +1,7 @@
-/* src/pages/Home/Home.css 전체 교체 (PC는 전혀 안 건드림) */
+
 
 /* =============================================================================
-   [1] 테마별 변수 제어
+   [1] 테마별 변수 제어 (오리지널 동일)
    ============================================================================= */
 :root {
   --main-color: #5da2ff;
@@ -9,158 +9,465 @@
   --circle-wave1: rgba(255, 255, 255, 0.2);
   --circle-wave2: rgba(255, 255, 255, 0.1);
 }
+
 body.dark-mode {
   --home-bg: #1a1a1b;
   --main-color: #05122e;
   --circle-wave1: rgba(0, 150, 255, 0.08);
   --circle-wave2: rgba(0, 50, 150, 0.2);
 }
+
 body.dark-mode .fish-wrapper img {
   filter: brightness(0.7) saturate(1.2) sepia(0.2) hue-rotate(180deg);
   opacity: 0.8;
   transition: filter 0.3s ease, opacity 0.3s ease;
 }
+
 body.no-scroll {
   overflow: hidden !important;
   height: 100dvh !important;
 }
 
 /* =============================================================================
-   [2] 공통 레이아웃 (PC 기준)
+   [2] App.js 레이아웃 격리 구조 연동 스타일
    ============================================================================= */
-.home-main-wrapper {
-  width: 100vw; height: 100vh; height: 100dvh;
-  overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
+.global-navbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 65px;
+  z-index: 1000;
+  pointer-events: auto;
 }
-.home-container, .second-container, .third-container {
-  position: relative; width: 100%; height: 100vh; height: 100dvh;
-  overflow: hidden; background-color: var(--home-bg);
+
+.global-main-viewport {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden !important;
+  z-index: 1;
+}
+
+.home-main-wrapper {
+  width: 100%;
+  
+  /* [교정 1] 부모의 높이 가변성에 영향을 받지 않도록 래퍼 자체를 뷰포트 높이로 완벽히 가둡니다. */
+  height: 100vh;
+  height: 100dvh; /* 모바일 환경의 동적 뷰포트 높이 변화 대응 */
+  
+  /* [교정 2] !important를 제거하여 Home.jsx의 인라인 스크롤 잠금 제어가 정상 작동하도록 허용합니다. */
+  overflow-y: auto; 
+  overflow-x: hidden; 
+  
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  position: relative;
+  
+  /* 홈 화면 내부에서 스크롤바 구조 숨김 (Firefox / IE) */
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
+
+/* 홈 화면 내부에서 스크롤바 구조 숨김 (WebKit 엔진: Chrome, Safari, Edge) */
+.home-main-wrapper::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+}
+
+.home-container,
+.second-container,
+.third-container {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; 
+  min-height: 720px;  
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden !important;
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.home-container {
+  background-color: var(--home-bg);
+  display: flex;
+  align-items: center;
   transition: background-color 0.3s ease;
 }
-.circle {
-  position: absolute; width: 140vmax; height: 140vmax;
-  background-color: var(--main-color); border-radius: 43%;
-  right: -25%; top: 50%; transform: translate(50%, -50%);
-  overflow: hidden; transition: background-color 0.3s ease;
+
+/* --- Food Bot (먹이) 스타일 --- */
+.food-bot {
+  width: 80px;
+  height: auto;
+  pointer-events: none;
 }
-.wave-layer-internal { position: absolute; inset: 0; }
-.wave-layer-internal::before, .wave-layer-internal::after {
-  content: ""; position: absolute; width: 250%; height: 250%;
-  top: -75%; left: -75%; background-color: var(--circle-wave1);
-  border-radius: 43%; animation: spin 15s infinite linear; transition: background-color 0.3s ease;
+
+/* --- Second Container Spotlight Game --- */
+.second-container {
+  --sea-base-color: #06162d;
+  --sea-wave-color1: rgba(255, 255, 255, 0.1);
+  --sea-wave-color2: rgba(255, 255, 255, 0.05);
+  background-color: var(--sea-base-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  transition: background-color 0.3s ease;
 }
-.wave-layer-internal::after {
-  background-color: var(--circle-wave2); border-radius: 40%;
-  animation-duration: 22s;
+
+body.dark-mode .second-container {
+  --sea-base-color: #05122e; 
+  --sea-wave-color1: rgba(0, 150, 255, 0.08); 
+  --sea-wave-color2: rgba(0, 50, 150, 0.2); 
 }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.second-container::before,
+.second-container::after {
+  content: "";
+  position: absolute;
+  width: 300vmax;
+  height: 300vmax;
+  top: -275vmax;
+  left: -100vmax;
+  border-radius: 43%;
+  background-color: var(--sea-wave-color1);
+  animation: wave-rotate 12s infinite linear;
+  transition: background-color 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.second-container::after {
+  border-radius: 40%;
+  background-color: var(--sea-wave-color2);
+  animation-duration: 18s;
+  top: -270vmax;
+}
+
+.light-sea-layer {
+  position: absolute;
+  inset: 0;
+  background-color: #5da2ff;
+  z-index: 2;
+}
+
+.hidden-fish-wrapper {
+  position: absolute;
+  z-index: 3;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.hidden-fish-img {
+  width: 100%;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
+}
+
+.found-effect {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 4px solid white;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.game-tip {
+  display: block;
+  margin-top: 25px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  opacity: 0.6;
+  animation: fade-tip 2s infinite;
+}
+
+@keyframes fade-tip {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.second-container .content-box {
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.second-container h1 { font-size: 42px; color: #fff; margin-bottom: 20px; }
+.second-container p { color: rgba(255, 255, 255, 0.8); font-size: 18px; }
+
+/* --- Third Container 스타일 --- */
+.third-container {
+  background-color: #010c1b;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  position: relative;
+}
+
+.particle-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  filter: drop-shadow(0 0 10px rgba(93, 162, 255, 0.5));
+}
+
+.third-logo-wrapper {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.third-logo {
+  width: 320px; 
+  height: auto;
+  filter: drop-shadow(0 0 40px rgba(93, 162, 255, 0.6));
+}
+
+.third-content-wrapper {
+  position: absolute;
+  bottom: 0; 
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 800px;
+  padding: 0 20px 40px 20px; 
+  box-sizing: border-box;
+}
+
+.box-title {
+  margin: 5px;
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #d06cff 0%, #5da2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.box-desc {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+  word-break: keep-all;
+}
+
+.box-btn-group { display: flex; flex-direction: column; gap: 15px; }
+
+.box-btn {
+  width: 100%;
+  padding: 16px 0;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.box-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.box-btn.secondary:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+/* --- 애니메이션 제어 구조 --- */
+@keyframes wave-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.actor { position: absolute; z-index: 20; }
+.bot { width: 120px; height: auto; }
+
 .left-section {
-  position: absolute; left: 0; top: 0; width: 45%; height: 100%;
-  display: flex; flex-direction: column; justify-content: center;
-  align-items: flex-start; padding-left: 10vw; z-index: 10;
+  position: relative;
+  width: 40%;
+  height: 100%;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-left: 150px;
+  pointer-events: auto;
 }
-.main-logo { width: clamp(250px, 20vw, 380px); margin-bottom: 20px; }
-.logo-text { font-size: clamp(16px, 1.2vw, 22px); font-weight: 600; line-height: 1.6; color: #555; }
-body.dark-mode .logo-text { color: #ccc; }
-.bot-fixed-area { position: absolute; right: 5vw; top: 120px; display: flex; align-items: flex-start; z-index: 40; }
-.bot-speech-bubble {
-  background: white; padding: 12px 20px; border-radius: 20px; border-top-right-radius: 0;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-right: 15px; font-weight: 700; color: #5da2ff;
-  font-size: 14px; white-space: nowrap; position: relative; margin-top: 10px;
+
+.main-logo { width: 60%; }
+.logo-text { font-size: 20px; font-weight: 500; color: #929292; line-height: 1.6; }
+
+/* [완벽 복원] 원본 100vmax 크기와 translate 위치를 온전하게 보존 */
+.circle {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(50%, -50%);
+  width: 100vmax;
+  height: 100vmax;
+  background-color: var(--main-color);
+  border-radius: 50%;
+  z-index: 10;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
 }
-.bot-speech-bubble::after {
-  content: ''; position: absolute; right: -10px; top: 0;
-  border-width: 10px 0 0 15px; border-style: solid; border-color: white transparent transparent transparent;
+
+.circle::before,
+.circle::after {
+  content: "";
+  position: absolute;
+  width: 400%;
+  height: 400%;
+  border-radius: 43%;
+  pointer-events: none;
+  z-index: 2;
+  top: -360%;
+  left: -150%;
+  animation: wave-rotate 20s infinite linear;
 }
+
+.circle::before { background-color: var(--circle-wave1); animation-duration: 18s; }
+.circle::after { background-color: var(--circle-wave2); animation-duration: 25s; top: -355%; border-radius: 41%; }
+
+.fish-wrapper { position: absolute; pointer-events: none; z-index: 25; }
+
+.bot-fixed-area {
+  position: absolute;
+  top: 80px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  z-index: 200;
+}
+
 .bot-container {
-  width: 70px; height: 70px; background: white; border-radius: 50%;
-  display: flex; justify-content: center; align-items: center;
-  box-shadow: 0 10px 20px rgba(93, 162, 255, 0.3); cursor: pointer; transition: all 0.3s ease;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
 }
-.bot-container:hover { transform: scale(1.1); }
-.bot-container.active { background: #5da2ff; box-shadow: 0 0 30px #5da2ff; }
-.bot-image { width: 45px; transition: filter 0.3s; }
-.bot-container.active .bot-image { filter: brightness(0) invert(1); }
-.second-container { background: #05122e; display: flex; align-items: center; justify-content: center; text-align: center; }
-.light-sea-layer { position: absolute; inset: 0; background: url('/sea.png') center/cover no-repeat; opacity: 0.9; }
-.hidden-fish-wrapper { position: absolute; width: 60px; height: 60px; transform: translate(-50%, -50%); cursor: pointer; }
-.hidden-fish-img { width: 100%; height: 100%; filter: brightness(0.4) sepia(1) hue-rotate(180deg); }
-.found-effect { position: absolute; inset: -20px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 20px #fff; pointer-events: none; }
-.content-box { position: relative; z-index: 10; pointer-events: none; }
-.content-box h1 { font-size: 48px; color: white; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-.content-box p { font-size: 20px; color: rgba(255,255,255,0.8); margin-bottom: 30px; }
-.game-tip { display: inline-block; padding: 10px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; color: white; font-weight: bold; backdrop-filter: blur(5px); }
-.scroll-down-btn { position: absolute; bottom: 40px; background: none; border: none; cursor: pointer; z-index: 20; opacity: 0.8; transition: opacity 0.3s; }
-.scroll-down-btn:hover { opacity: 1; }
-.third-container { background-color: #010c1b; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-.third-content-wrapper { position: absolute; bottom: 10%; width: 100%; padding: 0 40px; box-sizing: border-box; display: flex; justify-content: center; z-index: 10; }
-.box-title { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 16px; }
-.box-desc { font-size: 16px; color: rgba(255,255,255,0.8); line-height: 1.6; margin-bottom: 32px; }
-.box-btn-group { display: flex; gap: 16px; align-items: center; }
-.box-btn { padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.box-btn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-.box-btn.secondary:hover { background: rgba(255,255,255,0.2); }
-.third-graphics-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 1; }
-.third-logo { width: clamp(300px, 25vw, 450px); }
+
+.bot-container.active {
+  background: rgba(93, 162, 255, 0.2);
+  border-color: #5da2ff;
+  box-shadow: 0 0 20px rgba(93, 162, 255, 0.4);
+  animation: pulse-blue 2s infinite;
+}
+
+.bot-container.active .bot-image { opacity: 0; transform: scale(0.8); }
+
+.bot-speech-bubble {
+  background: white;
+  color: #5da2ff;
+  padding: 10px 18px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-right: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.bot-image { width: 50px; filter: grayscale(100%) opacity(0.6); transition: transform 0.3s ease; }
+
+@keyframes pulse-blue {
+  0% { transform: scale(1); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.scroll-down-btn {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  z-index: 110;
+  backdrop-filter: blur(5px);
+}
 
 /* =============================================================================
-   [3] 모바일(768px 이하) 전용 완벽 교정 (PC 영향 0%)
+   💡 [수정] 모바일 환경(768px 이하) 전용 UI/UX 찌그러짐 완벽 교정
    ============================================================================= */
 @media (max-width: 768px) {
-  /* --- 1번째 화면 --- */
-  .home-container {
-    display: flex; align-items: center; justify-content: center;
-  }
-  .circle { 
-    display: none !important; /* 모바일에서는 줄어드는 파도 삭제 */
-  }
-  .fish-scene-layer { 
-    mask-image: none !important; -webkit-mask-image: none !important; /* 배경 탈색 차단 */
-  }
+  .home-container { align-items: center; justify-content: center; }
+  
   .left-section {
-    /* 로고, 글씨, 버튼을 감싸는 정중앙 하얀 원 생성 */
+    width: 100%; height: 100%; padding: 0 20px; 
+    align-items: center; text-align: center; z-index: 10 !important;
+  }
+  
+  .main-logo { width: 220px; margin-bottom: 20px; }
+  .logo-text { font-size: 15px; line-height: 1.5; margin-bottom: 30px; }
+  
+  /* 💡 [수정] 모바일 첫 화면에서는 물결 대신 고정된 흰색 원이 글씨를 감싸도록 설정 */
+  .circle { 
+    background: rgba(255, 255, 255, 0.85) !important;
     width: 320px !important;
     height: 320px !important;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%) !important;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 0 !important;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-    z-index: 30;
+    border-radius: 50% !important;
+    opacity: 1 !important;
+    z-index: 5 !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important; 
   }
-  body.dark-mode .left-section {
-    background: rgba(30, 30, 35, 0.85) !important;
-  }
-  .main-logo { width: 170px; margin-bottom: 12px; }
-  .logo-text { font-size: 13px; margin-bottom: 24px; text-align: center; }
-  .bubble-btn-shared.primary { padding: 12px 28px; font-size: 15px; margin-top: 0; border-width: 2px; }
+  .wave-layer-internal { display: none !important; }
+  .fish-scene-layer { mask-image: none !important; -webkit-mask-image: none !important; }
   .bot-fixed-area { display: none !important; }
 
-  /* --- 2번째 화면 --- */
+  /* 💡 [수정] 두 번째 화면 터치 스크롤 차단 및 화살표 버튼 크기/중앙 정렬 교정 */
+  .second-container { touch-action: none; }
+  .scroll-down-btn {
+    width: 45px !important; 
+    height: 45px !important;
+    left: 50% !important; 
+    transform: translateX(-50%) !important;
+    margin-left: 0 !important;
+    bottom: 30px;
+  }
   .second-container h1 { font-size: 26px; margin-bottom: 15px; }
   .second-container p { font-size: 15px; padding: 0 20px; }
-  .scroll-down-btn {
-    /* 버튼 축소 및 완벽한 정중앙 정렬 */
-    width: 40px; height: 40px;
-    left: 50%; transform: translateX(-50%) !important;
-    bottom: 20px; margin: 0;
-  }
-  .scroll-down-btn svg { width: 30px; height: 30px; }
 
-  /* --- 3번째 화면 --- */
+  /* 세 번째 컨테이너 비율 교정 */
   .third-container { justify-content: flex-start; }
-  .third-logo { width: 220px; }
+  .third-logo { width: 240px; }
   .third-content-wrapper { padding: 0 20px 20px 20px; bottom: 5%; }
-  
   .liquid-glass-box { padding: 25px 20px !important; }
   .box-title { font-size: 20px; margin-bottom: 10px; }
   .box-desc { font-size: 13.5px; line-height: 1.5; }
-  .box-btn { padding: 12px 0; font-size: 15px; border-radius: 14px; width: 100%; text-align: center; }
-  .box-btn-group { flex-direction: column; gap: 10px; }
-  .bubble-btn-shared.fill { width: 100%; }
+  .box-btn { padding: 12px 0; font-size: 15px; border-radius: 14px; }
 }

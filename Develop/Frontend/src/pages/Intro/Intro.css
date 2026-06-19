@@ -207,32 +207,38 @@ body.dark-mode .captcha-description p {
   color: #a0aec0;
 }
 
-/* src/pages/Intro/Intro.css (이전에 추가했던 미디어 쿼리를 아래 코드로 교체) */
-
+/* --- 모바일 반응형 (Intro 사이드바) --- */
 @media (max-width: 850px) {
-  .layout-container { flex-direction: column; }
+  .layout-container {
+    flex-direction: column;
+  }
   .sidebar {
-    width: 100%; height: auto; padding: 15px 20px;
-    border-right: none; border-bottom: 1px solid #e0e7f3;
+    width: 100%;
+    height: auto;
+    padding: 15px 20px;
+    border-right: none;
+    border-bottom: 1px solid #e0e7f3;
   }
-  body.dark-mode .sidebar { border-bottom-color: #28282a; }
-  
+  body.dark-mode .sidebar {
+    border-bottom-color: #28282a;
+  }
   .sidebar ul {
-    display: flex; overflow-x: auto; white-space: nowrap; gap: 10px; padding-bottom: 5px;
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 10px;
+    padding-bottom: 5px;
   }
-  .sidebar ul::-webkit-scrollbar { display: none; }
-  
+  .sidebar ul::-webkit-scrollbar {
+    display: none;
+  }
   .sidebar li {
-    margin: 0; padding: 10px 16px; border-radius: 8px;
-    flex-shrink: 0; /* 구겨짐 방지 */
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 8px;
   }
-
-  /* 💡 끝부분 짤림 방지: 스크롤 영역 마지막에 여백 공간 생성 */
-  .sidebar ul::after {
-    content: "";
-    padding-right: 20px;
-    display: block;
+  .main-content {
+    min-width: 0;
+    padding: 20px 15px;
   }
-
-  .main-content { min-width: 0; padding: 20px 15px; }
 }

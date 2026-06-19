@@ -12,13 +12,12 @@ const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentia
 const Price = () => {
   const navigate = useNavigate();
   const { user } = useAuth(); 
-  const isMobile = window.innerWidth <= 768; // 모바일 감지
 
   const [alertModal, setAlertModal] = useState({ show: false, message: "" });
   const closeAlert = () => setAlertModal({ show: false, message: "" });
   const showAlert = (message) => setAlertModal({ show: true, message });
 
-  // 💡 [추가] 모바일 가로 스크롤 도트(Dot) 연동 상태
+  // 💡 [수정] 모바일 슬라이더 위치 추적용 상태
   const [activeSlide, setActiveSlide] = useState(0);
 
   const planHierarchy = { "basic": 1, "pro": 2, "enterprise": 3 };
@@ -30,54 +29,56 @@ const Price = () => {
     const currentPlan = (user.plan || "basic").toLowerCase();
 
     if (planName === "enterprise") {
-      showAlert("엔터프라이즈 요금제는 현재 준비 중입니다. 고객센터로 문의해 주세요.");
-      return;
+      showAlert("엔터프라이즈 요금제는 현재 준비 중입니다. 고객센터로 문의해 주세요."); return;
     }
     if (planName === "basic") {
-      showAlert("현재 이미 Basic 요금제를 이용 중입니다.");
-      return;
+      showAlert("현재 사용 중인 기본 요금제입니다."); return;
     }
-    if (planHierarchy[currentPlan] >= planHierarchy[planName]) {
-      showAlert(`이미 ${user.plan} 요금제를 이용 중이므로 하위 요금제로 변경할 수 없습니다.`);
-      return;
+    if (planHierarchy[planName] <= planHierarchy[currentPlan]) {
+      showAlert("현재 이용 중인 요금제와 같거나 낮은 요금제로는 변경할 수 없습니다."); return;
     }
 
-    try {
-      const response = await api.post("/api/payment/ready");
-      if (response.data.status === "success") {
-        localStorage.setItem("kakao_tid", response.data.tid);
-        window.location.href = response.data.next_redirect_pc_url;
+    if (planName === "pro") {
+      try {
+        const response = await api.post("/api/payment/ready");
+        if (response.data.status === "success") {
+          localStorage.setItem("kakao_tid", response.data.tid);
+          window.location.href = response.data.next_redirect_pc_url;
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert("결제 준비 중 오류가 발생했습니다. 다시 시도해 주세요.");
       }
-    } catch (error) {
-      console.error(error);
-      showAlert("결제 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     }
   };
 
   const plans = [
-    { name: "Basic", price: "0", period: "/월", description: "개인 프로젝트 및 소규모 웹사이트를 위한 기본 캡챠 서비스", buttonText: "현재 요금제", features: ["월 10,000회 검증 무료", "기본 손전등 캡챠 모델 지원", "커뮤니티 지원"] },
-    { name: "Pro", price: "49,000", period: "/월", description: "전문적인 보안이 필요한 기업 및 성장하는 서비스를 위한 고급 솔루션", buttonText: "Pro로 업그레이드", features: ["월 500,000회 검증 제공", "모든 캡챠 모델(안면, 감정 등) 완벽 지원", "우선 이메일 기술 지원", "상세 트래픽 분석 대시보드"] },
-    { name: "Enterprise", price: "문의", period: "", description: "대규모 트래픽과 완벽한 맞춤형 보안 정책이 필요한 대기업용 플랜", buttonText: "도입 문의하기", features: ["무제한 검증 및 SLA 보장", "고객사 맞춤형 캡챠 모델 학습", "전담 엔지니어 24/7 지원", "On-Premise 구축 지원"] }
+    { name: "Basic", price: "0", description: "개인 및 소규모 프로젝트용", features: ["월 10,000건 인증 무료", "기본 위젯 제공", "이메일 지원"], buttonText: "현재 요금제" },
+    { name: "Pro", price: "49,000", description: "스타트업 및 성장하는 비즈니스용", features: ["월 100,000건 인증", "대시보드 분석 기능", "우선 지원", "커스텀 테마"], buttonText: "Pro로 업그레이드", highlight: true },
+    { name: "Enterprise", price: "문의", description: "대규모 트래픽 및 맞춤형 솔루션", features: ["무제한 인증", "전담 엔지니어 지원", "SLA 보장", "On-Premise 옵션"], buttonText: "문의하기" }
   ];
+
+  // 💡 [수정] 가로 스크롤 시 점(Dot) 위치 업데이트
+  const handleScroll = (e) => {
+    const scrollLeft = e.target.scrollLeft;
+    const width = e.target.clientWidth;
+    setActiveSlide(Math.round(scrollLeft / width));
+  };
 
   return (
     <div className="pricing-wrapper">
       <WaveBg />
       <div className="pricing-content">
-        <LiquidGlass style={{ width: "90%", maxWidth: "1200px", margin: "0 auto", padding: isMobile ? "20px" : "60px 40px" }}>
-          
-          <div className="pricing-header">
-            <h1>합리적인 가격으로 강력한 보안을 도입하세요</h1>
-            <p>agami는 서비스의 규모에 맞는 최적의 플랜을 제공합니다.</p>
-          </div>
-          
-          {/* 💡 [추가] 모바일 가로 스크롤 이벤트 연결 */}
-          <div className="pricing-container" onScroll={(e) => {
-            const idx = Math.round(e.target.scrollLeft / e.target.offsetWidth);
-            setActiveSlide(idx);
-          }}>
+        <div className="pricing-header">
+          <h1>Agami 요금제 안내</h1>
+          <p>비즈니스 규모에 맞는 최적의 플랜을 선택하세요.</p>
+        </div>
+
+        <LiquidGlass style={{ width: '100%', padding: '0', background: 'transparent', boxShadow: 'none', border: 'none' }}>
+          {/* 💡 [수정] 스크롤 이벤트 연결 */}
+          <div className="pricing-container" onScroll={handleScroll}>
             {plans.map((plan, index) => (
-              <div key={index} className="price-card">
+              <div key={index} className={`price-card ${plan.highlight ? 'highlight' : ''}`}>
                 <div className="card-top">
                   <h2 className="plan-name">{plan.name}</h2>
                   <p className="plan-desc">{plan.description}</p>
@@ -91,19 +92,20 @@ const Price = () => {
                   {plan.features.map((feature, i) => <li key={i}>{feature}</li>)}
                 </ul>
                 <div className="btn-wrapper">
-                  <BubbleBtn variant="primary" onClick={() => handlePlanClick(plan)}>{plan.buttonText}</BubbleBtn>
+                  <BubbleBtn variant="primary" onClick={() => handlePlanClick(plan)}>
+                    {plan.buttonText}
+                  </BubbleBtn>
                 </div>
               </div>
             ))}
           </div>
-
-          {/* 💡 [추가] 모바일에서만 노출되는 도트 슬라이드 인디케이터 */}
-          {isMobile && (
-            <div className="carousel-dots">
-              {plans.map((_, i) => <span key={i} className={`dot ${i === activeSlide ? 'active' : ''}`} />)}
-            </div>
-          )}
-
+          
+          {/* 💡 [수정] 모바일용 슬라이더 인디케이터 (Dot) */}
+          <div className="mobile-pagination-dots">
+            {plans.map((_, i) => (
+              <span key={i} className={`dot ${activeSlide === i ? 'active' : ''}`} />
+            ))}
+          </div>
         </LiquidGlass>
       </div>
 
@@ -111,7 +113,9 @@ const Price = () => {
         <div className="custom-sys-modal-overlay" onClick={closeAlert}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
             <div className="custom-sys-modal-text">{alertModal.message}</div>
-            <div className="custom-sys-modal-actions"><button className="btn-sys-ok" onClick={closeAlert}>확인</button></div>
+            <div className="custom-sys-modal-actions">
+              <button className="btn-sys-ok" onClick={closeAlert}>확인</button>
+            </div>
           </div>
         </div>
       )}
