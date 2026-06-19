@@ -84,26 +84,27 @@ body.dark-mode .price-card { background: rgba(0, 0, 0, 0.3); border: 1px solid r
 .mobile-slider-dots { display: none; }
 
 /* =============================================================================
-   [모바일 850px 통일] Price 비율 튜닝 및 호버(애니메이션) 원천 삭제
+   [모바일 850px] Price 비율 튜닝 및 호버(애니메이션) 원천 삭제
    ============================================================================= */
 @media (max-width: 850px) {
   .pricing-wrapper { padding-top: var(--nav-height); height: 100vh; overflow-y: auto; }
-  .pricing-content { height: auto; min-height: calc(100vh - var(--nav-height)); padding: 20px 10px; justify-content: flex-start; }
+  .pricing-content { height: auto; min-height: calc(100vh - var(--nav-height)); padding: 20px 0; justify-content: flex-start; }
   
-  .pricing-header h1 { font-size: 1.8rem; margin-bottom: 5px; }
-  .pricing-header p { font-size: 0.9rem; margin-bottom: 15px; }
+  .pricing-header h1 { font-size: 1.6rem; margin-bottom: 5px; padding: 0 20px; }
+  .pricing-header p { font-size: 0.9rem; margin-bottom: 20px; padding: 0 20px; }
   
   .pricing-container { 
     display: flex; flex-wrap: nowrap; overflow-x: auto; 
     scroll-snap-type: x mandatory; scrollbar-width: none; 
-    gap: 15px; padding-bottom: 20px; 
+    gap: 15px; padding: 0 20px 20px 20px; /* 양옆 여백 확보 */
+    justify-content: flex-start !important; /* 💡 [핵심] Basic 카드가 왼쪽으로 잘리는 현상 완벽 해결 */
   }
   .pricing-container::-webkit-scrollbar { display: none; }
   
   .price-card { 
     min-width: 85vw !important; max-width: 85vw !important; 
     scroll-snap-align: center; padding: 25px 20px !important; 
-    transform: none !important; /* 호버 뜨는 현상 무효화 */
+    transform: none !important; 
   }
 
   /* 💡 모바일 강제 솔리드 버튼 (버블 애니메이션 및 투명도 삭제) */
@@ -111,6 +112,8 @@ body.dark-mode .price-card { background: rgba(0, 0, 0, 0.3); border: 1px solid r
     background-color: var(--brand-color) !important; 
     color: #ffffff !important; 
     border: none !important; 
+    transform: none !important;
+    box-shadow: none !important;
   }
   .price-card .bubble-wrapper { display: none !important; }
   

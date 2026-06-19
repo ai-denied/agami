@@ -207,26 +207,29 @@ body.dark-mode .captcha-description p {
   color: #a0aec0;
 }
 
-/* --- 모바일 반응형 (Intro 사이드바 잘림 해결) --- */
+/* =============================================================================
+   [모바일 850px] 사이드바 폭주 차단 및 컴팩트 탭 전환
+   ============================================================================= */
 @media (max-width: 850px) {
-  .layout-container { flex-direction: column; }
-  .sidebar {
-    width: 100% !important; height: auto; padding: 15px 0 !important;
-    border-right: none; border-bottom: 1px solid #e0e7f3;
+  .layout-container { flex-direction: column; overflow-x: hidden !important; width: 100vw !important; }
+  .sidebar { 
+    width: 100vw !important; border-right: none; border-bottom: 1px solid #e0e7f3; 
+    padding: 10px 0 !important; box-sizing: border-box !important; height: auto !important;
   }
-  body.dark-mode .sidebar { border-bottom-color: #28282a; }
-  .sidebar ul {
-    display: flex; overflow-x: auto; white-space: nowrap; gap: 10px;
-    padding: 0 20px !important; margin: 0;
+  .sidebar ul { 
+    display: flex !important; flex-direction: row !important; overflow-x: auto; white-space: nowrap; 
+    padding: 0 15px !important; margin: 0; gap: 8px;
   }
   .sidebar ul::-webkit-scrollbar { display: none; }
   
-  /* 💡 글씨를 찌부시키지 않고 우측 여백을 보장 */
   .sidebar li {
-    margin: 0 10px 0 0 !important; padding: 10px 16px !important;
+    margin: 0 !important; padding: 8px 14px !important; font-size: 13.5px !important;
     border-radius: 8px; flex-shrink: 0 !important;
   }
-  .sidebar ul::after { content: ''; padding-right: 10px; }
-
-  .main-content { width: 100% !important; padding: 20px !important; box-sizing: border-box !important; }
+  
+  .main-content { 
+    width: 100vw !important; max-width: 100vw !important;
+    padding: 20px 15px !important; box-sizing: border-box !important; 
+    overflow-x: hidden !important; 
+  }
 }

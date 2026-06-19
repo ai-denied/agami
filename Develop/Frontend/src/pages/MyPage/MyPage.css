@@ -163,17 +163,33 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
 }
 
 /* =============================================================================
-   [모바일 850px 통일] 레이아웃 가로 삐져나옴(Overflow) 원천 차단
+   [모바일 850px] 사이드바 폭주 차단 및 컴팩트 탭 전환
    ============================================================================= */
 @media (max-width: 850px) {
-  .layout-container, .mypage-layout { flex-direction: column; overflow-x: hidden !important; width: 100vw !important; }
-  .sidebar, .mypage-sidebar { 
+  .mypage-layout { flex-direction: column; overflow-x: hidden !important; width: 100vw !important; }
+  .mypage-sidebar { 
     width: 100vw !important; border-right: none; border-bottom: 1px solid #e0e7f3; 
-    padding: 15px 0 !important; box-sizing: border-box !important;
+    padding: 10px 0 !important; box-sizing: border-box !important; height: auto !important;
   }
-  .sidebar ul, .sidebar-menu-list { padding: 0 20px !important; }
+  .sidebar-profile {
+    padding: 0 15px 10px 15px !important; margin-bottom: 5px; flex-direction: row; align-items: center;
+  }
+  .sidebar-profile .profile-img { width: 32px; height: 32px; margin-right: 10px; }
+  .profile-name { font-size: 14px; }
   
-  .main-content, .mypage-main { 
+  .sidebar-menu-list { 
+    display: flex !important; flex-direction: row !important; overflow-x: auto; white-space: nowrap; 
+    padding: 0 15px !important; margin: 0; gap: 8px;
+  }
+  .sidebar-menu-list::-webkit-scrollbar { display: none; }
+  
+  .sidebar-menu-list li {
+    margin: 0 !important; padding: 8px 14px !important; font-size: 13.5px !important;
+    border-radius: 8px !important; flex-shrink: 0 !important;
+  }
+  
+  .menu-divider { display: none; }
+  .mypage-main { 
     width: 100vw !important; max-width: 100vw !important;
     padding: 20px 15px !important; box-sizing: border-box !important; 
     overflow-x: hidden !important; 
