@@ -920,7 +920,7 @@ const Home = () => {
             </p>
 
             <div className="box-btn-group">
-              <BubbleBtn onClick={() => navigate("/price")} variant="fill">
+              <BubbleBtn onClick={() => navigate("/intro")} variant="fill">
                 시작하기
               </BubbleBtn>
               <button className="box-btn secondary" onClick={scrollToFirst}>
