@@ -24,7 +24,7 @@ spec:
       containers:
       - name: agent
         # ArgoCD가 감지할 이미지 경로 (태그는 ArgoCD 또는 Kustomize에서 주입)
-        image: agami-captcha.cloud:8443/agami/agent:2606171545
+        image: agami-captcha.cloud:8443/agami/agent:2606221547
         imagePullPolicy: Always
         # Service를 연결할 필요가 없으므로 ports 항목은 생략합니다.
 
