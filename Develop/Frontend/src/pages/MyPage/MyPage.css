@@ -28,6 +28,7 @@
   background-color: #f4f7fb;
   box-sizing: border-box;
   overflow-x: auto; 
+  position: relative;
 }
 
 body.dark-mode .mypage-layout {
@@ -44,11 +45,14 @@ body.dark-mode .mypage-layout {
   min-height: 0; 
   background-color: #ffffff;
   border-right: 1px solid #e0e7f3;
-  padding: 30px 20px;
+  /* 💡 PC 꽉 찬 레이아웃을 위해 좌우 패딩 제거 */
+  padding: 30px 0;
   box-sizing: border-box;
   overflow-y: auto; 
   display: flex;
   flex-direction: column;
+  z-index: 50;
+  transition: background-color 0.3s ease, border-color 0.3s ease, left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 body.dark-mode .mypage-sidebar {
@@ -61,7 +65,7 @@ body.dark-mode .mypage-sidebar {
   flex-direction: column;
   align-items: center;
   margin-bottom: 24px;
-  padding-bottom: 24px;
+  padding: 0 20px 24px 20px;
   border-bottom: 1px solid #e0e7f3;
 }
 
@@ -96,15 +100,13 @@ body.dark-mode .sidebar-profile .profile-name {
 
 .sidebar-menu-list a {
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sidebar-menu-list li {
-  padding: 15px 35px; 
-  margin-top: 0;
-  margin-bottom: 8px;
-  margin-left: -20px; 
-  margin-right: -20px; 
-  border-radius: 0; 
+  padding: 18px 20px; 
+  margin: 0 !important;
+  border-radius: 0 !important; 
   cursor: pointer;
   color: #6b7891;
   font-weight: 500;
@@ -112,6 +114,7 @@ body.dark-mode .sidebar-profile .profile-name {
   display: flex;
   align-items: center;
   transition: background-color 0.3s ease, color 0.3s ease !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 body.dark-mode .sidebar-menu-list li {
@@ -131,6 +134,7 @@ body.dark-mode .sidebar-menu-list li:hover {
 .sidebar-menu-list a.active li {
   background-color: #5da2ff !important;
   color: white !important;
+  box-shadow: none !important;
 }
 
 body.dark-mode .sidebar-menu-list a.active li:hover {
@@ -143,7 +147,7 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
 }
 
 .menu-divider {
-  margin: 16px 0 8px 10px;
+  margin: 16px 0 8px 20px;
   font-size: 0.8rem;
   font-weight: 700;
   color: #9ca3af;
@@ -157,7 +161,133 @@ body.dark-mode .sidebar-menu-list a.active li:hover {
 .mypage-main {
   flex: 1;
   height: 100%;
-  padding: 0; /* 이중 여백의 원인이던 40px 패딩 삭제. 스크롤바가 우측 끝으로 밀착됩니다. */
+  padding: 0; 
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+/* =============================================================================
+   [4] 모바일 전용 토글 및 오버레이 (PC에서는 원천 숨김)
+   ============================================================================= */
+.mobile-sidebar-toggle,
+.mobile-sidebar-overlay,
+.sidebar-header-mobile {
+  display: none;
+}
+
+/* =============================================================================
+   [5] 반응형 모바일 (900px 이하) - 햄버거 토글 슬라이드 로직
+   ============================================================================= */
+@media (max-width: 900px) {
+  /* 💡 축소된 모바일 네비바(55px) 영역을 고려하여 top 값 보정 */
+  .mobile-sidebar-toggle {
+    display: flex;
+    position: fixed;
+    top: 75px; /* 네비게이션바(55px) + 상단 여백(20px) */
+    left: 20px;
+    z-index: 900; 
+    background: #ffffff;
+    color: #1d2a44;
+    border: 1px solid #e0e7f3;
+    border-radius: 10px;
+    width: 46px;
+    height: 46px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent; 
+  }
+
+  body.dark-mode .mobile-sidebar-toggle {
+    background: #141415;
+    color: #e2e8f0;
+    border-color: #28282a;
+  }
+
+  .mobile-sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 55px; /* 네비바(55px) 바로 아래 */
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - 55px);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 901;
+    opacity: 0;
+    pointer-events: none; 
+    transition: opacity 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-sidebar-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mypage-sidebar {
+    position: fixed;
+    top: 55px; /* 네비바 바로 아래 */
+    left: -280px; 
+    width: 260px;
+    height: calc(100vh - 55px);
+    z-index: 902; 
+    padding: 20px 0 0 0; 
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.1);
+    visibility: hidden;
+  }
+
+  body.dark-mode .mypage-sidebar {
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.6);
+  }
+
+  .mypage-sidebar.open {
+    left: 0;
+    visibility: visible;
+  }
+
+  .sidebar-header-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 0 20px 15px 20px; 
+    border-bottom: 1px solid #e0e7f3;
+  }
+
+  body.dark-mode .sidebar-header-mobile {
+    border-bottom-color: #28282a;
+  }
+
+  .sidebar-header-mobile h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #1d2a44;
+  }
+
+  body.dark-mode .sidebar-header-mobile h3 {
+    color: #e2e8f0;
+  }
+
+  .mobile-sidebar-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #6b7891;
+    padding: 0 5px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body.dark-mode .mobile-sidebar-close {
+    color: #a0aec0;
+  }
+
+  /* 모바일 메인 컨텐츠 영역 보정 (햄버거 버튼 아래로 밀기) */
+  .mypage-main {
+    padding: 90px 15px 40px 15px !important; 
+  }
 }

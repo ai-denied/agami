@@ -516,8 +516,6 @@ const Home = () => {
     link.type = "image/x-icon";
     link.rel = "shortcut icon";
     link.href = "/agami-home.svg";
-    document.getElementsByTagName("head")[0].appendChild(link);
-    document.title = "Agami - 차세대 지능형 캡챠 서비스";
   }, []);
 
   useEffect(() => {
