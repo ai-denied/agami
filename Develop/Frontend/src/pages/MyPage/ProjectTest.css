@@ -1,10 +1,10 @@
 /* =============================================================================
-   ProjectTest 전용 레이아웃
+   [1] ProjectTest 전용 메인 레이아웃
    ============================================================================= */
-
 .test-container {
   max-width: 1100px !important;
   width: 100% !important;
+  margin: 0 auto;
 }
 
 .test-vertical-layout {
@@ -48,13 +48,12 @@ body.dark-mode .panel-desc { color: #a0aec0; }
   background-color: #eef2ff;
   color: #5da2ff;
   border: 1px solid #5da2ff;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 0.9rem;
   cursor: pointer;
-  flex-shrink: 0;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 body.dark-mode .btn-refresh-widget {
   background-color: rgba(93, 162, 255, 0.1);
@@ -64,54 +63,39 @@ body.dark-mode .btn-refresh-widget {
   color: #ffffff;
 }
 
-/* --- 상단 위젯 영역 --- */
-.widget-render-box {
-  background: #f8fbff;
-  border: 2px dashed #c0d8ff;
-  border-radius: 16px;
-  padding: 0; 
+/* =============================================================================
+   [2] 💡 캡챠 위젯 컨테이너 (비율 붕괴 방지 및 중앙 정렬)
+   ============================================================================= */
+.widget-wrapper {
+  width: 100%;
+  max-width: 420px; /* 캡챠 위젯이 가로로 무한 팽창하는 것을 차단 */
+  margin: 0 auto; /* 화면 중앙 정렬 */
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px; /* 고정 높이 삭제, 자식 iframe의 동적 높이에 자연스레 늘어남 */
-  overflow: hidden; 
+  background: #fcfcfc;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  box-sizing: border-box;
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-body.dark-mode .widget-render-box {
+body.dark-mode .widget-wrapper {
   background: #1a1a1b;
-  border-color: #28282a;
+  border-color: #334155;
 }
 
-.token-result-box {
-  margin-top: 24px;
-  background: rgba(5, 196, 107, 0.08);
-  border: 1px solid rgba(5, 196, 107, 0.3);
-  padding: 20px 24px;
+/* 내부 iframe 또는 타겟 div 꽉 차게 렌더링 */
+.widget-wrapper iframe,
+#agami-captcha-widget {
+  width: 100% !important;
   border-radius: 12px;
-  animation: slideDown 0.3s ease-out;
-}
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  overflow: hidden;
 }
 
-.success-badge {
-  display: inline-block;
-  color: #05c46b;
-  font-weight: 800;
-  margin-bottom: 12px;
-  font-size: 1.05rem;
-}
-
-.token-label {
-  display: block;
-  font-size: 0.9rem;
-  color: #4b5563;
-  margin-bottom: 8px;
-  font-weight: 700;
-}
-body.dark-mode .token-label { color: #9ca3af; }
-
+/* =============================================================================
+   [3] 토큰 및 코드 스니펫 UI
+   ============================================================================= */
 .token-string {
   font-family: 'JetBrains Mono', monospace, Consolas;
   font-size: 0.9rem;
@@ -122,6 +106,7 @@ body.dark-mode .token-label { color: #9ca3af; }
   padding: 14px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 body.dark-mode .token-string {
   background: #000000;
@@ -129,7 +114,38 @@ body.dark-mode .token-string {
   border-color: #334155;
 }
 
-/* --- 하단 코드 스니펫 영역 --- */
+.platform-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.platform-tabs button {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+body.dark-mode .platform-tabs button {
+  background: #28282a;
+  border-color: #334155;
+  color: #a0aec0;
+}
+.platform-tabs button.active {
+  background: #5da2ff;
+  color: #fff;
+  border-color: #5da2ff;
+}
+body.dark-mode .platform-tabs button.active {
+  background: #5da2ff;
+  color: #fff;
+  border-color: #5da2ff;
+}
+
 .code-snippet-box {
   background: #1e293b;
   border-radius: 12px;
@@ -149,47 +165,99 @@ body.dark-mode .token-string {
 }
 
 .btn-copy-code {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
   border: none;
-  padding: 6px 12px;
+  padding: 6px 16px;
   border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
 }
-.btn-copy-code:hover { background: rgba(255,255,255,0.2); }
+.btn-copy-code:hover { background: rgba(255, 255, 255, 0.2); }
 
 .code-content {
   margin: 0;
-  padding: 24px;
+  padding: 20px;
   color: #e2e8f0;
   font-family: 'JetBrains Mono', monospace, Consolas;
   font-size: 0.95rem;
-  white-space: pre-wrap;
-  word-break: break-all;
-  line-height: 1.6;
+  overflow-x: auto; /* 긴 코드 가로 스크롤 허용 */
 }
+.code-content code { white-space: pre-wrap; word-break: break-all; }
 
-.platform-tabs {
-  display: flex;
-  gap: 8px;
-  margin-top: 24px;
-  margin-bottom: 12px;
-}
+/* =============================================================================
+   [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
+   ============================================================================= */
+@media (max-width: 900px) {
+  .test-vertical-layout {
+    gap: 40px; 
+    margin-top: 10px;
+  }
 
-.platform-tabs button {
-  padding: 8px 14px;
-  border: 1px solid #334155;
-  background: #0f172a;
-  color: #cbd5e1;
-  border-radius: 8px;
-  cursor: pointer;
-}
+  .panel-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 
-.platform-tabs button.active {
-  background: #5da2ff;
-  color: white;
-  border-color: #5da2ff;
+  .panel-title {
+    font-size: 1.35rem;
+  }
+
+  .panel-desc {
+    word-break: keep-all; /* 모바일에서 단어 단위 줄바꿈 유지 */
+  }
+
+  /* 새로고침 버튼 터치 영역 100% 확장 */
+  .btn-refresh-widget {
+    width: 100%;
+    text-align: center;
+    padding: 14px 0;
+  }
+
+  /* 💡 캡챠 위젯 비율 완벽 보호 (화면이 작아져도 비율 유지) */
+  .widget-wrapper {
+    padding: 12px;
+    max-width: 100%; /* 부모 너비 안에서 유동적 조절 */
+    border-radius: 12px;
+  }
+
+  /* 💡 플랫폼 탭 버튼 랩핑 및 꽉 차게 분할 */
+  .platform-tabs {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .platform-tabs button {
+    flex: 1 1 calc(50% - 8px); /* 2열 배치로 깔끔하게 떨어짐 */
+    padding: 12px 10px;
+    font-size: 0.85rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* 코드 스니펫 헤더 및 버튼 세로 분할 */
+  .code-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .btn-copy-code {
+    width: 100%;
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  .code-content {
+    padding: 16px;
+    font-size: 0.85rem;
+  }
+  
+  .token-string {
+    font-size: 0.85rem;
+    padding: 12px;
+  }
 }
