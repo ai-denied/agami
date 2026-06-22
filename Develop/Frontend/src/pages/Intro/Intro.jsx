@@ -42,6 +42,11 @@ const Intro = () => {
         />
 
         <nav className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+          {/* 모바일 전용 사이드바 헤더 (닫기 버튼 포함) */}
+          <div className="sidebar-header-mobile">
+            <h3>캡챠 종류</h3>
+            <button className="mobile-sidebar-close" onClick={() => setIsSidebarOpen(false)}>✕</button>
+          </div>
           <ul>
             {CAPTCHA_TYPES.map((type) => (
               <li 
