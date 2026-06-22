@@ -1,5 +1,5 @@
 /* =============================================================================
-   [1] 테마별 변수 제어 (오리지널 동일)
+   [1] 테마별 변수 제어
    ============================================================================= */
 :root {
   --main-color: #5da2ff;
@@ -27,7 +27,7 @@ body.no-scroll {
 }
 
 /* =============================================================================
-   [2] App.js 레이아웃 격리 구조 연동 스타일
+   [2] 기본 레이아웃
    ============================================================================= */
 .global-navbar {
   position: absolute;
@@ -63,8 +63,6 @@ body.no-scroll {
 }
 
 .home-main-wrapper::-webkit-scrollbar {
-  width: 0px !important;
-  height: 0px !important;
   display: none !important;
 }
 
@@ -90,14 +88,15 @@ body.no-scroll {
   transition: background-color 0.3s ease;
 }
 
-/* --- Food Bot (먹이) 스타일 --- */
 .food-bot {
   width: 80px;
   height: auto;
   pointer-events: none;
 }
 
-/* --- Second Container Spotlight Game --- */
+/* =============================================================================
+   [3] 섹션 2: Spotlight
+   ============================================================================= */
 .second-container {
   --sea-base-color: #06162d;
   --sea-wave-color1: rgba(255, 255, 255, 0.1);
@@ -196,7 +195,31 @@ body.dark-mode .second-container {
 .second-container h1 { font-size: 42px; color: #fff; margin-bottom: 20px; }
 .second-container p { color: rgba(255, 255, 255, 0.8); font-size: 18px; }
 
-/* --- Third Container 스타일 --- */
+/* 💡 [버그 교정] 가만히 있어도 튀는 현상 제거 및 순수 CSS 상하 바운스 적용 */
+@keyframes arrow-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(10px); }
+}
+
+.scroll-down-btn {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  z-index: 110;
+  backdrop-filter: blur(5px);
+  animation: arrow-bounce 1.5s infinite ease-in-out;
+  outline: none;
+}
+
+/* =============================================================================
+   [4] 섹션 3: 입자 및 안내
+   ============================================================================= */
 .third-container {
   background-color: #010c1b;
   display: flex;
@@ -226,10 +249,17 @@ body.dark-mode .second-container {
   pointer-events: none;
 }
 
+/* 💡 [최적화] 로고 둥실둥실 무거운 Framer 버리고 가벼운 CSS 렌더링으로 대체 */
+@keyframes float-logo {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
 .third-logo {
   width: 320px; 
   height: auto;
   filter: drop-shadow(0 0 40px rgba(93, 162, 255, 0.6));
+  animation: float-logo 4s infinite ease-in-out;
 }
 
 .third-content-wrapper {
@@ -286,7 +316,9 @@ body.dark-mode .second-container {
 
 .box-btn.secondary:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
-/* --- 애니메이션 제어 구조 --- */
+/* =============================================================================
+   [5] 공통 애니메이션 및 객체 속성
+   ============================================================================= */
 @keyframes wave-rotate {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -394,20 +426,6 @@ body.dark-mode .second-container {
   100% { transform: scale(1); }
 }
 
-.scroll-down-btn {
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.1);
-  padding: 10px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  z-index: 110;
-  backdrop-filter: blur(5px);
-}
-
 .wave-bg-layer {
   --wave-base-color: #5da2ff;
   --wave-layer-color1: rgba(255, 255, 255, 0.2);
@@ -421,7 +439,7 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
 .wave-bg-layer::after { border-radius: 40%; background-color: var(--wave-layer-color2); animation-duration: 18s; top: -270vmax; }
 
 /* =============================================================================
-   [핵심] 모바일 전용 반응형 레이아웃 및 애니메이션 제어 로직 (900px 이하)
+   [핵심] 모바일 전용 반응형 레이아웃 및 렉 원인 제거 로직 (900px 이하)
    ============================================================================= */
 @media (max-width: 900px) {
   
@@ -448,7 +466,7 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     box-shadow: 0 10px 20px rgba(93, 162, 255, 0.3) !important;
   }
 
-  /* --- 1. 홈 컨테이너 (첫 접속) --- */
+  /* --- 1. 홈 컨테이너 --- */
   .home-container { 
     align-items: center; 
     justify-content: center; 
@@ -463,7 +481,6 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     z-index: 50;
   }
   
-  /* 💡 [교정 1] "알아보기" 버튼 패딩 및 폰트 축소 */
   .left-section .bubble-btn-shared.primary {
     padding: 12px 36px;
     font-size: 16px;
@@ -481,8 +498,9 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
   }
   
   .circle { 
-    width: 150vmax;
-    height: 150vmax;
+    /* 💡 [최적화] 모바일 배경 렌더링 렉의 원인이던 원형 크기 대폭 축소 */
+    width: 100vmax;
+    height: 100vmax;
     top: 50%;
     right: 50%;
     opacity: 0.5; 
@@ -510,18 +528,20 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     margin-top: 15px;
   }
 
+  /* 💡 화살표 애니메이션을 제거해 터치 오작동 완전 제거 */
   .scroll-down-btn {
     bottom: 30px;
+    animation: none;
+    padding: 20px;
   }
 
   /* --- 3. 로고 애니메이션 컨테이너 --- */
   .third-logo-wrapper {
-    /* 💡 [교정 3] 로고 위치를 화면 중앙(50%)에서 위쪽(30%)으로 끌어올려 글라스 박스와의 겹침 방지 */
     top: 30% !important;
   }
 
   .third-logo { 
-    width: clamp(180px, 50vw, 260px); /* 글라스 박스 공간 확보를 위해 크기 미세 축소 */
+    width: clamp(180px, 50vw, 260px);
     height: auto !important;
     object-fit: contain;
   }
@@ -539,9 +559,17 @@ body.dark-mode .wave-bg-layer { --wave-base-color: #05122e; --wave-layer-color1:
     font-size: clamp(13px, 3.5vw, 15px); 
   }
 
+  /* 💡 [최적화] 발열/렉의 가장 큰 원인인 backdrop-filter 모바일 환경에서 강제 비활성화 */
   .third-content-wrapper .liquid-glass-box {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.85) !important;
     padding: 30px 24px !important;
     height: max-content !important; 
     flex-shrink: 0;
+  }
+
+  body.dark-mode .third-content-wrapper .liquid-glass-box {
+    background: rgba(20, 20, 21, 0.85) !important;
   }
 }

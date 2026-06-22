@@ -1,10 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, memo } from "react";
-import {
-  motion,
-  useSpring,
-  useMotionValue,
-  AnimatePresence,
-} from "framer-motion";
+import { motion, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 import LiquidGlass from "@/components/LiquidGlass/LiquidGlass";
@@ -38,13 +33,7 @@ const FoodBot = memo(({ x, y, color }) => (
 FoodBot.displayName = "FoodBot";
 
 // --- 반응형 물고기 컴포넌트 ---
-const ScaredFish = memo(({
-  index,
-  isFeeding,
-  mousePos,
-  allFishRefs,
-  isFirstVisit,
-}) => {
+const ScaredFish = memo(({ index, isFeeding, mousePos, allFishRefs, isFirstVisit }) => {
   const fishProps = useMemo(() => {
     const totalFish = 25;
     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
@@ -478,19 +467,36 @@ const Home = () => {
   const mousePos = useRef({ x: -1000, y: -1000 });
   const allFishRefs = useRef([]);
   const wrapperRef = useRef(null);
-  const [spotlightPos, setSpotlightPos] = useState({ x: -500, y: -500 });
+  
+  // 💡 [최적화 핵심] 스포트라이트 상태를 제거하고 useRef로 돔 직접 조작 (React 재렌더링 부하 원천 차단)
+  const lightLayerRef = useRef(null);
+  
   const [targetFishPos, setTargetFishPos] = useState({ x: 50, y: 50 });
   const [isFound, setIsFound] = useState(false);
 
-  // 💡 [핵심] 브라우저 스크롤 복원 차단 및 마운트 시 최상단 강제 고정 로직
+  // 💡 [버그 교정] 브라우저 스크롤 복원 차단 및 마운트 시 최상단 강제 3단 고정
   useEffect(() => {
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
-    if (wrapperRef.current) {
-      wrapperRef.current.scrollTop = 0;
-    }
-    window.scrollTo(0, 0);
+    
+    const forceScrollToTop = () => {
+      if (wrapperRef.current) {
+        wrapperRef.current.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+    };
+
+    forceScrollToTop();
+    const t1 = setTimeout(forceScrollToTop, 10);
+    const t2 = setTimeout(forceScrollToTop, 100);
+    const t3 = setTimeout(forceScrollToTop, 300);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
   }, []);
 
   useEffect(() => {
@@ -586,6 +592,8 @@ const Home = () => {
   };
 
   const lastSecondMv = useRef(0);
+  
+  // 💡 [최적화 핵심] React 상태 업데이트를 배제하고 Ref를 통해 돔에 직접 Mask 렌더링
   const handleSpotlightMove = (e) => {
     const now = performance.now();
     if (now - lastSecondMv.current < 16) return;
@@ -601,7 +609,15 @@ const Home = () => {
     }
 
     const rect = e.currentTarget.getBoundingClientRect();
-    setSpotlightPos({ x: clientX - rect.left, y: clientY - rect.top });
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    if (lightLayerRef.current) {
+      const radius = isMobile ? 100 : 160;
+      const maskStr = `radial-gradient(circle ${radius}px at ${x}px ${y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`;
+      lightLayerRef.current.style.maskImage = maskStr;
+      lightLayerRef.current.style.WebkitMaskImage = maskStr;
+    }
   };
 
   const handleFishClick = (e) => {
@@ -676,15 +692,15 @@ const Home = () => {
     ? { delay: 3.5, duration: 1.5, ease: [0.4, 0, 0.2, 1] }
     : { duration: 0 };
 
-  const spotlightRadius = isMobile ? 100 : 160;
+  // 초기 스포트라이트 위치 세팅용
+  const initialRadius = isMobile ? 100 : 160;
+  const initialMask = `radial-gradient(circle ${initialRadius}px at -500px -500px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`;
 
   return (
     <div 
       className="home-main-wrapper" 
       ref={wrapperRef} 
-      style={{ 
-        contentVisibility: "auto"
-      }}
+      // 💡 [버그 교정] 스크롤 오류의 주범이었던 contentVisibility 제거
     >
       <div className="home-container" onMouseMove={!isMobile ? handleMouseMove : undefined}>
         <motion.div
@@ -816,10 +832,11 @@ const Home = () => {
         onTouchStart={handleSpotlightMove}
       >
         <div
+          ref={lightLayerRef}
           className="light-sea-layer"
           style={{
-            maskImage: `radial-gradient(circle ${spotlightRadius}px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
-            WebkitMaskImage: `radial-gradient(circle ${spotlightRadius}px at ${spotlightPos.x}px ${spotlightPos.y}px, black 0%, rgba(0, 0, 0, 0.8) 40%, transparent 100%)`,
+            maskImage: initialMask,
+            WebkitMaskImage: initialMask,
             willChange: "mask-image",
             zIndex: 2
           }}
@@ -857,14 +874,8 @@ const Home = () => {
           </span>
         </div>
         
-        <motion.button
-          className="scroll-down-btn"
-          onClick={scrollToThird}
-          initial={{ x: "-50%" }}
-          animate={!isMobile ? { x: "-50%", y: [0, 10, 0] } : { x: "-50%", y: 0 }}
-          transition={!isMobile ? { y: { repeat: Infinity, duration: 1.5 } } : { duration: 0 }}
-          style={{ x: "-50%" }}
-        >
+        {/* 💡 [버그 교정] 무빙 충돌의 원인이던 Framer Motion을 걷어내고 순수 CSS 버튼으로 대체 */}
+        <button className="scroll-down-btn" onClick={scrollToThird}>
           <svg
             width="60"
             height="60"
@@ -877,7 +888,7 @@ const Home = () => {
           >
             <path d="M7 13l5 5 5-5M7 6l5 5 5-5" />
           </svg>
-        </motion.button>
+        </button>
       </div>
 
       <div className="third-container">
@@ -890,13 +901,11 @@ const Home = () => {
             viewport={{ once: true }}
             transition={!isMobile ? { duration: 1.5, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}
           >
-            <motion.img
+            {/* 💡 둥실둥실 애니메이션 역시 가벼운 CSS 속성으로 교체 */}
+            <img
               src="/agami-logo-text.png"
               alt="Agami Logo Text"
               className="third-logo"
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-              style={{ position: "relative", willChange: "transform" }}
             />
           </motion.div>
         </div>
