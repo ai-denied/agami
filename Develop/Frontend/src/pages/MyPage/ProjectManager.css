@@ -5,8 +5,8 @@
 
 .pm-wrapper {
   width: 100%;
-  margin: 0; /* 이중 여백을 유발하던 margin 삭제 */
-  padding: 40px; /* 안전하게 내부 여백만 40px 확보 */
+  margin: 0; 
+  padding: 40px; 
   box-sizing: border-box;
   display: flex;
   justify-content: center;
@@ -307,7 +307,7 @@ body.dark-mode .btn-remove-domain:hover { background: #7f1d1d; color: #fff; }
 }
 body.dark-mode .btn-cancel { background-color: #28282a !important; color: #a0aec0 !important; }
 .btn-cancel:hover { background-color: #e5e7eb !important; }
-body.dark-mode .btn-cancel:hover { background-color: #334155 !important; color: #ffffff !important; }
+body.dark-mode .btn-cancel:hover { background: #334155 !important; color: #ffffff !important; }
 
 .btn-submit { 
   background-color: #5da2ff !important; 
@@ -381,3 +381,101 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
 
 .btn-sys-danger { background: #ef4444; color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background-color 0.2s ease; flex: 1; }
 .btn-sys-danger:hover { background: #dc2626; }
+
+/* =============================================================================
+   [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
+   ============================================================================= */
+@media (max-width: 900px) {
+  .pm-wrapper {
+    padding: 0; /* 부모인 MyPage에서 패딩을 할당하므로 자체 패딩 제거 */
+  }
+
+  .pm-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .btn-create-project {
+    width: 100%;
+    padding: 14px 0;
+    text-align: center;
+  }
+
+  .project-card {
+    padding: 20px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .card-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .domain-tags {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  /* 💡 세로로 텍스트가 찌그러지는 현상을 방지하기 위해 가로 정렬(Row)을 세로 정렬(Column)로 교체 */
+  .key-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .key-label {
+    width: 100%;
+    font-size: 0.95rem;
+  }
+
+  .key-value {
+    width: 100%;
+    font-size: 0.85rem;
+    word-break: break-all;
+    white-space: pre-wrap; /* 줄바꿈 자연스럽게 허용 */
+  }
+
+  /* 복사 버튼을 꽉 차게 변경 */
+  .btn-copy-main {
+    width: 100%;
+    text-align: center;
+    padding: 12px 0;
+    margin-top: 4px;
+  }
+
+  /* 💡 모달창 모바일 최적화 */
+  .modal-box {
+    padding: 24px 20px;
+    margin: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-box h2 {
+    font-size: 1.25rem;
+  }
+
+  .btn-remove-domain {
+    width: 44px;
+    height: 44px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .btn-cancel, 
+  .btn-submit {
+    width: 100%;
+  }
+}
