@@ -32,7 +32,6 @@ body.dark-mode .settings-container {
 /* ---------------------------------------------------
    헤더 및 텍스트
 --------------------------------------------------- */
-/* 수정된 헤더 스타일 */
 .settings-header { 
   display: flex; 
   justify-content: space-between; 
@@ -40,7 +39,6 @@ body.dark-mode .settings-container {
   margin-bottom: 40px; 
 }
 
-/* 추가된 삭제 버튼 스타일 */
 .btn-delete-project {
   background: #fee2e2;
   color: #ef4444;
@@ -324,7 +322,6 @@ body.dark-mode .key-display-label { color: #9ca3af; }
 }
 body.dark-mode .key-display-value { color: #e5e7eb; }
 
-/* 메인 컬러 적용 복사 버튼 */
 .btn-copy-action {
   background-color: #eef2ff !important;
   color: #5da2ff !important;
@@ -445,3 +442,104 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
   flex: 1;
 }
 .btn-sys-danger:hover { background: #dc2626; }
+
+/* =============================================================================
+   [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
+   ============================================================================= */
+@media (max-width: 900px) {
+  .settings-page-wrapper {
+    padding: 0; /* 부모 컨테이너(MyPage)에서 패딩을 처리하므로 제거 */
+  }
+
+  .settings-container {
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
+
+  .settings-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .settings-title {
+    font-size: 1.4rem;
+  }
+
+  /* 삭제 버튼 폭 100% 확대 */
+  .btn-delete-project {
+    width: 100%;
+    text-align: center;
+    padding: 14px 0;
+  }
+
+  /* 💡 도메인 폼과 닉네임 폼의 액션 버튼 레이아웃 제어 */
+  .form-actions {
+    flex-direction: column-reverse;
+    width: 100%;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 14px 0;
+  }
+
+  .notification-msg {
+    text-align: center;
+    width: 100%;
+  }
+
+  /* 도메인 X 버튼 크기 보정 */
+  .btn-remove-domain {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* 💡 구독 정보 박스 가로 나열을 세로(Column) 나열로 변경 */
+  .plan-info-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .plan-label, .plan-value {
+    width: 100%;
+  }
+
+  .btn-outline-primary {
+    width: 100%;
+    text-align: center;
+    padding: 12px 0;
+    margin-top: 4px;
+  }
+
+  /* 💡 발급 키 (Site Key / Secret Key) 영역을 세로로 변경하여 찌그러짐 원천 차단 */
+  .key-display-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px !important;
+  }
+
+  .key-display-label {
+    width: 100%;
+    font-size: 0.95rem;
+  }
+
+  .key-display-value {
+    width: 100%;
+    font-size: 0.85rem;
+    white-space: pre-wrap; /* 모바일에서 정상적으로 줄바꿈 허용 */
+  }
+
+  .btn-copy-action {
+    width: 100%;
+    text-align: center;
+    padding: 12px 0 !important;
+    margin-top: 4px;
+  }
+}
