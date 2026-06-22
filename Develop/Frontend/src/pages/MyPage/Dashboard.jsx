@@ -301,7 +301,7 @@ export default function Dashboard() {
 
                       return (
                         <div key={idx} className={`log-item ${logClass}`}>
-                          <span className="log-ip">{log.ip}</span>
+                          {/* IP 출력 부분 삭제 */}
                           <span className="log-reason">{ATTACK_TYPE_MAP[log.reason] || log.reason}</span>
                           <span className="risk-score">{log.score}</span>
                         </div>
