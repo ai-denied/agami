@@ -88,7 +88,7 @@ export default function Dashboard() {
                 안녕하세요, {user.nickname}님!
                 <br className="mobile-break" /> 안전한 환경을 유지 중입니다
               </h2>
-              <p>Agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
+              <p>agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
             </div>
             
             <div className="header-controls">
