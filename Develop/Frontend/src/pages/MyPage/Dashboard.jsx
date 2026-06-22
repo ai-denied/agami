@@ -77,6 +77,35 @@ export default function Dashboard() {
 
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
+  // --- 추가: 인수인계서 기반 주요 우회 공격 유형 라벨 매핑 및 필터링 ---
+  const ATTACK_TYPE_MAP = {
+    'model_high_risk': 'AI 탐지 (위험 점수)',
+    'no_trajectory': '궤적 자체 누락',
+    'coordinate_brute': '좌표 단순 실패', 
+    'empty_trajectory': '빈 궤적 (Fail-closed)',
+    'missing_canvas_dims': '캔버스 규격 누락',
+    'inference_unavailable': '추론 API 연결 실패'
+  };
+
+  const validAttackKeys = Object.keys(ATTACK_TYPE_MAP);
+
+  const processedAttacks = (attacks || [])
+    .filter(attack => {
+      // 값이 0인 항목 제외 (대시보드 빈 항목 방지)
+      if (attack.value === 0) return false;
+      // 미구현된 옛 계획 라벨(velocity_anomaly 등) 제외
+      if (typeof attack.name === 'string' && /^[a-z_]+$/.test(attack.name) && !validAttackKeys.includes(attack.name)) {
+        return false;
+      }
+      return true;
+    })
+    .map(attack => ({
+      ...attack,
+      name: ATTACK_TYPE_MAP[attack.name] || attack.name
+    }))
+    .sort((a, b) => b.value - a.value);
+  // -------------------------------------------------------------
+
   return (
     <div className="dashboard-container">
       <div className="main-wrapper">
@@ -273,7 +302,7 @@ export default function Dashboard() {
                       return (
                         <div key={idx} className={`log-item ${logClass}`}>
                           <span className="log-ip">{log.ip}</span>
-                          <span className="log-reason">{log.reason}</span>
+                          <span className="log-reason">{ATTACK_TYPE_MAP[log.reason] || log.reason}</span>
                           <span className="risk-score">{log.score}</span>
                         </div>
                       );
@@ -289,11 +318,11 @@ export default function Dashboard() {
               <div className="chart-card bottom-row-height attack-chart-card">
                 <h3>주요 우회 공격 유형</h3>
                 <div className="chart-wrapper">
-                  {attacks && attacks.length > 0 ? (
+                  {processedAttacks && processedAttacks.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={attacks}
+                        data={processedAttacks}
                         margin={{ left: 0, right: 20, top: 0, bottom: 0 }}
                       >
                         <XAxis type="number" hide allowDecimals={false} />
