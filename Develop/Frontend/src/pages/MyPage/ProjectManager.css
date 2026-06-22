@@ -107,7 +107,7 @@ body.dark-mode .project-card:hover {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; /* 타이틀과 쓰레기통 아이콘이 상단에서 일직선을 이루도록 보정 */
+  align-items: flex-start;
   margin-bottom: 24px;
   border-bottom: 1px solid #f3f4f6; 
   padding-bottom: 16px;
@@ -115,11 +115,12 @@ body.dark-mode .project-card:hover {
 }
 body.dark-mode .card-header { border-bottom-color: #28282a; }
 
-/* 💡 PC 화면에서 타이틀과 사용량을 나란히 배치 */
+/* 💡 타이틀과 사용량 영역이 남은 공간을 밀어내도록 flex: 1 할당 */
 .card-header-info {
   display: flex;
   align-items: center; 
   gap: 16px;
+  flex: 1;
 }
 
 .project-name {
@@ -127,33 +128,36 @@ body.dark-mode .card-header { border-bottom-color: #28282a; }
   font-weight: 800;
   color: #111827;
   margin: 0;
-  line-height: 1; /* 텍스트 자체의 불필요한 상하 여백을 제거하여 아이콘과 완벽하게 수평 정렬 */
+  line-height: 1; 
   transition: var(--pm-transition);
 }
 body.dark-mode .project-name { color: #ffffff; }
 
-/* 💡 사용량 텍스트 줄바꿈 강제 차단 */
 .project-usage {
   color: #6b7280;
   font-size: 0.9rem;
   font-weight: 600;
-  white-space: nowrap; /* 어떤 상황에서도 한 줄 유지 */
+  white-space: nowrap; 
   transition: var(--pm-transition);
 }
 body.dark-mode .project-usage { color: #9ca3af; }
 
-/* 💡 휴지통 아이콘 전용 스타일 */
+/* 💡 휴지통 아이콘 전용 스타일 (크기 고정 및 우측 밀착) */
 .btn-delete-project.icon-delete {
   background: transparent;
   color: #9ca3af; 
   border: none;
-  padding: 4px;
+  width: 38px !important;  
+  height: 38px !important;
+  padding: 0 !important;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 body.dark-mode .btn-delete-project.icon-delete { 
   color: #6b7280; 
@@ -414,6 +418,7 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     margin-bottom: 24px;
   }
 
+  /* 💡 삭제 버튼(icon-delete 제외)만 너비 100%를 적용합니다. */
   .btn-create-project {
     width: 100%;
     padding: 14px 0;
@@ -424,18 +429,17 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     padding: 20px;
   }
 
-  /* 💡 모바일 화면에서도 쓰레기통 아이콘은 항상 오른쪽 상단에 고정 */
   .card-header {
     flex-direction: row; 
     align-items: flex-start;
     gap: 16px;
   }
 
-  /* 💡 타이틀과 사용량을 세로로 쌓아두어 찌그러지지 않게 정렬 */
   .card-header-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+    flex: 1; 
   }
 
   .domain-tags {
