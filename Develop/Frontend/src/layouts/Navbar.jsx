@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
 import "./Navbar.css";
@@ -8,16 +7,11 @@ import "./Navbar.css";
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
 const Navbar = () => {
-  const [isFirstVisit, setIsFirstVisit] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const isMyPage = location.pathname.includes('/mypage');
 
   useEffect(() => {
-    const hasVisited = sessionStorage.getItem("hasVisitedAgami");
-    setIsFirstVisit(!hasVisited);
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       setIsDarkMode(true);
@@ -32,7 +26,6 @@ const Navbar = () => {
     localStorage.setItem("theme", newTheme ? "dark" : "light");
   };
 
-  // Navbar.jsx
   const handleLogout = async () => {
     try { 
       await api.post("/api/auth/logout"); 
@@ -44,19 +37,8 @@ const Navbar = () => {
     window.location.href = "/"; 
   };
 
-  if (isFirstVisit === null) return null;
-
-  // 홈 화면(/)이면서 첫 방문일 때만 애니메이션 적용
-  const isHome = location.pathname === "/";
-  const shouldAnimate = isFirstVisit && isHome;
-
   return (
-    <motion.nav 
-      className="menu-bar" 
-      initial={shouldAnimate ? { opacity: 0, y: -100 } : { opacity: 1, y: 0 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      transition={{ delay: shouldAnimate ? 4 : 0, duration: 1 }}
-    >
+    <nav className="menu-bar">
       <div className="nav-container">
         <div className="nav-group left">
           <button className="home-logo-btn" onClick={() => navigate("/")}>
@@ -86,8 +68,13 @@ const Navbar = () => {
           {user ? (
             <div className="user-profile-wrapper">
               <div className="user-profile-info">
-                {user.profile && <img src={user.profile} alt="profile" className="nav-profile-img" onError={(e) => { e.target.style.display = 'none'; }} />}
-                <span className="nav-nickname"><strong>{user.nickname}</strong> 님</span>
+                {/* 💡 요청하신 대로 닉네임을 제거하고 프로필 사진만 단독 표기합니다. */}
+                <img 
+                  src={user.profile || '/agami-profile.png'} 
+                  alt="profile" 
+                  className="nav-profile-img" 
+                  onError={(e) => { e.target.src = '/agami-profile.png'; }} 
+                />
               </div>
               <button className="nav-item logout-btn" onClick={handleLogout}>로그아웃</button>
             </div>
@@ -96,7 +83,7 @@ const Navbar = () => {
           )}
         </div>
       </div>
-    </motion.nav>
+    </nav>
   );
 };
 

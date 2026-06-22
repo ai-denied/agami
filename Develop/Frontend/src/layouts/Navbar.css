@@ -62,7 +62,7 @@ body.dark-mode {
   border: none;
   height: 100%; 
   padding: 0 20px; 
-  color: var(--text-color); /* 테마 변수를 연동하여 다크모드 대응 */
+  color: var(--text-color);
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -71,20 +71,18 @@ body.dark-mode {
   justify-content: center;
   transition: all 0.2s ease;
   white-space: nowrap;
-  border-radius: 0; /* 각진 사각형 유지 */
+  border-radius: 0;
 }
 
-/* 롤백 완료: 호버 시 글자 색상만 깔끔하게 변경되도록 수정 */
 .nav-item:hover {
   color: var(--main-blue);
-  background: rgba(93, 162, 255, 0.08); /* 영역을 가득 채우는 사각형 배경 */
+  background: rgba(93, 162, 255, 0.08); 
 }
 
 .login-btn {
   color: var(--main-blue);
 }
 
-/* JSX 구조에 따른 로그아웃 버튼 및 호버 롤백 */
 .logout-btn {
   color: var(--text-color);
 }
@@ -136,13 +134,8 @@ body.dark-mode {
   text-align: center;
 }
 
-.label-light {
-  right: 4px;
-}
-
-.label-dark {
-  left: 4px;
-}
+.label-light { right: 4px; }
+.label-dark { left: 4px; }
 
 .switch-handle {
   width: 26px;
@@ -167,7 +160,6 @@ body.dark-mode {
 .theme-switch:not(.active) .label-light { opacity: 1; }
 .theme-switch:not(.active) .label-dark { opacity: 0; }
 
-/* --- 유저 프로필 영역 스타일 --- */
 .user-profile-wrapper {
   display: flex;
   align-items: center;
@@ -185,12 +177,49 @@ body.dark-mode {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  margin-right: 10px;
+  margin-right: 0; /* 닉네임이 제거되었으므로 마진 삭제 */
   border: 1px solid var(--nav-border);
+  object-fit: cover;
 }
 
-.nav-nickname {
-  color: var(--text-color);
-  font-size: 14px;
-  letter-spacing: 0.5px;
+/* =============================================================================
+   모바일 최적화 (900px 이하) - 전체적인 스케일 축소
+   ============================================================================= */
+@media (max-width: 900px) {
+  /* 버튼 내부 여백 및 폰트 크기 축소 */
+  .menu-bar .nav-container .nav-item {
+    font-size: 13px;
+    padding: 0 8px;
+    letter-spacing: 0px;
+  }
+
+  /* 메뉴 좌측 여백 제거 */
+  .nav-links {
+    margin-left: 0;
+  }
+
+  /* 로고 영역 축소 */
+  .home-logo-btn {
+    padding: 0 5px;
+  }
+
+  .home-logo-btn img {
+    width: 32px; 
+  }
+
+  /* 프로필 영역 축소 */
+  .user-profile-info {
+    padding: 0 8px;
+  }
+
+  .nav-profile-img {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* 토글 스위치 크기 축소 */
+  .theme-switch {
+    transform: scale(0.85);
+    margin-right: 2px;
+  }
 }
