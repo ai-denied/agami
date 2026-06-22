@@ -106,7 +106,7 @@ const ProjectManager = () => {
                 <div className="card-header">
                   <div className="card-header-info">
                     <h2 className="project-name">{project.name}</h2>
-                    <span className="project-usage">이번 달 사용량: {project.usage || 0}회</span>
+                    <span className="project-usage">이번 달 사용량: {project.total_usage || 0}회</span>
                   </div>
                   
                   {/* 💡 쓰레기통 아이콘으로 교체된 삭제 버튼 */}
