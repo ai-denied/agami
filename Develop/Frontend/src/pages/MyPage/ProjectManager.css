@@ -103,10 +103,11 @@ body.dark-mode .project-card:hover {
   box-shadow: 0 4px 12px rgba(93, 162, 255, 0.2);
 }
 
+/* 💡 카드 헤더 레이아웃 교정 (양쪽 끝 수평 정렬) */
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start; /* 타이틀과 쓰레기통 아이콘이 상단에서 일직선을 이루도록 보정 */
   margin-bottom: 24px;
   border-bottom: 1px solid #f3f4f6; 
   padding-bottom: 16px;
@@ -114,41 +115,57 @@ body.dark-mode .project-card:hover {
 }
 body.dark-mode .card-header { border-bottom-color: #28282a; }
 
+/* 💡 PC 화면에서 타이틀과 사용량을 나란히 배치 */
+.card-header-info {
+  display: flex;
+  align-items: center; 
+  gap: 16px;
+}
+
 .project-name {
   font-size: 1.4rem;
   font-weight: 800;
   color: #111827;
   margin: 0;
+  line-height: 1; /* 텍스트 자체의 불필요한 상하 여백을 제거하여 아이콘과 완벽하게 수평 정렬 */
   transition: var(--pm-transition);
 }
 body.dark-mode .project-name { color: #ffffff; }
 
-.card-header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
+/* 💡 사용량 텍스트 줄바꿈 강제 차단 */
 .project-usage {
   color: #6b7280;
   font-size: 0.9rem;
   font-weight: 600;
+  white-space: nowrap; /* 어떤 상황에서도 한 줄 유지 */
   transition: var(--pm-transition);
 }
 body.dark-mode .project-usage { color: #9ca3af; }
 
-.btn-delete-project {
-  background: #fee2e2;
-  color: #ef4444;
+/* 💡 휴지통 아이콘 전용 스타일 */
+.btn-delete-project.icon-delete {
+  background: transparent;
+  color: #9ca3af; 
   border: none;
-  padding: 6px 16px;
-  border-radius: 6px;
-  font-weight: 700;
+  padding: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
-body.dark-mode .btn-delete-project { background: rgba(239, 68, 68, 0.1); }
-.btn-delete-project:hover, body.dark-mode .btn-delete-project:hover { background: #ef4444; color: #fff; }
+body.dark-mode .btn-delete-project.icon-delete { 
+  color: #6b7280; 
+}
+.btn-delete-project.icon-delete:hover { 
+  background: #fee2e2; 
+  color: #ef4444; 
+}
+body.dark-mode .btn-delete-project.icon-delete:hover { 
+  background: rgba(239, 68, 68, 0.2); 
+  color: #ef4444; 
+}
 
 .domain-tags {
   color: #111827;
@@ -387,7 +404,7 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
    ============================================================================= */
 @media (max-width: 900px) {
   .pm-wrapper {
-    padding: 0; /* 부모인 MyPage에서 패딩을 할당하므로 자체 패딩 제거 */
+    padding: 0;
   }
 
   .pm-header {
@@ -407,15 +424,18 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     padding: 20px;
   }
 
+  /* 💡 모바일 화면에서도 쓰레기통 아이콘은 항상 오른쪽 상단에 고정 */
   .card-header {
-    flex-direction: column;
+    flex-direction: row; 
     align-items: flex-start;
     gap: 16px;
   }
 
-  .card-header-right {
-    width: 100%;
-    justify-content: space-between;
+  /* 💡 타이틀과 사용량을 세로로 쌓아두어 찌그러지지 않게 정렬 */
+  .card-header-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 
   .domain-tags {
@@ -425,7 +445,6 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     margin-bottom: 16px;
   }
 
-  /* 💡 세로로 텍스트가 찌그러지는 현상을 방지하기 위해 가로 정렬(Row)을 세로 정렬(Column)로 교체 */
   .key-row {
     flex-direction: column;
     align-items: flex-start;
@@ -442,10 +461,9 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     width: 100%;
     font-size: 0.85rem;
     word-break: break-all;
-    white-space: pre-wrap; /* 줄바꿈 자연스럽게 허용 */
+    white-space: pre-wrap; 
   }
 
-  /* 복사 버튼을 꽉 차게 변경 */
   .btn-copy-main {
     width: 100%;
     text-align: center;
@@ -453,7 +471,6 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     margin-top: 4px;
   }
 
-  /* 💡 모달창 모바일 최적화 */
   .modal-box {
     padding: 24px 20px;
     margin: 20px;

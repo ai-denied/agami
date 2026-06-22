@@ -35,120 +35,136 @@ const ProjectManager = () => {
 
   const showAlert = (message) => setAlertModal({ show: true, message });
   const closeAlert = () => setAlertModal({ show: false, message: "" });
+  
   const closeConfirm = () => setConfirmModal({ show: false, message: "", onConfirm: null });
-
-  const handleCreateProject = async (e) => {
-    e.preventDefault();
-    const domains = domainList.filter(d => d.trim() !== "").join(",");
-    if (!domains) {
-      showAlert("최소 1개의 도메인을 입력해주세요.");
-      return;
-    }
-
-    try {
-      const response = await api.post("/api/projects", { name, domains });
-      if (response.data.status === "success") {
-        setName(""); setDomainList([""]); setShowCreateModal(false);
-        fetchProjects();
-        showAlert("새 프로젝트가 생성되었습니다.");
-      }
-    } catch (error) { 
-      console.error(error);
-      const status = error.response?.status;
-      // DB 제약조건 위반(중복 도메인 등)으로 인한 에러 처리
-      if (status === 400 || status === 409 || status === 500) {
-        showAlert("이미 다른 곳에 등록된 도메인이거나 유효하지 않은 입력입니다.\n(중복된 도메인이 없는지 확인해 주세요.)");
-      } else {
-        showAlert("프로젝트 생성 중 서버 오류가 발생했습니다.");
-      }
-    }
-  };
-
-  // 자체 Confirm 모달을 이용한 삭제 로직
-  const handleDeleteProject = (e, projectId) => {
-    e.stopPropagation(); 
+  const confirmDelete = (projectId) => {
     setConfirmModal({
       show: true,
-      message: "정말로 이 프로젝트를 삭제하시겠습니까?\n관련 데이터가 모두 삭제되며 복구할 수 없습니다.",
-      onConfirm: async () => {
-        closeConfirm();
-        try {
-          await api.delete(`/api/projects/${projectId}`);
-          fetchProjects();
-          showAlert("프로젝트가 삭제되었습니다.");
-        } catch (error) { showAlert("프로젝트 삭제 중 오류가 발생했습니다."); }
-      }
+      message: "정말 이 프로젝트를 삭제하시겠습니까?",
+      onConfirm: () => handleDeleteProject(projectId)
     });
   };
 
-  const copyToClipboard = (e, text) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(text);
-    showAlert("키가 클립보드에 복사되었습니다.");
+  const handleDeleteProject = async (projectId) => {
+    try {
+      const response = await api.delete(`/api/projects/${projectId}`);
+      if (response.data.status === "success") {
+        closeConfirm();
+        showAlert("프로젝트가 삭제되었습니다.");
+        fetchProjects();
+      }
+    } catch (error) {
+      closeConfirm();
+      showAlert("프로젝트 삭제에 실패했습니다.");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return showAlert("프로젝트 이름을 입력하세요.");
+    const validDomains = domainList.filter(d => d.trim() !== "");
+    if (validDomains.length === 0) return showAlert("최소 하나 이상의 유효한 도메인을 입력해야 합니다.");
+
+    try {
+      const response = await api.post("/api/projects", { name, domains: validDomains.join(",") });
+      if (response.data.status === "success") {
+        setShowCreateModal(false);
+        setName("");
+        setDomainList([""]);
+        fetchProjects();
+      }
+    } catch (error) {
+      showAlert("프로젝트 생성에 실패했습니다.");
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => showAlert("키가 복사되었습니다."));
   };
 
   return (
     <div className="pm-wrapper">
       <div className="pm-container">
-        <header className="pm-header">
+        <div className="pm-header">
           <div>
             <h1 className="pm-title">프로젝트 관리</h1>
-            <p className="pm-description">캡챠를 적용할 웹사이트를 등록하고 인증 키를 발급받습니다.</p>
+            <p className="pm-description">운영 중인 웹사이트에 적용할 CAPTCHA 프로젝트를 관리하세요.</p>
           </div>
-          <button className="btn-create-project" onClick={() => setShowCreateModal(true)}>+ 신규 프로젝트</button>
-        </header>
+          <button className="btn-create-project" onClick={() => setShowCreateModal(true)}>+ 새 프로젝트</button>
+        </div>
 
         <div className="project-list">
           {projects.length === 0 ? (
-            <div className="empty-state">생성된 프로젝트가 없습니다.</div>
+            <div className="empty-state">
+              생성된 프로젝트가 없습니다.<br/>새 프로젝트를 생성하여 사이트를 보호하세요.
+            </div>
           ) : (
             projects.map((project) => (
-              <div key={project.id} className="project-card clickable-card" onClick={() => navigate(`/mypage/projects/${project.id}/info`)}>
+              <div key={project.id} className="project-card" onClick={() => navigate(`/mypage/projects/${project.id}/info`)}>
+                
+                {/* 💡 카드 헤더 영역 교정 (타이틀, 사용량, 삭제 아이콘) */}
                 <div className="card-header">
-                  <h2 className="project-name">{project.name || "이름 없는 프로젝트"}</h2>
-                  <div className="card-header-right">
-                    <span className="project-usage">이번 달 사용량: {project.total_usage}회</span>
-                    <button className="btn-delete-project" onClick={(e) => handleDeleteProject(e, project.id)}>삭제</button>
+                  <div className="card-header-info">
+                    <h2 className="project-name">{project.name}</h2>
+                    <span className="project-usage">이번 달 사용량: {project.usage || 0}회</span>
                   </div>
+                  
+                  {/* 💡 쓰레기통 아이콘으로 교체된 삭제 버튼 */}
+                  <button 
+                    className="btn-delete-project icon-delete" 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      confirmDelete(project.id); 
+                    }}
+                    title="프로젝트 삭제"
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                  </button>
                 </div>
-                <div className="card-body">
-                  <div className="domain-tags">
-                    <strong>허용 도메인:</strong>
-                    {project.domains.split(",").map((d, i) => <span key={i} className="domain-tag">{d}</span>)}
-                  </div>
 
-                  <div className="key-row">
-                    <span className="key-label">Site Key</span>
-                    <span className="key-value">{project.site_key}</span>
-                    <button className="btn-copy-main" onClick={(e) => copyToClipboard(e, project.site_key)}>복사</button>
-                  </div>
-                  <div className="key-row">
-                    <span className="key-label">Secret Key</span>
-                    <span className="key-value">{project.secret_key}</span>
-                    <button className="btn-copy-main" onClick={(e) => copyToClipboard(e, project.secret_key)}>복사</button>
-                  </div>
+                <div className="domain-tags">
+                  {project.domains.split(",").map((d, i) => (
+                    <span key={i} className="domain-tag">{d}</span>
+                  ))}
                 </div>
+
+                <div className="key-row">
+                  <span className="key-label">Site Key</span>
+                  <span className="key-value">{project.site_key}</span>
+                  <button className="btn-copy-main" onClick={(e) => { e.stopPropagation(); copyToClipboard(project.site_key); }}>복사</button>
+                </div>
+
+                <div className="key-row">
+                  <span className="key-label">Secret Key</span>
+                  <span className="key-value">{project.secret_key}</span>
+                  <button className="btn-copy-main" onClick={(e) => { e.stopPropagation(); copyToClipboard(project.secret_key); }}>복사</button>
+                </div>
+
               </div>
             ))
           )}
         </div>
       </div>
 
-      {/* 신규 생성 모달 */}
       {showCreateModal && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h2>신규 프로젝트 생성</h2>
-            <form onSubmit={handleCreateProject}>
+        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <h2>새 프로젝트 생성</h2>
+            <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>프로젝트 이름</label>
-                <input type="text" className="clean-input" value={name} onChange={(e) => setName(e.target.value)} required />
+                <input type="text" className="clean-input" value={name} onChange={e => setName(e.target.value)} placeholder="예: My Shop" required />
               </div>
               <div className="form-group">
-                <label>허용 도메인</label>
+                <label>등록 도메인</label>
                 {domainList.map((domain, index) => (
                   <div key={index} className="domain-input-row">
-                    <input type="text" className="clean-input flex-fill" value={domain} onChange={(e) => handleDomainChange(index, e.target.value)} placeholder="예: agami-captcha.cloud" required />
+                    <input type="text" className="clean-input flex-fill" value={domain} onChange={e => handleDomainChange(index, e.target.value)} placeholder="예: example.com" required />
                     {domainList.length > 1 && (
                       <button type="button" className="btn-remove-domain" onClick={() => removeDomainInput(index)}>✕</button>
                     )}
