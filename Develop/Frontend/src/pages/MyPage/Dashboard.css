@@ -392,7 +392,6 @@ body.dark-mode .empty-chart-box {
     line-height: 1.4;
   }
 
-  /* 💡 모바일 환경에서만 강제 줄바꿈 작동 */
   .mobile-break { 
     display: block; 
   }
@@ -413,7 +412,6 @@ body.dark-mode .empty-chart-box {
     width: 100%;
   }
 
-  /* 💡 PC 가로 탭 숨기고 모바일 네이티브 select 폼으로 교체 */
   .pc-tabs { 
     display: none !important; 
   }
@@ -439,7 +437,6 @@ body.dark-mode .empty-chart-box {
     outline: none;
     appearance: none;
     -webkit-appearance: none;
-    /* 커스텀 화살표 SVG 추가 */
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%235da2ff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
     background-repeat: no-repeat;
     background-position: right 1rem top 50%;
@@ -478,8 +475,15 @@ body.dark-mode .empty-chart-box {
     padding: 24px 16px;
   }
 
-  .line-chart-card {
+  /* 💡 라인 차트(트래픽 추이) 영역만 3개가 들어가도록 650px 유지 */
+  .chart-card.line-chart-card {
     height: 650px; 
+  }
+
+  /* 💡 로그 카드 박스 팽창 현상을 막고 자연스러운 높이(min 320px)로 변경 */
+  .log-card.line-chart-card {
+    height: auto;
+    min-height: 320px;
   }
 
   .pie-container-layout {
@@ -494,8 +498,10 @@ body.dark-mode .empty-chart-box {
     min-height: 320px;
   }
 
+  /* 💡 로그 리스트 내부 컨테이너의 빈 공간 여백 밸런스 조정 */
   .log-list-container {
     max-height: 350px;
+    min-height: 180px; 
   }
 
   .log-item {
