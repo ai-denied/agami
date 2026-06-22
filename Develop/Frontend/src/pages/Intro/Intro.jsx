@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Scrollbar from "@/components/Scrollbar/Scrollbar";
 import './Intro.css';
 
@@ -9,20 +9,54 @@ const CAPTCHA_TYPES = [
 ];
 
 const Intro = () => {
-  const [selectedType, setSelectedType] = useState(CAPTCHA_TYPES[0]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // 💡 모바일 사이드바 상태
+  const [activeSection, setActiveSection] = useState(CAPTCHA_TYPES[0].id);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // 각 섹션의 DOM 위치를 기억하기 위한 Ref
+  const sectionRefs = useRef({});
 
-  // 항목 선택 시 모바일 사이드바 자동 닫힘 처리
-  const handleSelect = (type) => {
-    setSelectedType(type);
-    setIsSidebarOpen(false);
+  // 💡 스크롤을 감지하여 현재 화면에 보이는 섹션으로 사이드바 Active 상태를 자동 변경 (Scroll Spy)
+  useEffect(() => {
+    const scrollContainer = document.querySelector('.main-content');
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { 
+        root: scrollContainer, // 스크롤이 발생하는 컨테이너 기준
+        rootMargin: "-10% 0px -60% 0px", // 화면 상단 10~40% 지점을 지날 때 감지
+        threshold: 0 
+      }
+    );
+
+    CAPTCHA_TYPES.forEach(type => {
+      const el = sectionRefs.current[type.id];
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // 💡 사이드바 메뉴 클릭 시 해당 섹션으로 부드럽게 스크롤 이동
+  const scrollToSection = (id) => {
+    setIsSidebarOpen(false); // 모바일 메뉴 자동 닫기
+    setActiveSection(id);
+    const element = sectionRefs.current[id];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   return (
     <div className="page-wrapper">
       <div className="layout-container">
         
-        {/* 💡 모바일 전용 토글 버튼 */}
+        {/* 모바일 전용 토글 버튼 */}
         <button 
           className="mobile-sidebar-toggle" 
           onClick={() => setIsSidebarOpen(true)}
@@ -35,14 +69,13 @@ const Intro = () => {
           </svg>
         </button>
 
-        {/* 💡 모바일 전용 오버레이 (클릭 시 닫힘) */}
+        {/* 모바일 전용 오버레이 */}
         <div 
           className={`mobile-sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`} 
           onClick={() => setIsSidebarOpen(false)} 
         />
 
         <nav className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
-          {/* 모바일 전용 사이드바 헤더 (닫기 버튼 포함) */}
           <div className="sidebar-header-mobile">
             <h3>캡챠 종류</h3>
             <button className="mobile-sidebar-close" onClick={() => setIsSidebarOpen(false)}>✕</button>
@@ -51,8 +84,8 @@ const Intro = () => {
             {CAPTCHA_TYPES.map((type) => (
               <li 
                 key={type.id} 
-                className={selectedType.id === type.id ? 'active' : ''}
-                onClick={() => handleSelect(type)}
+                className={activeSection === type.id ? 'active' : ''}
+                onClick={() => scrollToSection(type.id)}
               >
                 {type.title}
               </li>
@@ -60,26 +93,31 @@ const Intro = () => {
           </ul>
         </nav>
 
+        {/* 메인 컨텐츠 영역 (Scrollbar 유지) */}
         <Scrollbar className="main-content">
-          <section className="captcha-description" style={{ borderTop: 'none', marginTop: 0 }}>
-            <h2 className="content-title" style={{ fontSize: '1.8rem', marginBottom: '10px', color: 'var(--text-primary)' }}>
-              {selectedType.title}
-            </h2>
-            <p className="content-desc" style={{ fontSize: '1.1rem', marginBottom: '30px', color: 'var(--text-secondary)' }}>
-              {selectedType.desc}
-            </p>
-            
-            <div className="intro-image-placeholder" style={{
-              width: '100%', height: '400px', background: 'var(--bg-card)', 
-              borderRadius: '16px', display: 'flex', alignItems: 'center', 
-              justifyContent: 'center', border: '1px solid var(--border-color)',
-              color: 'var(--text-secondary)'
-            }}>
-              {selectedType.id === 'handlight' && <span>[손전등 캡챠 데모 소개 사진 / 영상]</span>}
-              {selectedType.id === 'face' && <span>[안면 인식 캡챠 데모 소개 사진 / 영상]</span>}
-              {selectedType.id === 'emotion' && <span>[감정 추론 캡챠 데모 소개 사진 / 영상]</span>}
-            </div>
-          </section>
+          <div className="intro-sections-wrapper">
+            {CAPTCHA_TYPES.map((type) => (
+              <section 
+                key={type.id} 
+                id={type.id}
+                ref={(el) => (sectionRefs.current[type.id] = el)}
+                className="captcha-description" 
+              >
+                <h2 className="content-title">
+                  {type.title}
+                </h2>
+                <p className="content-desc">
+                  {type.desc}
+                </p>
+                
+                <div className="intro-image-placeholder">
+                  {type.id === 'handlight' && <span>[손전등 캡챠 데모 소개 사진 / 영상]</span>}
+                  {type.id === 'face' && <span>[안면 인식 캡챠 데모 소개 사진 / 영상]</span>}
+                  {type.id === 'emotion' && <span>[감정 추론 캡챠 데모 소개 사진 / 영상]</span>}
+                </div>
+              </section>
+            ))}
+          </div>
         </Scrollbar>
 
       </div>
