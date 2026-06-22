@@ -293,10 +293,9 @@ body.dark-mode .metric-bar-track { background-color: rgba(255,255,255,0.05); }
 .metric-bar-fill.critical { background-color: var(--danger-color); }
 .metric-bar-fill.abandoned { background-color: #94a3b8; }
 
-/* 💡 정중앙 정렬을 위해 log-list-container를 flex로 전환 */
 .log-list-container {
   flex-grow: 1;
-  overflow-y: auto; /* 스크롤바가 필요할 때만 생기게 수정 */
+  overflow-y: auto; 
   background-color: rgba(93, 162, 255, 0.03); 
   border: 1px solid rgba(93, 162, 255, 0.05);
   border-radius: 16px;
@@ -310,7 +309,6 @@ body.dark-mode .log-list-container {
   border-color: rgba(255, 255, 255, 0.03);
 }
 
-/* 💡 내부 flex 아이템이 100% 채우도록 flex-grow 설정 */
 .log-list { 
   display: flex; 
   flex-direction: column; 
@@ -327,9 +325,8 @@ body.dark-mode .log-list-container {
 .log-reason { flex-grow: 1; margin-left: 16px; color: inherit; font-weight: 600; }
 .risk-score { font-weight: 800; font-family: monospace; color: inherit; }
 
-/* 💡 새로 추가된 빈 화면 로그 클래스 (정중앙 자동배치) */
 .empty-log {
-  margin: auto; /* 상하좌우 남는 공간을 모두 분배하여 완벽한 중앙 배치 */
+  margin: auto; 
   color: var(--brand-color);
   font-weight: 600;
   font-size: 14px;
@@ -337,7 +334,6 @@ body.dark-mode .log-list-container {
   padding: 20px 0;
 }
 
-/* 💡 새로 추가된 우회 공격 차트 빈 화면 클래스 (로그 박스와 완벽하게 동일한 디자인) */
 .empty-chart-box {
   display: flex;
   align-items: center;
@@ -373,20 +369,130 @@ body.dark-mode .empty-chart-box {
 .tooltip-label { color: var(--text-secondary); }
 .tooltip-value { color: var(--text-primary); margin-left: auto; }
 
-@media (max-width: 1200px) {
-  .analytics-grid { grid-template-columns: 1fr; }
-  .dashboard-header-block { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .header-controls { align-items: flex-start; width: 100%; }
-  .model-tab-container { width: 100%; justify-content: space-between; box-sizing: border-box; }
-  .tab-btn { flex-grow: 1; text-align: center; }
-  .summary-grid { grid-template-columns: repeat(2, 1fr); }
-  .line-chart-card, .bottom-row-height { height: auto; }
-}
+/* =============================================================================
+   [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
+   ============================================================================= */
+@media (max-width: 900px) {
+  .dashboard-container {
+    padding: 0; /* 부모 컨테이너(MyPage)에서 패딩을 처리하므로 제거 */
+  }
 
-@media (max-width: 600px) {
-  .summary-grid { grid-template-columns: 1fr; }
-  .two-column-grid { grid-template-columns: 1fr; }
-  .pie-container-layout { flex-direction: column; height: auto; padding: 10px 0; }
-  .pie-wrapper { width: 120px; height: 120px; }
-  .chart-wrapper.split-charts { height: 500px; }
+  .dashboard-header-block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .welcome-section h2 {
+    font-size: 1.4rem;
+    line-height: 1.4;
+  }
+
+  .welcome-section p {
+    font-size: 0.9rem;
+    word-break: keep-all;
+  }
+
+  .header-controls {
+    align-items: stretch;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .date-control-wrapper {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  /* 💡 모델 탭 영역 가로 스크롤 허용 및 줄바꿈 금지 */
+  .model-tab-container {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; 
+  }
+  .model-tab-container::-webkit-scrollbar {
+    display: none; 
+  }
+
+  .tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    flex-grow: 1;
+    text-align: center;
+    padding: 10px 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 💡 요약 카드 2x2 그리드로 깔끔하게 배치 */
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .summary-card {
+    padding: 20px 16px;
+  }
+  
+  .card-value {
+    font-size: 1.4rem;
+  }
+
+  .analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .two-column-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .chart-card, .sub-card, .log-card {
+    padding: 24px 16px;
+  }
+
+  /* 💡 라인 차트 영역 3개가 들어갈 수 있도록 높이 강제 팽창 */
+  .line-chart-card {
+    height: 650px; 
+  }
+
+  .pie-container-layout {
+    flex-direction: column;
+    height: auto;
+    gap: 24px;
+    padding: 10px 0;
+  }
+
+  .bottom-row-height {
+    height: auto; 
+    min-height: 320px;
+  }
+
+  .log-list-container {
+    max-height: 350px;
+  }
+
+  .log-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .log-reason {
+    margin-left: 0;
+  }
+
+  /* 💡 터치 환경 호버(Hover) 및 잔상 원천 무력화 */
+  .refresh-btn {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .refresh-btn:hover {
+    background-color: rgba(93, 162, 255, 0.15) !important;
+  }
+  .refresh-btn:active {
+    transform: none !important;
+  }
 }
