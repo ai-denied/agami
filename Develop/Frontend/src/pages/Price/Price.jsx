@@ -40,7 +40,7 @@ const Price = () => {
     const currentPlan = (user.plan || "basic").toLowerCase();
 
     if (planName === "enterprise") {
-      showAlert("엔터프라이즈 요금제는 고객센터를 통해 맞춤형으로 제공됩니다.\nsupport@agami.com으로 문의해주세요.");
+      showAlert("엔터프라이즈 요금제는 고객센터를 통해 맞춤형으로 제공됩니다.\agami.captcha@gmail.com으로 문의해주세요.");
       return;
     }
 
