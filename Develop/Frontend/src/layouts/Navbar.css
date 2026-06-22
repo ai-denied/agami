@@ -1,7 +1,7 @@
 :root {
   --nav-bg: rgba(255, 255, 255, 0.8);
   --nav-border: rgba(255, 255, 255, 0.3);
-  --text-color: #000000; /* 라이트모드 폰트 색상을 검은색으로 고정 */
+  --text-color: #000000; 
   --main-blue: #5da2ff;
   --switch-bg: #5da2ff; 
 }
@@ -10,7 +10,7 @@ body.dark-mode {
   background-color: black;
   --nav-bg: rgba(0, 0, 0, 0.5);
   --nav-border: rgba(255, 255, 255, 0.1);
-  --text-color: #ffffff; /* 다크모드일 때는 흰색으로 정상 전환 */
+  --text-color: #ffffff; 
   --switch-bg: #333;
 }
 
@@ -62,7 +62,7 @@ body.dark-mode {
   border: none;
   height: 100%; 
   padding: 0 20px; 
-  color: var(--text-color);
+  color: var(--text-color); 
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -71,7 +71,7 @@ body.dark-mode {
   justify-content: center;
   transition: all 0.2s ease;
   white-space: nowrap;
-  border-radius: 0;
+  border-radius: 0; 
 }
 
 .nav-item:hover {
@@ -134,8 +134,13 @@ body.dark-mode {
   text-align: center;
 }
 
-.label-light { right: 4px; }
-.label-dark { left: 4px; }
+.label-light {
+  right: 4px;
+}
+
+.label-dark {
+  left: 4px;
+}
 
 .switch-handle {
   width: 26px;
@@ -177,49 +182,67 @@ body.dark-mode {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  margin-right: 0; /* 닉네임이 제거되었으므로 마진 삭제 */
+  margin-right: 10px;
   border: 1px solid var(--nav-border);
-  object-fit: cover;
+}
+
+.nav-nickname {
+  color: var(--text-color);
+  font-size: 14px;
+  letter-spacing: 0.5px;
 }
 
 /* =============================================================================
-   모바일 최적화 (900px 이하) - 전체적인 스케일 축소
+   [핵심] 모바일 전용 반응형 레이아웃 (900px 이하)
    ============================================================================= */
 @media (max-width: 900px) {
-  /* 버튼 내부 여백 및 폰트 크기 축소 */
-  .menu-bar .nav-container .nav-item {
-    font-size: 13px;
-    padding: 0 8px;
-    letter-spacing: 0px;
-  }
-
-  /* 메뉴 좌측 여백 제거 */
-  .nav-links {
-    margin-left: 0;
-  }
-
-  /* 로고 영역 축소 */
-  .home-logo-btn {
+  /* 네비게이션바 두께를 65px -> 55px로 축소 */
+  .menu-bar {
+    height: 55px; 
     padding: 0 5px;
   }
 
+  /* 로고 크기 축소 */
   .home-logo-btn img {
     width: 32px; 
   }
 
-  /* 프로필 영역 축소 */
+  /* 메뉴 폰트 및 여백 축소 */
+  .menu-bar .nav-container .nav-item {
+    font-size: 13px; 
+    padding: 0 10px; 
+    letter-spacing: 0.5px;
+  }
+
+  .nav-links {
+    margin-left: 0;
+  }
+
+  /* 💡 유저 프로필 이미지와 이름 모바일 숨김 처리 */
   .user-profile-info {
-    padding: 0 8px;
+    display: none !important;
   }
 
-  .nav-profile-img {
-    width: 28px;
-    height: 28px;
-  }
-
-  /* 토글 스위치 크기 축소 */
+  /* 테마 토글 스위치 모바일 비율 축소 */
   .theme-switch {
-    transform: scale(0.85);
-    margin-right: 2px;
+    width: 56px;
+    height: 28px;
+    margin-right: 5px;
+  }
+
+  .switch-handle {
+    width: 20px;
+    height: 20px;
+    top: 4px;
+    left: 4px;
+  }
+
+  .theme-switch.active .switch-handle {
+    transform: translateX(28px);
+  }
+
+  .label-light, .label-dark {
+    font-size: 9px;
+    width: 25px;
   }
 }
