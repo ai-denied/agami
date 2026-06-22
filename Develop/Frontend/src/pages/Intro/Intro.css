@@ -90,24 +90,22 @@ body.dark-mode .sidebar li:hover {
   flex-grow: 1;
   padding: 40px;
   box-sizing: border-box;
-  scroll-behavior: smooth; /* 내부 스크롤 부드럽게 */
+  scroll-behavior: smooth;
 }
 
-/* 💡 섹션들이 담기는 전체 래퍼 (마지막 섹션 아래 여유 공간) */
 .intro-sections-wrapper {
-  padding-bottom: 120px; 
+  padding-bottom: 80px; 
 }
 
-/* 💡 각각의 캡챠 설명 섹션 블록 */
 .captcha-description {
   width: 100%;
   max-width: 800px;
-  margin-bottom: 100px; /* 각 섹션 간의 여백 */
-  scroll-margin-top: 50px; /* 클릭해서 스크롤 될 때 위쪽에 여백 확보 */
+  margin-bottom: 100px; 
+  scroll-margin-top: 50px; 
 }
 
 .captcha-description:last-child {
-  margin-bottom: 0; /* 마지막 섹션은 마진 제거 */
+  margin-bottom: 0; 
 }
 
 .content-title { 
@@ -152,6 +150,28 @@ body.dark-mode .intro-image-placeholder {
   color: #94a3b8;
 }
 
+/* 💡 하단 시작하기 버튼 영역 */
+.intro-footer-action {
+  width: 100%;
+  max-width: 800px;
+  margin-top: 80px;
+  padding-top: 60px;
+  border-top: 1px dashed #e0e7f3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: border-color 0.3s ease;
+}
+
+body.dark-mode .intro-footer-action {
+  border-top-color: #28282a;
+}
+
+.intro-footer-action .bubble-btn-shared {
+  padding: 16px 60px;
+  font-size: 18px;
+}
+
 /* =============================================================================
    [4] 모바일 전용 토글 및 오버레이 (PC에서는 원천 숨김)
    ============================================================================= */
@@ -162,9 +182,26 @@ body.dark-mode .intro-image-placeholder {
 }
 
 /* =============================================================================
-   [5] 반응형 모바일 (900px 이하) - 햄버거 토글 슬라이드 로직
+   [5] 반응형 모바일 (900px 이하) - 햄버거 토글 슬라이드 로직 및 렌더링 최적화
    ============================================================================= */
 @media (max-width: 900px) {
+  
+  /* 💡 모바일 환경: 버블 버튼의 모든 호버 애니메이션 및 상승 이펙트 무력화 */
+  .bubble-btn-shared:hover {
+    transform: none !important;
+  }
+  .bubble-btn-shared:hover .bubble {
+    animation: none !important;
+    display: none !important;
+  }
+  .bubble-btn-shared.fill:hover {
+    box-shadow: 0 10px 20px rgba(93, 162, 255, 0.3) !important;
+  }
+  .bubble-btn-shared.primary:hover::before {
+    bottom: -100% !important;
+  }
+
+  /* 사이드바 토글 및 오버레이 */
   .mobile-sidebar-toggle {
     display: flex;
     position: fixed;
@@ -276,11 +313,11 @@ body.dark-mode .intro-image-placeholder {
     box-shadow: none !important; 
   }
 
+  /* 메인 콘텐츠 및 텍스트 렌더링 최적화 */
   .main-content {
     padding: 100px 20px 40px 20px; 
   }
   
-  /* 💡 모바일 환경에서 스크롤 시 햄버거 메뉴 아래로 깔끔하게 떨어지도록 마진 증가 */
   .captcha-description {
     scroll-margin-top: 110px; 
     margin-bottom: 80px;
@@ -297,5 +334,16 @@ body.dark-mode .intro-image-placeholder {
   .intro-image-placeholder {
     height: 300px !important;
     font-size: 0.9rem;
+  }
+
+  /* 모바일 하단 버튼 비율 교정 */
+  .intro-footer-action {
+    margin-top: 60px;
+    padding-top: 40px;
+  }
+
+  .intro-footer-action .bubble-btn-shared {
+    width: 100%; /* 모바일에서는 터치 영역을 확보하기 위해 넓게 배치 */
+    padding: 16px 0;
   }
 }

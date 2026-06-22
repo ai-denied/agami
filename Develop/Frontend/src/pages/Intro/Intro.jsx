@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Scrollbar from "@/components/Scrollbar/Scrollbar";
+import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
 import './Intro.css';
 
 const CAPTCHA_TYPES = [
@@ -9,13 +11,12 @@ const CAPTCHA_TYPES = [
 ];
 
 const Intro = () => {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(CAPTCHA_TYPES[0].id);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // 각 섹션의 DOM 위치를 기억하기 위한 Ref
   const sectionRefs = useRef({});
 
-  // 💡 스크롤을 감지하여 현재 화면에 보이는 섹션으로 사이드바 Active 상태를 자동 변경 (Scroll Spy)
   useEffect(() => {
     const scrollContainer = document.querySelector('.main-content');
     
@@ -28,8 +29,8 @@ const Intro = () => {
         });
       },
       { 
-        root: scrollContainer, // 스크롤이 발생하는 컨테이너 기준
-        rootMargin: "-10% 0px -60% 0px", // 화면 상단 10~40% 지점을 지날 때 감지
+        root: scrollContainer, 
+        rootMargin: "-10% 0px -60% 0px", 
         threshold: 0 
       }
     );
@@ -42,9 +43,8 @@ const Intro = () => {
     return () => observer.disconnect();
   }, []);
 
-  // 💡 사이드바 메뉴 클릭 시 해당 섹션으로 부드럽게 스크롤 이동
   const scrollToSection = (id) => {
-    setIsSidebarOpen(false); // 모바일 메뉴 자동 닫기
+    setIsSidebarOpen(false); 
     setActiveSection(id);
     const element = sectionRefs.current[id];
     if (element) {
@@ -56,7 +56,6 @@ const Intro = () => {
     <div className="page-wrapper">
       <div className="layout-container">
         
-        {/* 모바일 전용 토글 버튼 */}
         <button 
           className="mobile-sidebar-toggle" 
           onClick={() => setIsSidebarOpen(true)}
@@ -69,7 +68,6 @@ const Intro = () => {
           </svg>
         </button>
 
-        {/* 모바일 전용 오버레이 */}
         <div 
           className={`mobile-sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`} 
           onClick={() => setIsSidebarOpen(false)} 
@@ -93,7 +91,6 @@ const Intro = () => {
           </ul>
         </nav>
 
-        {/* 메인 컨텐츠 영역 (Scrollbar 유지) */}
         <Scrollbar className="main-content">
           <div className="intro-sections-wrapper">
             {CAPTCHA_TYPES.map((type) => (
@@ -117,6 +114,13 @@ const Intro = () => {
                 </div>
               </section>
             ))}
+
+            {/* 💡 모든 캡챠 설명이 끝난 최하단에 시작하기 버튼을 배치합니다. */}
+            <div className="intro-footer-action">
+              <BubbleBtn variant="fill" onClick={() => navigate("/price")}>
+                시작하기
+              </BubbleBtn>
+            </div>
           </div>
         </Scrollbar>
 
