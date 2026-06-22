@@ -83,8 +83,12 @@ export default function Dashboard() {
         <div className="content-body">
           <section className="dashboard-header-block">
             <div className="welcome-section">
-              <h2>안녕하세요, {user.nickname}님! 안전한 환경을 유지 중입니다</h2>
-              <p>agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
+              {/* 💡 모바일 환경에서만 동작하는 강제 줄바꿈 클래스 적용 */}
+              <h2>
+                안녕하세요, {user.nickname}님!
+                <br className="mobile-break" /> 안전한 환경을 유지 중입니다
+              </h2>
+              <p>Agami 차세대 지능형 캡챠가 실시간 인입 트래픽을 정밀 분석하고 있습니다.</p>
             </div>
             
             <div className="header-controls">
@@ -114,11 +118,26 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              <div className="model-tab-container">
+              {/* 💡 PC 전용 탭 컨테이너 */}
+              <div className="model-tab-container pc-tabs">
                 <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
                 <button className={`tab-btn ${activeModel === 'flashlight' ? 'active' : ''}`} onClick={() => setActiveModel('flashlight')}>손전등</button>
                 <button className={`tab-btn ${activeModel === 'facial' ? 'active' : ''}`} onClick={() => setActiveModel('facial')}>안면 인식</button>
                 <button className={`tab-btn ${activeModel === 'emotion' ? 'active' : ''}`} onClick={() => setActiveModel('emotion')}>감정 기반</button>
+              </div>
+
+              {/* 💡 모바일 전용 네이티브 드롭다운 컨테이너 */}
+              <div className="model-tab-container mobile-select-container">
+                <select 
+                  className="mobile-model-select" 
+                  value={activeModel} 
+                  onChange={(e) => setActiveModel(e.target.value)}
+                >
+                  <option value="all">전체 모델 현황</option>
+                  <option value="flashlight">손전등 캡챠</option>
+                  <option value="facial">안면 인식 캡챠</option>
+                  <option value="emotion">감정 추론 캡챠</option>
+                </select>
               </div>
             </div>
           </section>
@@ -259,7 +278,6 @@ export default function Dashboard() {
                         </div>
                       );
                     }) : (
-                      // 💡 CSS 클래스로 분리 적용
                       <div className="empty-log">
                         현재 탐지된 이상 징후가 없습니다
                       </div>
@@ -302,7 +320,6 @@ export default function Dashboard() {
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    // 💡 CSS 클래스로 분리 적용 (연한 파란색 배경)
                     <div className="empty-chart-box">
                       탐지된 우회 공격 유형이 없습니다
                     </div>
