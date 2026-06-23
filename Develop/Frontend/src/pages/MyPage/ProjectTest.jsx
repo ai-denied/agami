@@ -1,190 +1,186 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
-import { useParams } from "react-router-dom"; 
-import "./Settings.css"; 
-import "./ProjectTest.css"; 
+import "./ProjectTest.css";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
 const ProjectTest = () => {
-  const { id } = useParams();
+  const { id: projectId } = useParams();
   const [project, setProject] = useState(null);
-  const [testToken, setTestToken] = useState("");
-  const [isCopied, setIsCopied] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [token, setToken] = useState("");
   const [platform, setPlatform] = useState("linux");
   
-  const [widgetHeight, setWidgetHeight] = useState(600); 
+  const widgetIdRef = useRef(null);
+  const [alertModal, setAlertModal] = useState({ show: false, message: "" });
 
+  // 1. 프로젝트 정보 로드
   useEffect(() => {
-    const fetchProjectDetails = async () => {
+    const fetchProject = async () => {
       try {
-        const response = await api.get(`/api/projects/${id}`);
+        const response = await api.get(`/api/projects/${projectId}`);
         if (response.data.status === "success") {
           setProject(response.data.project);
         }
-      } catch (error) { console.error(error); }
+      } catch (error) {
+        console.error("프로젝트 정보를 불러오지 못했습니다.", error);
+      }
     };
-    fetchProjectDetails();
-  }, [id]);
+    fetchProject();
+  }, [projectId]);
 
+  // 2. loader.js 동적 삽입 및 위젯 explicit 렌더링
   useEffect(() => {
-    const handleIframeMessage = (event) => {
-      const data = event.data;
-      if (!data) return;
-      if (data.source && data.source.includes('react-devtools')) return;
+    if (!project || !project.site_key) return;
 
-      // 1. 위젯 리사이징 (무한 증식 방지 로직 적용)
-      if (data.type === 'agami-resize' && data.height) {
-        setWidgetHeight(prev => {
-          if (Math.abs(prev - data.height) > 10) {
-            return data.height;
-          }
-          return prev;
-        });
-      }
-
-      // 2. 캡챠 인증 결과(토큰) 처리
-      if (data.type === 'agami-result') {
-        if (data.success && data.captchaToken) {
-          setTestToken(String(data.captchaToken));
-        } else if (data.success && data.token) {
-          setTestToken(String(data.token));
+    const renderWidget = () => {
+      if (window.agami) {
+        // 이미 렌더링된 위젯이 있다면 초기화 (React StrictMode 대응)
+        if (widgetIdRef.current !== null) {
+          window.agami.reset(widgetIdRef.current);
+        } else {
+          widgetIdRef.current = window.agami.render('#agami-test-widget', {
+            sitekey: project.site_key,
+            kind: 'flashlight', // 기본 캡챠 타입 (필요시 Select로 확장 가능)
+            callback: (t) => {
+              setToken(t); // 풀이 성공 시 토큰 저장
+            },
+            errorCallback: (info) => {
+              console.error("Captcha Error:", info);
+            }
+          });
         }
-      } 
-      // 3. 구형 포맷 방어
-      else if (typeof data === 'object' && (data.captchaToken || data.captcha_token || data.token)) {
-        setTestToken(String(data.captchaToken || data.captcha_token || data.token));
       }
     };
 
-    window.addEventListener("message", handleIframeMessage);
-    return () => window.removeEventListener("message", handleIframeMessage);
-  }, []);
+    const scriptId = "agami-loader-script";
+    let script = document.getElementById(scriptId);
 
+    // 스크립트가 없으면 생성하여 head에 부착
+    if (!script) {
+      script = document.createElement("script");
+      script.id = scriptId;
+      script.src = "https://agami-captcha.cloud/widget/loader.js";
+      script.async = true;
+      script.onload = renderWidget;
+      document.head.appendChild(script);
+    } else {
+      // 이미 스크립트가 로드된 상태면 바로 렌더링
+      if (window.agami) {
+        renderWidget();
+      } else {
+        script.addEventListener('load', renderWidget);
+      }
+    }
+  }, [project]);
+
+  // 위젯 초기화 (트리거 idle 상태로 복귀)
   const handleRefreshWidget = () => {
-    setRefreshKey(prev => prev + 1);
-    setTestToken(""); 
-    setWidgetHeight(600); 
-  };
-
-  const getCurlSnippet = () => {
-    const token = testToken || "<발급된_토큰>";
-
-    switch (platform) {
-      case "windows":
-        return `curl -X POST https://agami-captcha.cloud/v1/siteverify ^
-    -d "secret=${project?.secret_key}" ^
-    -d "token=${token}"`;
-
-      case "powershell":
-        return `curl.exe -X POST https://agami-captcha.cloud/v1/siteverify \`
-    -d "secret=${project?.secret_key}" \`
-    -d "token=${token}"`;
-
-      default:
-        return `curl -X POST https://agami-captcha.cloud/v1/siteverify \\
-    -d "secret=${project?.secret_key}" \\
-    -d "token=${token}"`;
+    if (window.agami && widgetIdRef.current !== null) {
+      window.agami.reset(widgetIdRef.current);
+      setToken(""); // 저장된 토큰 초기화
     }
   };
 
-  const handleCopySnippet = () => {
-    const snippet = getCurlSnippet();
-
-    navigator.clipboard.writeText(snippet);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setAlertModal({ show: true, message: "코드가 클립보드에 복사되었습니다." });
+    });
   };
 
-  if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
+  const closeAlert = () => setAlertModal({ show: false, message: "" });
+
+  if (!project) return null;
+
+  // 3. 인수인계 문서 기반 cURL 스니펫 동적 생성
+  const getCurlSnippet = () => {
+    const secret = project.secret_key;
+    const currentToken = token || "<발급된_토큰>";
+    const endpoint = "https://agami-captcha.cloud/captcha/v1/siteverify";
+
+    if (platform === "linux") {
+      return `curl -X POST ${endpoint} \\\n  -H "Content-Type: application/json" \\\n  -H "X-Captcha-Client-Key: ${secret}" \\\n  -d '{\n    "captcha_token": "${currentToken}"\n  }'`;
+    } else if (platform === "windows") {
+      return `curl -X POST ${endpoint} ^\n  -H "Content-Type: application/json" ^\n  -H "X-Captcha-Client-Key: ${secret}" ^\n  -d "{\\"captcha_token\\": \\"${currentToken}\\"}"`;
+    } else {
+      return `Invoke-RestMethod -Uri "${endpoint}" \`\n  -Method Post \`\n  -Headers @{"Content-Type"="application/json", "X-Captcha-Client-Key"="${secret}"} \`\n  -Body '{"captcha_token": "${currentToken}"}'`;
+    }
+  };
 
   return (
-    <div className="settings-page-wrapper">
-      <div className="settings-container test-container">
-        <header className="settings-header">
-          <div>
-            <h1 className="settings-title">API 연동 테스트</h1>
-            <p className="settings-description">발급받은 키를 사용하여 실제 캡챠 동작과 백엔드 검증 흐름을 테스트합니다.</p>
-          </div>
-        </header>
-
-        <div className="test-vertical-layout">
-          
-          <div className="test-panel">
-            <div className="panel-header-row">
-              <div>
-                <h3 className="panel-title">1. 실환경 위젯 테스트</h3>
-                <p className="panel-desc">고객님의 <strong>Site Key</strong>가 적용된 실제 iframe 위젯입니다.</p>
-              </div>
-              <button className="btn-refresh-widget" onClick={handleRefreshWidget}>
-                ↻ 위젯 새로고침
-              </button>
-            </div>
-            
-            <div className="widget-render-box">
-              <iframe 
-                key={refreshKey}
-                src={`https://agami-captcha.cloud/widget/embed?kind=flashlight&difficulty=easy&client_key=${project.site_key}`}
-                width="100%" 
-                height={`${widgetHeight}px`} 
-                frameBorder="0"
-                title="Agami Captcha Widget"
-                scrolling="no"
-              ></iframe>
-            </div>
-
-            {testToken && (
-              <div className="token-result-box">
-                <span className="success-badge">✅ 인증 완료 및 토큰 수신</span>
-                <span className="token-label">발급된 토큰 (captchaToken):</span>
-                <div className="token-string">{testToken}</div>
-              </div>
-            )}
-          </div>
-
-          <div className="test-panel">
-            <h3 className="panel-title">2. 백엔드 검증 테스트</h3>
-            <p className="panel-desc">아래의 cURL 코드를 복사하여 <strong>터미널(cmd)</strong>에 붙여넣고 엔터를 치시면 실제 검증 결과를 확인할 수 있습니다.</p>
-
-            <div className="platform-tabs">
-              <button
-                className={platform === "linux" ? "active" : ""}
-                onClick={() => setPlatform("linux")}
-              >
-                Linux/macOS
-              </button>
-
-              <button
-                className={platform === "windows" ? "active" : ""}
-                onClick={() => setPlatform("windows")}
-              >
-                Windows CMD
-              </button>
-
-              <button
-                className={platform === "powershell" ? "active" : ""}
-                onClick={() => setPlatform("powershell")}
-              >
-                PowerShell
-              </button>
-            </div>
-            
-            <div className="code-snippet-box">
-              <div className="code-header">
-                <span>cURL 예시 (명령 프롬프트/터미널 실행용)</span>
-                <button className="btn-copy-code" onClick={handleCopySnippet}>
-                  {isCopied ? "복사완료!" : "코드 복사"}
-                </button>
-              </div>
-              <pre className="code-content">
-                <code>{getCurlSnippet()}</code>
-              </pre>
-            </div>
-          </div>
-
+    <div className="test-container">
+      <div className="test-vertical-layout">
+        
+        {/* 헤더 타이틀 영역 */}
+        <div>
+          <h1 style={{ fontSize: "1.8rem", fontWeight: "800", color: "var(--text-primary)", marginBottom: "8px" }}>API 연동 테스트</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>발급받은 키를 사용하여 실제 캡챠 동작과 백엔드 검증 흐름을 테스트합니다.</p>
         </div>
+
+        {/* 1. 실환경 위젯 테스트 */}
+        <div className="test-panel">
+          <div className="panel-header-row">
+            <div>
+              <h2 className="panel-title">1. 실환경 위젯 테스트</h2>
+              <p className="panel-desc">고객님의 <strong>Site Key</strong>가 적용된 실제 연동 환경입니다.</p>
+            </div>
+            <button className="btn-refresh-widget" onClick={handleRefreshWidget}>
+              ↻ 위젯 새로고침
+            </button>
+          </div>
+          
+          <div className="widget-wrapper">
+            {/* 💡 loader.js가 이 div를 찾아 트리거 버튼을 삽입합니다. */}
+            <div id="agami-test-widget"></div>
+          </div>
+          
+          {token && (
+            <div style={{ marginTop: "20px" }}>
+              <span style={{ fontSize: "0.85rem", fontWeight: "bold", color: "#10b981", display: "block", marginBottom: "8px" }}>✓ 성공적으로 발급된 토큰:</span>
+              <div className="token-string">{token}</div>
+            </div>
+          )}
+        </div>
+
+        {/* 2. 백엔드 검증 테스트 */}
+        <div className="test-panel">
+          <div className="panel-header-row">
+            <div>
+              <h2 className="panel-title">2. 백엔드 검증 테스트</h2>
+              <p className="panel-desc">아래의 cURL 코드를 복사하여 <strong>터미널(cmd)</strong>에 붙여넣고 엔터를 치시면 실제 검증 결과를 확인할 수 있습니다.</p>
+            </div>
+          </div>
+
+          <div className="platform-tabs">
+            <button className={platform === "linux" ? "active" : ""} onClick={() => setPlatform("linux")}>Linux/macOS</button>
+            <button className={platform === "windows" ? "active" : ""} onClick={() => setPlatform("windows")}>Windows CMD</button>
+            <button className={platform === "powershell" ? "active" : ""} onClick={() => setPlatform("powershell")}>PowerShell</button>
+          </div>
+
+          <div className="code-snippet-box">
+            <div className="code-header">
+              <span>cURL 예시 (명령 프롬프트/터미널 실행용)</span>
+              <button className="btn-copy-code" onClick={() => copyToClipboard(getCurlSnippet())}>코드 복사</button>
+            </div>
+            <pre className="code-content">
+              <code>{getCurlSnippet()}</code>
+            </pre>
+          </div>
+        </div>
+
       </div>
+
+      {/* 자체 커스텀 모달창 */}
+      {alertModal.show && (
+        <div className="custom-sys-modal-overlay" onClick={closeAlert} style={{ zIndex: 9999 }}>
+          <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="custom-sys-modal-text">{alertModal.message}</div>
+            <div className="custom-sys-modal-actions">
+              <button className="btn-sys-ok" onClick={closeAlert}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
