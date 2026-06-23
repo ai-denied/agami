@@ -55,16 +55,16 @@ def check_security_threats():
         cur.execute(query, (FAILURE_THRESHOLD,))
         threats = cur.fetchall()
         
-        for ip, fail_count, challenge_id in threats:
-            print(f"🚨 위협 감지: IP {ip} 에서 {fail_count}회 실패 (마지막 챌린지: {challenge_id})")
-            process_threat(ip, fail_count, challenge_id)
+        for fail_count, challenge_id in threats:
+            print(f"🚨 위협 감지: {fail_count}회 실패 (마지막 챌린지: {challenge_id})")
+            process_threat(fail_count, challenge_id)
             
         cur.close()
         conn.close()
     except Exception as e:
         print(f"❌ DB 조회 중 오류 발생: {e}")
 
-def process_threat(ip, fail_count, challenge_id):
+def process_threat(fail_count, challenge_id):
     # ==========================================
     # 2. 로컬 볼륨에서 실제 행동 로그 JSON 찾기
     # ==========================================
@@ -91,7 +91,6 @@ def process_threat(ip, fail_count, challenge_id):
 주의: 인사말, 서론, 결론, 참고 사항 등 양식에 없는 추가 문장은 절대 출력하지 마십시오.
 
 [위협 정보]
-- 탐지 IP: {ip}
 - 1분간 실패 횟수: {fail_count}회
 - 행동 패턴(JSON): {behavior_data}
 
@@ -99,7 +98,6 @@ def process_threat(ip, fail_count, challenge_id):
 agami 보안 위협 분석 보고서
 
 1. 위협 개요
-- 대상 IP: {ip}
 - 비정상 호출: 1분 내 {fail_count}회 캡챠 실패
 
 2. 이상 징후 분석
@@ -133,21 +131,20 @@ agami 보안 위협 분석 보고서
     # ==========================================
     # 4. 분석 결과를 이메일로 전송
     # ==========================================
-    send_alert_email(ip, fail_count, llm_analysis)
+    send_alert_email(fail_count, llm_analysis)
 
-def send_alert_email(ip, fail_count, analysis_content):
+def send_alert_email(fail_count, analysis_content):
     if not SMTP_EMAIL or not SMTP_PASSWORD:
         print("⚠️ 이메일 인증 정보가 설정되지 않아 메일을 발송할 수 없습니다.")
         return
 
     msg = MIMEMultipart()
-    msg['Subject'] = f"[agami 보안경보] 비정상 캡챠 트래픽 감지 (IP: {ip})"
+    msg['Subject'] = f"[agami 보안경보] 비정상 캡챠 트래픽 감지"
     msg['From'] = SMTP_EMAIL
     msg['To'] = TEAM_RECEIVER_EMAIL
     
     body = f"""
     <h2>agami Captcha 보안 위협 알림</h2>
-    <p><b>탐지된 IP:</b> {ip}</p>
     <p><b>단기 실패 횟수:</b> {fail_count}회</p>
     <hr>
     <h3>🤖 AI 에이전트 행동 분석 결과</h3>
@@ -162,7 +159,7 @@ def send_alert_email(ip, fail_count, analysis_content):
             server.starttls()
             server.login(SMTP_EMAIL, SMTP_PASSWORD)
             server.send_message(msg)
-        print(f"📧 팀 관리자에게 보안 경보 메일이 발송되었습니다! (IP: {ip})")
+        print(f"📧 팀 관리자에게 보안 경보 메일이 발송되었습니다!")
     except Exception as e:
         print(f"❌ 메일 발송 실패: {e}")
 
