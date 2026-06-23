@@ -345,6 +345,57 @@ body.dark-mode .btn-copy-action {
 }
 
 /* ---------------------------------------------------
+   💡 코드 스니펫 박스 (ProjectTest & ProjectDetail 공용)
+--------------------------------------------------- */
+.code-snippet-box {
+  background: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  margin-top: 8px;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f172a;
+  padding: 12px 20px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.btn-copy-code {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.btn-copy-code:hover { 
+  background: rgba(255, 255, 255, 0.2); 
+}
+
+.code-content {
+  margin: 0;
+  padding: 20px;
+  color: #e2e8f0;
+  font-family: 'JetBrains Mono', monospace, Consolas;
+  font-size: 0.95rem;
+  overflow-x: auto; 
+}
+
+.code-content code { 
+  white-space: pre-wrap; 
+  word-break: break-all; 
+}
+
+/* ---------------------------------------------------
    자체 알림창 (Alert & Confirm 커스텀 모달) 다크모드 대응
 --------------------------------------------------- */
 .custom-sys-modal-overlay {
@@ -448,7 +499,7 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
    ============================================================================= */
 @media (max-width: 900px) {
   .settings-page-wrapper {
-    padding: 0; /* 부모 컨테이너(MyPage)에서 패딩을 처리하므로 제거 */
+    padding: 0; 
   }
 
   .settings-container {
@@ -467,14 +518,12 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     font-size: 1.4rem;
   }
 
-  /* 삭제 버튼 폭 100% 확대 */
   .btn-delete-project {
     width: 100%;
     text-align: center;
     padding: 14px 0;
   }
 
-  /* 💡 도메인 폼과 닉네임 폼의 액션 버튼 레이아웃 제어 */
   .form-actions {
     flex-direction: column-reverse;
     width: 100%;
@@ -492,13 +541,11 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     width: 100%;
   }
 
-  /* 도메인 X 버튼 크기 보정 */
   .btn-remove-domain {
     width: 44px;
     height: 44px;
   }
 
-  /* 💡 구독 정보 박스 가로 나열을 세로(Column) 나열로 변경 */
   .plan-info-box {
     flex-direction: column;
     align-items: flex-start;
@@ -517,7 +564,6 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     margin-top: 4px;
   }
 
-  /* 💡 발급 키 (Site Key / Secret Key) 영역을 세로로 변경하여 찌그러짐 원천 차단 */
   .key-display-row {
     flex-direction: column;
     align-items: flex-start;
@@ -533,7 +579,7 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
   .key-display-value {
     width: 100%;
     font-size: 0.85rem;
-    white-space: pre-wrap; /* 모바일에서 정상적으로 줄바꿈 허용 */
+    white-space: pre-wrap; 
   }
 
   .btn-copy-action {
@@ -541,5 +587,24 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     text-align: center;
     padding: 12px 0 !important;
     margin-top: 4px;
+  }
+
+  /* 💡 모바일 코드 스니펫 보정 */
+  .code-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .btn-copy-code {
+    width: 100%;
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  .code-content {
+    padding: 16px;
+    font-size: 0.85rem;
   }
 }

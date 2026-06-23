@@ -77,7 +77,6 @@ const ProjectDetail = () => {
     } catch (error) { 
       console.error(error);
       const status = error.response?.status;
-      // DB 제약조건 위반(중복 도메인 등)으로 인한 에러 처리
       if (status === 400 || status === 409 || status === 500) {
         showAlert("이미 다른 곳에 등록된 도메인이거나 유효하지 않은 입력입니다.\n(중복된 도메인이 없는지 확인해 주세요.)");
       } else {
@@ -87,12 +86,34 @@ const ProjectDetail = () => {
     finally { setIsSubmitting(false); }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text, customMessage) => {
     navigator.clipboard.writeText(text);
-    showAlert("키가 클립보드에 복사되었습니다.");
+    showAlert(customMessage || "키가 클립보드에 복사되었습니다.");
   };
 
   if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
+
+  // 동적 가이드라인 코드 스니펫 생성
+  const integrationCode = `<script src="https://agami-captcha.cloud/widget/loader.js" async></script>
+
+<div class="agami-captcha"
+     data-sitekey="${project.site_key}"
+     data-kind="flashlight"
+     data-callback="onCaptchaToken"
+     data-error-callback="onCaptchaError"></div>
+
+<script>
+  function onCaptchaToken(token) {
+    // 챌린지 성공 시 발화됩니다. 이 token을 백엔드로 전송하세요.
+    console.log("Captcha Token:", token);
+    // 예: document.getElementById('captcha-token').value = token;
+  }
+  
+  function onCaptchaError(info) {
+    // 에러 발생 시 처리
+    console.error("Captcha Error:", info);
+  }
+</script>`;
 
   return (
     <div className="settings-page-wrapper">
@@ -151,9 +172,26 @@ const ProjectDetail = () => {
             </div>
           </div>
         </section>
+
+        <hr className="divider" />
+
+        {/* 💡 새로운 프론트엔드 연동 가이드 섹션 */}
+        <section className="settings-section">
+          <h2 className="section-label">프론트엔드 연동 가이드</h2>
+          <p className="settings-description">아래 코드를 복사하여 웹사이트의 HTML에 붙여넣기만 하면 캡챠 위젯이 즉시 활성화됩니다.</p>
+          
+          <div className="code-snippet-box">
+            <div className="code-header">
+              <span>HTML 연동 예시 (Implicit 방식)</span>
+              <button className="btn-copy-code" onClick={() => copyToClipboard(integrationCode, "연동 코드가 클립보드에 복사되었습니다.")}>코드 복사</button>
+            </div>
+            <pre className="code-content">
+              <code>{integrationCode}</code>
+            </pre>
+          </div>
+        </section>
       </div>
 
-      {/* 모달 영역 추가 */}
       {alertModal.show && (
         <div className="custom-sys-modal-overlay" onClick={closeAlert}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
@@ -165,7 +203,6 @@ const ProjectDetail = () => {
         </div>
       )}
 
-      {/* 확인 모달 */}
       {confirmModal.show && (
         <div className="custom-sys-modal-overlay" onClick={closeConfirm}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
