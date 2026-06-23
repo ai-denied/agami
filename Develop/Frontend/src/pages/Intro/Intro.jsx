@@ -103,7 +103,7 @@ const Intro = () => {
         <Scrollbar className="main-content">
           <div className="intro-sections-wrapper">
             
-            {/* 💡 1. 서비스 소개 및 MLOps 섹션 */}
+            {/* 1. 서비스 소개 및 MLOps / AI 모델링 섹션 */}
             <section 
               id="intro"
               ref={(el) => (sectionRefs.current['intro'] = el)}
@@ -113,6 +113,19 @@ const Intro = () => {
               <p className="content-desc">
                 <strong>agami(아가미)</strong>는 악성 봇(Bot)의 접근은 완벽하게 차단하고, 실제 사용자에겐 끊김 없는 경험을 제공하는 차세대 지능형 캡챠(CAPTCHA) 서비스입니다. 기존의 번거로운 이미지 찾기나 텍스트 입력 방식을 탈피하여, 마우스 움직임, 표정, 상황 인지 등 사용자의 자연스러운 행동 패턴을 AI가 실시간으로 분석해 인증을 수행합니다.
               </p>
+
+              <div className="sub-section">
+                <h3 className="sub-title">지능형 캡챠 AI 모델링</h3>
+                <p className="content-desc">
+                  agami의 핵심 경쟁력은 사용자의 행동과 생체 데이터를 정밀하게 분석하여 봇(Bot)을 식별하는 독자적인 AI 모델에 있습니다. 손전등 캡챠는 마우스의 이동 좌표, 속도, 방향 등의 시계열 데이터를 <strong>GRU(Gated Recurrent Unit)</strong> 모델로 분석하여 사람 특유의 자연스러운 움직임을 판별합니다. 안면 인식 캡챠는 MediaPipe와 OpenCV를 활용해 얼굴 랜드마크와 프레임별 미세한 변화를 추적하며, 사진이나 영상을 통한 위조 공격을 방어하는 라이브니스(Liveness) 검증을 수행합니다.
+                </p>
+                <p className="content-desc">
+                  특히 감정 추론 캡챠의 경우, 보안성을 극대화하기 위해 자체적인 <strong>'AI 공격 시뮬레이션'</strong>을 도입했습니다. ResNet-18 및 최신 비전 언어 모델(Qwen2.5-VL)을 활용해 7,700여 개의 캡챠 문제를 직접 풀게 한 뒤, AI가 쉽게 정답을 맞히는 취약한 문제들은 자동으로 걸러냅니다. 이를 통해 '사람에게는 직관적이고 쉽지만, AI에게는 매우 어려운' 최적의 문제들만 선별하여 최종 문제은행을 구축했습니다.
+                </p>
+                <p className="content-desc">
+                  이러한 행동 분석, 얼굴 라이브니스, 상황 추론 모델의 학습 및 대규모 검증은 PyTorch 프레임워크와 NVIDIA T4 GPU 기반의 CUDA 환경에서 수행되어 가장 견고한 캡챠 시스템을 완성했습니다.
+                </p>
+              </div>
 
               <div className="sub-section">
                 <h3 className="sub-title">Agami MLOps 파이프라인</h3>
@@ -126,16 +139,9 @@ const Intro = () => {
                   <span>[MLOps 파이프라인 아키텍처 다이어그램]</span>
                 </div>
               </div>
-
-              <div className="sub-section">
-                <h3 className="sub-title">AI 모델링 (업데이트 예정)</h3>
-                <p className="content-desc" style={{ fontStyle: "italic", opacity: 0.7 }}>
-                  모델링 프로세스 및 성능 지표에 대한 상세 내용은 추후 업데이트될 예정입니다.
-                </p>
-              </div>
             </section>
 
-            {/* 💡 2. 캡챠 종류 설명 섹션 */}
+            {/* 2. 캡챠 종류 설명 섹션 */}
             {CAPTCHA_TYPES.map((type) => (
               <section 
                 key={type.id} 
