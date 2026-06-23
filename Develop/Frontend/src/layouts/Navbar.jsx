@@ -2,15 +2,35 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
+import { motion } from "framer-motion";
 import "./Navbar.css";
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
 const Navbar = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
+  
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 💡 첫 접속 여부 및 모바일 환경 체크 (애니메이션 분기용)
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 900);
+    window.addEventListener("resize", handleResize);
+
+    const hasVisited = sessionStorage.getItem("hasVisitedAgami");
+    // 메인 홈("/")에 처음 접속했을 때만 애니메이션 활성화
+    if (!hasVisited && location.pathname === "/") {
+      setIsFirstVisit(true);
+    } else {
+      setIsFirstVisit(false);
+    }
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [location.pathname]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -38,8 +58,16 @@ const Navbar = () => {
     window.location.href = "/"; 
   };
 
+  // PC 환경이면서 첫 접속일 때만 애니메이션 적용
+  const shouldAnimate = isFirstVisit && !isMobile;
+
   return (
-    <nav className="menu-bar">
+    <motion.nav 
+      className="menu-bar"
+      initial={shouldAnimate ? { y: -100, opacity: 0 } : { y: 0, opacity: 1 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={shouldAnimate ? { delay: 3.5, duration: 1.5, ease: [0.4, 0, 0.2, 1] } : { duration: 0 }}
+    >
       <div className="nav-container">
         <div className="nav-group left">
           <button className="home-logo-btn" onClick={() => navigate("/")}>
@@ -66,7 +94,6 @@ const Navbar = () => {
           </div>
           {user ? (
             <div className="user-profile-wrapper">
-              {/* 💡 모바일 환경에서는 이 영역이 CSS를 통해 자동 숨김 처리됩니다. */}
               <div className="user-profile-info">
                 {user.profile && <img src={user.profile} alt="profile" className="nav-profile-img" onError={(e) => { e.target.style.display = 'none'; }} />}
                 <span className="nav-nickname"><strong>{user.nickname}</strong> 님</span>
@@ -78,7 +105,7 @@ const Navbar = () => {
           )}
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 };
 

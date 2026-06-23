@@ -35,6 +35,7 @@ body.dark-mode {
   padding: 0 10px; 
   box-sizing: border-box;
   transition: background 0.3s ease;
+  will-change: transform, opacity; /* 💡 부드러운 드롭다운 애니메이션을 위한 하드웨어 가속 */
 }
 
 .nav-container {
@@ -196,18 +197,15 @@ body.dark-mode {
    [핵심] 모바일 전용 반응형 레이아웃 (900px 이하)
    ============================================================================= */
 @media (max-width: 900px) {
-  /* 네비게이션바 두께를 65px -> 55px로 축소 */
   .menu-bar {
     height: 55px; 
     padding: 0 5px;
   }
 
-  /* 로고 크기 축소 */
   .home-logo-btn img {
     width: 32px; 
   }
 
-  /* 메뉴 폰트 및 여백 축소 */
   .menu-bar .nav-container .nav-item {
     font-size: 13px; 
     padding: 0 10px; 
@@ -218,12 +216,10 @@ body.dark-mode {
     margin-left: 0;
   }
 
-  /* 💡 유저 프로필 이미지와 이름 모바일 숨김 처리 */
   .user-profile-info {
     display: none !important;
   }
 
-  /* 테마 토글 스위치 모바일 비율 축소 */
   .theme-switch {
     width: 56px;
     height: 28px;
