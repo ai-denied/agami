@@ -14,11 +14,6 @@ body.dark-mode {
   --switch-bg: #333;
 }
 
-.menu-bar .nav-container .nav-item {
-  font-size: 16px; 
-  font-weight: 500;
-}
-
 .menu-bar {
   position: fixed;
   top: 0;
@@ -35,7 +30,7 @@ body.dark-mode {
   padding: 0 10px; 
   box-sizing: border-box;
   transition: background 0.3s ease;
-  will-change: transform, opacity; /* 💡 부드러운 드롭다운 애니메이션을 위한 하드웨어 가속 */
+  will-change: transform, opacity;
 }
 
 .nav-container {
@@ -80,18 +75,9 @@ body.dark-mode {
   background: rgba(93, 162, 255, 0.08); 
 }
 
-.login-btn {
-  color: var(--main-blue);
-}
-
-.logout-btn {
-  color: var(--text-color);
-}
-
-.logout-btn:hover {
-  color: red;
-  background: none;
-}
+.login-btn { color: var(--main-blue); }
+.logout-btn { color: var(--text-color); }
+.logout-btn:hover { color: red; background: none; }
 
 .home-logo-btn {
   background: none;
@@ -135,13 +121,8 @@ body.dark-mode {
   text-align: center;
 }
 
-.label-light {
-  right: 4px;
-}
-
-.label-dark {
-  left: 4px;
-}
+.label-light { right: 4px; }
+.label-dark { left: 4px; }
 
 .switch-handle {
   width: 26px;
@@ -156,13 +137,9 @@ body.dark-mode {
   z-index: 2; 
 }
 
-.theme-switch.active .switch-handle {
-  transform: translateX(36px);
-}
-
+.theme-switch.active .switch-handle { transform: translateX(36px); }
 .theme-switch.active .label-light { opacity: 0; }
 .theme-switch.active .label-dark { opacity: 1; }
-
 .theme-switch:not(.active) .label-light { opacity: 1; }
 .theme-switch:not(.active) .label-dark { opacity: 0; }
 
@@ -193,52 +170,14 @@ body.dark-mode {
   letter-spacing: 0.5px;
 }
 
-/* =============================================================================
-   [핵심] 모바일 전용 반응형 레이아웃 (900px 이하)
-   ============================================================================= */
 @media (max-width: 900px) {
-  .menu-bar {
-    height: 55px; 
-    padding: 0 5px;
-  }
-
-  .home-logo-btn img {
-    width: 32px; 
-  }
-
-  .menu-bar .nav-container .nav-item {
-    font-size: 13px; 
-    padding: 0 10px; 
-    letter-spacing: 0.5px;
-  }
-
-  .nav-links {
-    margin-left: 0;
-  }
-
-  .user-profile-info {
-    display: none !important;
-  }
-
-  .theme-switch {
-    width: 56px;
-    height: 28px;
-    margin-right: 5px;
-  }
-
-  .switch-handle {
-    width: 20px;
-    height: 20px;
-    top: 4px;
-    left: 4px;
-  }
-
-  .theme-switch.active .switch-handle {
-    transform: translateX(28px);
-  }
-
-  .label-light, .label-dark {
-    font-size: 9px;
-    width: 25px;
-  }
+  .menu-bar { height: 55px; padding: 0 5px; }
+  .home-logo-btn img { width: 32px; }
+  .menu-bar .nav-container .nav-item { font-size: 13px; padding: 0 10px; }
+  .nav-links { margin-left: 0; }
+  .user-profile-info { display: none !important; }
+  .theme-switch { width: 56px; height: 28px; margin-right: 5px; }
+  .switch-handle { width: 20px; height: 20px; top: 4px; left: 4px; }
+  .theme-switch.active .switch-handle { transform: translateX(28px); }
+  .label-light, .label-dark { font-size: 9px; width: 25px; }
 }
