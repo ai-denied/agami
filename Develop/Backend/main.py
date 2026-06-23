@@ -24,9 +24,17 @@ logger = logging.getLogger(__name__)
 # --- 유틸리티 함수 ---
 def normalize_domain(domain: str) -> str:
     domain = domain.strip()
-    if not domain.startswith("http://") and not domain.startswith("https://"):
-        return f"https://{domain}"
-    return domain
+    
+    # 1. 이미 http:// 또는 https:// 가 명시되어 있다면 그대로 반환합니다.
+    if domain.startswith("http://") or domain.startswith("https://"):
+        return domain
+    
+    # 2. 로컬 테스트 환경(localhost, 127.0.0.1)인 경우 http:// 를 기본으로 적용합니다.
+    if "localhost" in domain or "127.0.0.1" in domain:
+        return f"http://{domain}"
+    
+    # 3. 그 외의 상용 도메인은 https:// 를 기본으로 적용합니다.
+    return f"https://{domain}"
 
 class ProjectCreate(BaseModel):
     name: str
