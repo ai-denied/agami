@@ -4,15 +4,24 @@ import Scrollbar from "@/components/Scrollbar/Scrollbar";
 import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
 import './Intro.css';
 
+// 💡 전체 사이드바 메뉴 목차
+const MENU_ITEMS = [
+  { id: 'intro', title: '서비스 소개' },
+  { id: 'handlight', title: '손전등 캡챠' },
+  { id: 'face', title: '안면 인식 캡챠' },
+  { id: 'emotion', title: '감정 추론 캡챠' },
+];
+
+// 캡챠 상세 데이터
 const CAPTCHA_TYPES = [
-  { id: 'handlight', title: '손전등 캡챠', desc: '손전등의 빛을 조절하여 특정 영역을 맞추는 보안 검증 방식입니다.' },
-  { id: 'face', title: '안면 인식 캡챠', desc: '사용자의 얼굴 형태를 인식하여 실사용자인지 확인합니다.' },
-  { id: 'emotion', title: '감정 추론 캡챠', desc: '표정을 통해 나타나는 감정을 분석하여 인증을 완료합니다.' },
+  { id: 'handlight', title: '손전등 캡챠', desc: '어둠 속에 숨겨진 물건을 손전등 불빛으로 찾아내는 방식입니다. 마우스의 이동 궤적, 클릭 패턴 등을 분석하여 사람의 자연스러운 움직임인지 판별합니다.' },
+  { id: 'face', title: '안면 인식 캡챠', desc: '사용자의 얼굴 형태를 인식하여 실사용자인지 확인합니다. 단순한 이미지가 아닌 3D 라이브니스(Liveness)를 분석하여 우회 공격을 방어합니다.' },
+  { id: 'emotion', title: '감정 추론 캡챠', desc: '주어진 상황(Context)에 맞는 적절한 표정을 지어 인증을 완료하는 고도화된 방식입니다. 감정 분석 AI가 사용자의 표정 변화를 실시간으로 추론합니다.' },
 ];
 
 const Intro = () => {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState(CAPTCHA_TYPES[0].id);
+  const [activeSection, setActiveSection] = useState(MENU_ITEMS[0].id);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const sectionRefs = useRef({});
@@ -35,8 +44,8 @@ const Intro = () => {
       }
     );
 
-    CAPTCHA_TYPES.forEach(type => {
-      const el = sectionRefs.current[type.id];
+    MENU_ITEMS.forEach(item => {
+      const el = sectionRefs.current[item.id];
       if (el) observer.observe(el);
     });
 
@@ -75,17 +84,17 @@ const Intro = () => {
 
         <nav className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-header-mobile">
-            <h3>캡챠 종류</h3>
+            <h3>목차</h3>
             <button className="mobile-sidebar-close" onClick={() => setIsSidebarOpen(false)}>✕</button>
           </div>
           <ul>
-            {CAPTCHA_TYPES.map((type) => (
+            {MENU_ITEMS.map((item) => (
               <li 
-                key={type.id} 
-                className={activeSection === type.id ? 'active' : ''}
-                onClick={() => scrollToSection(type.id)}
+                key={item.id} 
+                className={activeSection === item.id ? 'active' : ''}
+                onClick={() => scrollToSection(item.id)}
               >
-                {type.title}
+                {item.title}
               </li>
             ))}
           </ul>
@@ -93,6 +102,40 @@ const Intro = () => {
 
         <Scrollbar className="main-content">
           <div className="intro-sections-wrapper">
+            
+            {/* 💡 1. 서비스 소개 및 MLOps 섹션 */}
+            <section 
+              id="intro"
+              ref={(el) => (sectionRefs.current['intro'] = el)}
+              className="captcha-description"
+            >
+              <h2 className="content-title">서비스 소개</h2>
+              <p className="content-desc">
+                <strong>agami(아가미)</strong>는 악성 봇(Bot)의 접근은 완벽하게 차단하고, 실제 사용자에겐 끊김 없는 경험을 제공하는 차세대 지능형 캡챠(CAPTCHA) 서비스입니다. 기존의 번거로운 이미지 찾기나 텍스트 입력 방식을 탈피하여, 마우스 움직임, 표정, 상황 인지 등 사용자의 자연스러운 행동 패턴을 AI가 실시간으로 분석해 인증을 수행합니다.
+              </p>
+
+              <div className="sub-section">
+                <h3 className="sub-title">Agami MLOps 파이프라인</h3>
+                <p className="content-desc">
+                  Agami MLOps는 마우스 제스처 기반 봇 탐지, 얼굴 라이브니스 인식, 컨텍스트 감정 인식 등 다양한 AI 모델을 안정적으로 운영하기 위한 머신러닝 파이프라인입니다. 수집된 원시 데이터는 먼저 검증 단계를 거쳐 결측치나 이상치 같은 품질 문제를 점검하고, 이후 모델이 학습할 수 있는 형태로 피처를 추출하고 정규화하는 전처리 과정을 거칩니다. 정제된 데이터로 모델을 학습시킨 뒤에는 정확도, 오탐률 등 다양한 지표로 성능을 평가하며, 이 평가를 통과한 모델만 다음 단계로 넘어갈 수 있습니다.
+                </p>
+                <p className="content-desc">
+                  평가를 마친 신규 모델은 곧바로 운영에 반영되지 않고, 현재 서비스 중인 모델과 성능을 비교하여 더 나은 경우에만 정식 모델로 승격됩니다. 승격이 확정되면 모델은 가볍고 빠른 추론에 적합한 형태로 변환되어 자동으로 빌드되고, 쿠버네티스 클러스터에 배포되어 실시간 API 서버를 통해 서비스에 적용됩니다. 이처럼 데이터 검증부터 전처리, 학습, 평가, 모델 승격, 빌드·배포까지 모든 과정이 자동화된 파이프라인으로 연결되어 있어, 사람의 개입을 최소화하면서도 안정적이고 신뢰할 수 있는 AI 서비스 운영이 가능합니다.
+                </p>
+                <div className="intro-image-placeholder">
+                  <span>[MLOps 파이프라인 아키텍처 다이어그램]</span>
+                </div>
+              </div>
+
+              <div className="sub-section">
+                <h3 className="sub-title">AI 모델링 (업데이트 예정)</h3>
+                <p className="content-desc" style={{ fontStyle: "italic", opacity: 0.7 }}>
+                  모델링 프로세스 및 성능 지표에 대한 상세 내용은 추후 업데이트될 예정입니다.
+                </p>
+              </div>
+            </section>
+
+            {/* 💡 2. 캡챠 종류 설명 섹션 */}
             {CAPTCHA_TYPES.map((type) => (
               <section 
                 key={type.id} 
@@ -115,7 +158,6 @@ const Intro = () => {
               </section>
             ))}
 
-            {/* 💡 모든 캡챠 설명이 끝난 최하단에 시작하기 버튼을 배치합니다. */}
             <div className="intro-footer-action">
               <BubbleBtn variant="fill" onClick={() => navigate("/price")}>
                 시작하기

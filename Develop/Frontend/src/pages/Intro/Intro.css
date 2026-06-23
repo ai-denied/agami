@@ -110,7 +110,7 @@ body.dark-mode .sidebar li:hover {
 
 .content-title { 
   font-size: 1.8rem; 
-  margin-bottom: 10px; 
+  margin-bottom: 15px; 
   color: #1d2a44; 
   font-weight: 800;
 }
@@ -119,15 +119,37 @@ body.dark-mode .content-title {
   color: #e2e8f0;
 }
 
+/* 💡 추가된 서브 타이틀 및 섹션 여백 */
+.sub-section {
+  margin-top: 40px;
+}
+
+.sub-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1d2a44;
+  margin-bottom: 12px;
+}
+
+body.dark-mode .sub-title {
+  color: #e2e8f0;
+}
+
 .content-desc { 
-  font-size: 1.1rem; 
-  margin-bottom: 30px; 
+  font-size: 1.05rem; 
+  margin-bottom: 24px; 
   color: #6b7891; 
-  line-height: 1.6;
+  line-height: 1.7;
+  word-break: keep-all;
 }
 
 body.dark-mode .content-desc {
   color: #a0aec0;
+}
+
+.content-desc strong {
+  color: #5da2ff;
+  font-weight: 800;
 }
 
 .intro-image-placeholder {
@@ -141,6 +163,7 @@ body.dark-mode .content-desc {
   border: 1px solid #e0e7f3;
   color: #6b7891;
   font-weight: bold;
+  margin-top: 20px;
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
@@ -150,7 +173,6 @@ body.dark-mode .intro-image-placeholder {
   color: #94a3b8;
 }
 
-/* 💡 하단 시작하기 버튼 영역 */
 .intro-footer-action {
   width: 100%;
   max-width: 800px;
@@ -186,7 +208,6 @@ body.dark-mode .intro-footer-action {
    ============================================================================= */
 @media (max-width: 900px) {
   
-  /* 💡 모바일 환경: 버블 버튼의 모든 호버 애니메이션 및 상승 이펙트 무력화 */
   .bubble-btn-shared:hover {
     transform: none !important;
   }
@@ -201,7 +222,6 @@ body.dark-mode .intro-footer-action {
     bottom: -100% !important;
   }
 
-  /* 사이드바 토글 및 오버레이 */
   .mobile-sidebar-toggle {
     display: flex;
     position: fixed;
@@ -313,7 +333,6 @@ body.dark-mode .intro-footer-action {
     box-shadow: none !important; 
   }
 
-  /* 메인 콘텐츠 및 텍스트 렌더링 최적화 */
   .main-content {
     padding: 100px 20px 40px 20px; 
   }
@@ -326,9 +345,13 @@ body.dark-mode .intro-footer-action {
   .content-title {
     font-size: 1.5rem !important;
   }
+
+  .sub-title {
+    font-size: 1.15rem !important;
+  }
   
   .content-desc {
-    font-size: 1rem !important;
+    font-size: 0.95rem !important;
   }
   
   .intro-image-placeholder {
@@ -336,14 +359,13 @@ body.dark-mode .intro-footer-action {
     font-size: 0.9rem;
   }
 
-  /* 모바일 하단 버튼 비율 교정 */
   .intro-footer-action {
     margin-top: 60px;
     padding-top: 40px;
   }
 
   .intro-footer-action .bubble-btn-shared {
-    width: 100%; /* 모바일에서는 터치 영역을 확보하기 위해 넓게 배치 */
+    width: 100%;
     padding: 16px 0;
   }
 }
