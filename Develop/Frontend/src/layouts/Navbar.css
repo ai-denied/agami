@@ -14,6 +14,11 @@ body.dark-mode {
   --switch-bg: #333;
 }
 
+.menu-bar .nav-container .nav-item {
+  font-size: 18px; /* 💡 16px -> 18px로 폰트 사이즈 복구/상향 */
+  font-weight: 500;
+}
+
 .menu-bar {
   position: fixed;
   top: 0;
