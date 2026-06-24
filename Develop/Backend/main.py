@@ -235,6 +235,11 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     domain_list = list(set([normalize_domain(d) for d in data.domains.split(",") if d.strip()]))
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
+    
+    # 💡 [추가] 사용자의 입력과 무관하게 기본 도메인을 리스트에 강제 삽입
+    default_domain = "https://agami-captcha.cloud"
+    if default_domain not in domain_list:
+        domain_list.append(default_domain)
 
     # [정석 수정] 현재 회원의 tenant_id를 먼저 찾습니다.
     tenant_id_record = captcha_db.execute(
@@ -245,6 +250,9 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     if tenant_id_record:
         tenant_id_str = str(tenant_id_record)
         for domain in domain_list:
+            if domain == default_domain:
+                continue
+
             # 글로벌(전체) 검사가 아닌, '내 계정(tenant)'에 이 도메인이 있는지 검사
             existing_origin = captcha_db.execute(
                 text("""
@@ -385,6 +393,11 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
     domain_list = list(set([normalize_domain(d) for d in data.domains.split(",") if d.strip()]))
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
+    
+    # 💡 [추가] 수정 시에도 기본 도메인이 삭제되지 않도록 강제 유지
+    default_domain = "https://agami-captcha.cloud"
+    if default_domain not in domain_list:
+        domain_list.append(default_domain)
 
     api_key_id_record = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": project.site_key}).scalar()
     
@@ -393,6 +406,9 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
         if tenant_id_record:
             tenant_id_str = str(tenant_id_record)
             for domain in domain_list:
+                if domain == default_domain:
+                    continue
+                
                 # [정석 수정] 업데이트 시에도 '내 계정'의 도메인만 중복 검사
                 existing_origin = captcha_db.execute(
                     text("""
@@ -586,7 +602,7 @@ async def get_combined_dashboard_data(
 
     # [3] 세션 로그 (JOIN)
     logs_query = f"""
-        SELECT v.requester_ip, v.attack_type, v.verdict, v.confidence 
+        SELECT TO_CHAR(v.created_at, 'HH24:MI:SS'), v.attack_type, v.verdict, v.confidence 
         FROM verifications v 
         JOIN challenges c ON v.challenge_id = c.id 
         WHERE c.api_key_id = :api_key_id {kind_filter_v} {date_filter_v} 
@@ -596,7 +612,7 @@ async def get_combined_dashboard_data(
     
     logs_list = []
     for row in logs:
-        ip = row[0] or "Unknown IP"
+        log_time = row[0] or "00:00:00" # 💡 ip 대신 시간
         a_type = row[1]
         verdict = row[2]
         conf = row[3] or 0.0
@@ -605,7 +621,7 @@ async def get_combined_dashboard_data(
         risk_band = "high_risk" if verdict == "bot" else "low_risk"
         
         logs_list.append({
-            "ip": ip,
+            "time": log_time, # 💡 프론트엔드로 time 전달
             "reason": reason,
             "score": f"{conf:.2f}",
             "risk_band": risk_band

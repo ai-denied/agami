@@ -77,7 +77,6 @@ export default function Dashboard() {
 
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
-  // --- 추가: 인수인계서 기반 주요 우회 공격 유형 라벨 매핑 및 필터링 ---
   const ATTACK_TYPE_MAP = {
     'model_high_risk': 'AI 탐지 (위험 점수)',
     'no_trajectory': '궤적 자체 누락',
@@ -91,9 +90,7 @@ export default function Dashboard() {
 
   const processedAttacks = (attacks || [])
     .filter(attack => {
-      // 값이 0인 항목 제외 (대시보드 빈 항목 방지)
       if (attack.value === 0) return false;
-      // 미구현된 옛 계획 라벨(velocity_anomaly 등) 제외
       if (typeof attack.name === 'string' && /^[a-z_]+$/.test(attack.name) && !validAttackKeys.includes(attack.name)) {
         return false;
       }
@@ -104,7 +101,6 @@ export default function Dashboard() {
       name: ATTACK_TYPE_MAP[attack.name] || attack.name
     }))
     .sort((a, b) => b.value - a.value);
-  // -------------------------------------------------------------
 
   return (
     <div className="dashboard-container">
@@ -112,7 +108,6 @@ export default function Dashboard() {
         <div className="content-body">
           <section className="dashboard-header-block">
             <div className="welcome-section">
-              {/* 💡 모바일 환경에서만 동작하는 강제 줄바꿈 클래스 적용 */}
               <h2>
                 안녕하세요, {user.nickname}님!
                 <br className="mobile-break" /> 안전한 환경을 유지 중입니다
@@ -147,7 +142,6 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* 💡 PC 전용 탭 컨테이너 */}
               <div className="model-tab-container pc-tabs">
                 <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
                 <button className={`tab-btn ${activeModel === 'flashlight' ? 'active' : ''}`} onClick={() => setActiveModel('flashlight')}>손전등</button>
@@ -155,7 +149,6 @@ export default function Dashboard() {
                 <button className={`tab-btn ${activeModel === 'emotion' ? 'active' : ''}`} onClick={() => setActiveModel('emotion')}>감정 기반</button>
               </div>
 
-              {/* 💡 모바일 전용 네이티브 드롭다운 컨테이너 */}
               <div className="model-tab-container mobile-select-container">
                 <select 
                   className="mobile-model-select" 
@@ -202,7 +195,7 @@ export default function Dashboard() {
                       <YAxis allowDecimals={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)' }} />
                       <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '5px' }}/>
-                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={2} dot={false} name="정상 요청" isAnimationActive={false} strokeOpacity={0.8} />
+                      <Line type="monotone" dataKey="success" stroke="#5da2ff" strokeWidth={2} dot={false} name="정상 요청" isAnimationActive={true} strokeOpacity={0.8} />
                     </LineChart>
                   </ResponsiveContainer>
                   
@@ -213,7 +206,7 @@ export default function Dashboard() {
                       <YAxis allowDecimals={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)' }} />
                       <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '5px' }}/>
-                      <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={2} dot={false} name="차단된 공격" isAnimationActive={false} strokeOpacity={0.8} />
+                      <Line type="monotone" dataKey="attack" stroke="#ff7675" strokeWidth={2} dot={false} name="차단된 공격" isAnimationActive={true} strokeOpacity={0.8} />
                     </LineChart>
                   </ResponsiveContainer>
 
@@ -224,7 +217,7 @@ export default function Dashboard() {
                       <YAxis allowDecimals={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color)' }} />
                       <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '5px' }}/>
-                      <Line type="monotone" dataKey="abandoned" stroke="#94a3b8" strokeWidth={2} dot={false} name="중도 이탈" isAnimationActive={false} strokeOpacity={0.8} />
+                      <Line type="monotone" dataKey="abandoned" stroke="#94a3b8" strokeWidth={2} dot={false} name="중도 이탈" isAnimationActive={true} strokeOpacity={0.8} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -245,7 +238,7 @@ export default function Dashboard() {
                             dataKey="value" 
                             startAngle={90} 
                             endAngle={-270}
-                            isAnimationActive={false} 
+                            isAnimationActive={true} 
                           >
                             <Cell fill="var(--brand-color)" />
                             <Cell fill="var(--danger-color)" />
@@ -301,7 +294,10 @@ export default function Dashboard() {
 
                       return (
                         <div key={idx} className={`log-item ${logClass}`}>
-                          {/* IP 출력 부분 삭제 */}
+                          {/* 💡 IP 대신 시간(Time) 출력 */}
+                          <span className="log-time" style={{ fontFamily: 'monospace', fontWeight: 700, width: '80px', flexShrink: 0 }}>
+                            {log.time}
+                          </span>
                           <span className="log-reason">{ATTACK_TYPE_MAP[log.reason] || log.reason}</span>
                           <span className="risk-score">{log.score}</span>
                         </div>
@@ -344,7 +340,7 @@ export default function Dashboard() {
                           radius={[6, 6, 6, 6]}
                           barSize={10}
                           name="감지 건수"
-                          isAnimationActive={false}
+                          isAnimationActive={true}
                         />
                       </BarChart>
                     </ResponsiveContainer>
