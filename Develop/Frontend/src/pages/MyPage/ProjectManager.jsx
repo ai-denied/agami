@@ -158,7 +158,7 @@ const ProjectManager = () => {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>프로젝트 이름</label>
-                <input type="text" className="clean-input" value={name} onChange={e => setName(e.target.value)} placeholder="예: My Shop" required />
+                <input type="text" className="clean-input" value={name} onChange={e => setName(e.target.value)} placeholder="예: example" required />
               </div>
               <div className="form-group">
                 <label>등록 도메인</label>
