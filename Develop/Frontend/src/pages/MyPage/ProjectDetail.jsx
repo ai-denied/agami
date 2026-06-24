@@ -89,15 +89,12 @@ const ProjectDetail = () => {
     showAlert(customMessage || "키가 클립보드에 복사되었습니다.");
   };
 
-  // 💡 시크릿 키 마스킹 처리 함수 (agami_secret_ 이후를 전부 점으로 표시)
-  const renderMaskedSecretKey = (secretKey) => {
-    if (!secretKey) return "";
-    const prefix = "agami_secret_";
-    const maskLength = 32; // 가려질 길이
-    return prefix + "•".repeat(maskLength);
-  };
-
   if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
+
+  // 💡 Secret Key 마스킹 헬퍼 함수
+  const renderMaskedSecret = (key) => {
+    return key ? `agami_secret_${"•".repeat(32)}` : "";
+  };
 
   const integrationCode = `<script src="https://agami-captcha.cloud/widget/loader.js" async></script>
 
@@ -184,12 +181,9 @@ const ProjectDetail = () => {
             
             <div className="key-display-row">
               <span className="key-display-label">Secret Key</span>
-              {/* 💡 시크릿 키는 마스킹 처리되어 화면에 표시됩니다 */}
-              <span className="key-display-value" style={{ letterSpacing: "1px" }}>
-                {renderMaskedSecretKey(project.secret_key)}
-              </span>
-              {/* 💡 클립보드 복사는 원본 데이터가 그대로 들어갑니다 */}
-              <button className="btn-copy-action" onClick={() => copyToClipboard(project.secret_key, "시크릿 키가 클립보드에 복사되었습니다.")}>복사</button>
+              {/* 💡 화면에는 마스킹된 텍스트를 출력하지만, 복사 버튼에는 실제 secret_key(원본)를 넘깁니다. */}
+              <span className="key-display-value" style={{ letterSpacing: "1px" }}>{renderMaskedSecret(project.secret_key)}</span>
+              <button className="btn-copy-action" onClick={() => copyToClipboard(project.secret_key)}>복사</button>
             </div>
           </div>
         </section>

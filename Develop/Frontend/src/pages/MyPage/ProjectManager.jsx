@@ -12,7 +12,6 @@ const ProjectManager = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const navigate = useNavigate();
 
-  // 커스텀 모달 상태 관리
   const [alertModal, setAlertModal] = useState({ show: false, message: "" });
   const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
 
@@ -82,6 +81,11 @@ const ProjectManager = () => {
     navigator.clipboard.writeText(text).then(() => showAlert("키가 복사되었습니다."));
   };
 
+  // 💡 Secret Key 마스킹 헬퍼 함수
+  const renderMaskedSecret = (key) => {
+    return key ? `agami_secret_${"•".repeat(32)}` : "";
+  };
+
   return (
     <div className="pm-wrapper">
       <div className="pm-container">
@@ -102,14 +106,12 @@ const ProjectManager = () => {
             projects.map((project) => (
               <div key={project.id} className="project-card" onClick={() => navigate(`/mypage/projects/${project.id}/info`)}>
                 
-                {/* 💡 카드 헤더 영역 교정 (타이틀, 사용량, 삭제 아이콘) */}
                 <div className="card-header">
                   <div className="card-header-info">
                     <h2 className="project-name">{project.name}</h2>
                     <span className="project-usage">이번 달 사용량: {project.total_usage || 0}회</span>
                   </div>
                   
-                  {/* 💡 쓰레기통 아이콘으로 교체된 삭제 버튼 */}
                   <button 
                     className="btn-delete-project icon-delete" 
                     onClick={(e) => { 
@@ -141,7 +143,8 @@ const ProjectManager = () => {
 
                 <div className="key-row">
                   <span className="key-label">Secret Key</span>
-                  <span className="key-value">{project.secret_key}</span>
+                  {/* 💡 화면에는 마스킹된 텍스트를 출력하지만, 복사 버튼에는 실제 secret_key(원본)를 넘깁니다. */}
+                  <span className="key-value" style={{ letterSpacing: "1px" }}>{renderMaskedSecret(project.secret_key)}</span>
                   <button className="btn-copy-main" onClick={(e) => { e.stopPropagation(); copyToClipboard(project.secret_key); }}>복사</button>
                 </div>
 
@@ -181,7 +184,6 @@ const ProjectManager = () => {
         </div>
       )}
 
-      {/* 자체 Alert 모달 */}
       {alertModal.show && (
         <div className="custom-sys-modal-overlay" onClick={closeAlert}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
@@ -193,7 +195,6 @@ const ProjectManager = () => {
         </div>
       )}
 
-      {/* 자체 Confirm 모달 */}
       {confirmModal.show && (
         <div className="custom-sys-modal-overlay" onClick={closeConfirm}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
