@@ -96,11 +96,24 @@ const ProjectTest = () => {
     const endpoint = "https://agami-captcha.cloud/captcha/v1/siteverify";
 
     if (platform === "linux") {
-      return `curl -X POST ${endpoint} \\\n  -H "Content-Type: application/json" \\\n  -H "X-Captcha-Client-Key: ${secret}" \\\n  -d '{\n    "captcha_token": "${currentToken}"\n  }'`;
+      return `curl -X POST ${endpoint} \\
+      -H "Content-Type: application/json" \\
+      -d '{
+        "secret": "${secret}",
+        "token": "${currentToken}"
+      }'`;
     } else if (platform === "windows") {
-      return `curl -X POST ${endpoint} ^\n  -H "Content-Type: application/json" ^\n  -H "X-Captcha-Client-Key: ${secret}" ^\n  -d "{\\"captcha_token\\": \\"${currentToken}\\"}"`;
+      return `curl -X POST ${endpoint} ^
+      -H "Content-Type: application/json" ^
+      -d "{\\"secret\\": \\"${secret}\\", \\"token\\": \\"${currentToken}\\"}"`;
     } else {
-      return `Invoke-RestMethod -Uri "${endpoint}" \`\n  -Method Post \`\n  -Headers @{"Content-Type"="application/json", "X-Captcha-Client-Key"="${secret}"} \`\n  -Body '{"captcha_token": "${currentToken}"}'`;
+      return `Invoke-RestMethod -Uri "${endpoint}" \`
+      -Method Post \`
+      -Headers @{"Content-Type"="application/json"} \`
+      -Body '{
+        "secret": "${secret}",
+        "token": "${currentToken}"
+      }'`;
     }
   };
 
