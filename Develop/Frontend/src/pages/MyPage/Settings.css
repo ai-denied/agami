@@ -541,18 +541,22 @@ body.dark-mode .btn-delete-project.icon-delete:hover {
     border-radius: 12px;
   }
 
+  /* 💡 1. 세로 배치(column)를 가로 배치(row)로 원복하고 상단에 맞춤 */
   .settings-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row; 
+    align-items: flex-start; 
+    justify-content: space-between;
     gap: 16px;
     margin-bottom: 24px;
   }
 
-  .settings-title {
-    font-size: 1.4rem;
+  /* 💡 2. 텍스트 영역이 남은 공간을 알맞게 차지하도록 설정 */
+  .settings-header > div {
+    flex: 1;
   }
 
-  .btn-delete-project {
+  /* 💡 3. 아이콘 형태가 아닌 일반 텍스트 버튼일 경우에만 가로 100% 적용 */
+  .btn-delete-project:not(.icon-delete) {
     width: 100%;
     text-align: center;
     padding: 14px 0;

@@ -35,13 +35,12 @@ const ProjectTest = () => {
 
     const renderWidget = () => {
       if (window.agami) {
-        // 이미 렌더링된 위젯이 있다면 초기화 (React StrictMode 대응)
         if (widgetIdRef.current !== null) {
           window.agami.reset(widgetIdRef.current);
         } else {
           widgetIdRef.current = window.agami.render('#agami-test-widget', {
             sitekey: project.site_key,
-            kind: 'flashlight', // 기본 캡챠 타입 (필요시 Select로 확장 가능)
+            kind: 'flashlight',
             callback: (t) => {
               setToken(t); // 풀이 성공 시 토큰 저장
             },
@@ -56,7 +55,6 @@ const ProjectTest = () => {
     const scriptId = "agami-loader-script";
     let script = document.getElementById(scriptId);
 
-    // 스크립트가 없으면 생성하여 head에 부착
     if (!script) {
       script = document.createElement("script");
       script.id = scriptId;
@@ -65,7 +63,6 @@ const ProjectTest = () => {
       script.onload = renderWidget;
       document.head.appendChild(script);
     } else {
-      // 이미 스크립트가 로드된 상태면 바로 렌더링
       if (window.agami) {
         renderWidget();
       } else {
@@ -130,7 +127,6 @@ const ProjectTest = () => {
           </div>
           
           <div className="widget-wrapper">
-            {/* 💡 loader.js가 이 div를 찾아 트리거 버튼을 삽입합니다. */}
             <div id="agami-test-widget"></div>
           </div>
           
@@ -138,6 +134,11 @@ const ProjectTest = () => {
             <div style={{ marginTop: "20px" }}>
               <span style={{ fontSize: "0.85rem", fontWeight: "bold", color: "#10b981", display: "block", marginBottom: "8px" }}>✓ 성공적으로 발급된 토큰:</span>
               <div className="token-string">{token}</div>
+              {/* 💡 토큰 만료 시간 가이드라인 추가 */}
+              <span style={{ fontSize: "0.85rem", color: "#ef4444", display: "block", marginTop: "10px", fontWeight: "600", lineHeight: "1.5" }}>
+                ⚠️ 보안을 위해 위 토큰은 <strong>발급 후 2분 동안만 유효</strong>하며, 1회 검증 시 즉시 파기됩니다.<br/>
+                시간이 지났다면 위젯을 새로고침하여 다시 발급받아 주세요.
+              </span>
             </div>
           )}
         </div>
@@ -170,7 +171,6 @@ const ProjectTest = () => {
 
       </div>
 
-      {/* 자체 커스텀 모달창 */}
       {alertModal.show && (
         <div className="custom-sys-modal-overlay" onClick={closeAlert} style={{ zIndex: 9999 }}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
