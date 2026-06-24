@@ -123,7 +123,20 @@ const ProjectDetail = () => {
             <h1 className="settings-title">프로젝트 기본 정보</h1>
             <p className="settings-description">프로젝트 이름과 허용 도메인을 수정하고 연동 키를 확인합니다.</p>
           </div>
-          <button className="btn-delete-project" onClick={handleDeleteProject}>프로젝트 삭제</button>
+          
+          {/* 💡 텍스트 버튼 대신 휴지통 아이콘으로 교체 */}
+          <button 
+            className="btn-delete-project icon-delete" 
+            onClick={handleDeleteProject}
+            title="프로젝트 삭제"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
         </header>
 
         <section className="settings-section">
@@ -175,7 +188,6 @@ const ProjectDetail = () => {
 
         <hr className="divider" />
 
-        {/* 💡 새로운 프론트엔드 연동 가이드 섹션 */}
         <section className="settings-section">
           <h2 className="section-label">프론트엔드 연동 가이드</h2>
           <p className="settings-description">아래 코드를 복사하여 웹사이트의 HTML에 붙여넣기만 하면 캡챠 위젯이 즉시 활성화됩니다.</p>

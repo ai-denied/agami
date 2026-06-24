@@ -128,7 +128,7 @@ const Intro = () => {
               </div>
 
               <div className="sub-section">
-                <h3 className="sub-title">Agami MLOps 파이프라인</h3>
+                <h3 className="sub-title">agami MLOps 파이프라인</h3>
                 <p className="content-desc">
                   agami MLOps는 마우스 제스처 기반 봇 탐지, 얼굴 라이브니스 인식, 컨텍스트 감정 인식 등 다양한 AI 모델을 안정적으로 운영하기 위한 머신러닝 파이프라인입니다. 수집된 원시 데이터는 먼저 검증 단계를 거쳐 결측치나 이상치 같은 품질 문제를 점검하고, 이후 모델이 학습할 수 있는 형태로 피처를 추출하고 정규화하는 전처리 과정을 거칩니다. 정제된 데이터로 모델을 학습시킨 뒤에는 정확도, 오탐률 등 다양한 지표로 성능을 평가하며, 이 평가를 통과한 모델만 다음 단계로 넘어갈 수 있습니다.
                 </p>

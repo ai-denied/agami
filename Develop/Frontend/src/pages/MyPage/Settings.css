@@ -494,6 +494,40 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
 }
 .btn-sys-danger:hover { background: #dc2626; }
 
+/* ---------------------------------------------------
+   💡 ProjectDetail 휴지통 아이콘 교체 스타일 추가
+--------------------------------------------------- */
+.btn-delete-project.icon-delete {
+  background: transparent;
+  color: #9ca3af; 
+  border: none;
+  width: 38px !important;  
+  height: 38px !important;
+  padding: 0 !important;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+body.dark-mode .btn-delete-project.icon-delete { 
+  color: #6b7280; 
+  background: transparent;
+}
+
+.btn-delete-project.icon-delete:hover { 
+  background: #fee2e2; 
+  color: #ef4444; 
+}
+
+body.dark-mode .btn-delete-project.icon-delete:hover { 
+  background: rgba(239, 68, 68, 0.2); 
+  color: #ef4444; 
+}
+
 /* =============================================================================
    [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
    ============================================================================= */
