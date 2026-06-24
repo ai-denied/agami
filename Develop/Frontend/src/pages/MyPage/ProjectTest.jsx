@@ -102,11 +102,13 @@ const ProjectTest = () => {
         "secret": "${secret}",
         "token": "${currentToken}"
       }'`;
-    } else if (platform === "windows") {
+    }
+    else if (platform === "windows") {
       return `curl -X POST ${endpoint} ^
       -H "Content-Type: application/json" ^
       -d "{\\"secret\\": \\"${secret}\\", \\"token\\": \\"${currentToken}\\"}"`;
-    } else {
+    }
+    else {
       return `Invoke-RestMethod -Uri "${endpoint}" \`
       -Method Post \`
       -Headers @{"Content-Type"="application/json"} \`
