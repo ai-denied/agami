@@ -13,7 +13,6 @@ const ProjectDetail = () => {
   const [domainList, setDomainList] = useState([""]); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // 알림 및 삭제 확인 모달 상태
   const [alertModal, setAlertModal] = useState({ show: false, message: "" });
   const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
 
@@ -35,7 +34,6 @@ const ProjectDetail = () => {
   const closeAlert = () => setAlertModal({ show: false, message: "" });
   const closeConfirm = () => setConfirmModal({ show: false, message: "", onConfirm: null });
 
-  // 삭제 로직
   const handleDeleteProject = () => {
     setConfirmModal({
       show: true,
@@ -44,7 +42,7 @@ const ProjectDetail = () => {
         closeConfirm();
         try {
           await api.delete(`/api/projects/${id}`);
-          navigate("/mypage/projects"); // 삭제 후 목록 페이지로 이동
+          navigate("/mypage/projects"); 
         } catch (error) { showAlert("프로젝트 삭제 중 오류가 발생했습니다."); }
       }
     });
@@ -91,9 +89,16 @@ const ProjectDetail = () => {
     showAlert(customMessage || "키가 클립보드에 복사되었습니다.");
   };
 
+  // 💡 시크릿 키 마스킹 처리 함수 (agami_secret_ 이후를 전부 점으로 표시)
+  const renderMaskedSecretKey = (secretKey) => {
+    if (!secretKey) return "";
+    const prefix = "agami_secret_";
+    const maskLength = 32; // 가려질 길이
+    return prefix + "•".repeat(maskLength);
+  };
+
   if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
 
-  // 동적 가이드라인 코드 스니펫 생성
   const integrationCode = `<script src="https://agami-captcha.cloud/widget/loader.js" async></script>
 
 <div class="agami-captcha"
@@ -124,7 +129,6 @@ const ProjectDetail = () => {
             <p className="settings-description">프로젝트 이름과 허용 도메인을 수정하고 연동 키를 확인합니다.</p>
           </div>
           
-          {/* 💡 텍스트 버튼 대신 휴지통 아이콘으로 교체 */}
           <button 
             className="btn-delete-project icon-delete" 
             onClick={handleDeleteProject}
@@ -180,8 +184,12 @@ const ProjectDetail = () => {
             
             <div className="key-display-row">
               <span className="key-display-label">Secret Key</span>
-              <span className="key-display-value">{project.secret_key}</span>
-              <button className="btn-copy-action" onClick={() => copyToClipboard(project.secret_key)}>복사</button>
+              {/* 💡 시크릿 키는 마스킹 처리되어 화면에 표시됩니다 */}
+              <span className="key-display-value" style={{ letterSpacing: "1px" }}>
+                {renderMaskedSecretKey(project.secret_key)}
+              </span>
+              {/* 💡 클립보드 복사는 원본 데이터가 그대로 들어갑니다 */}
+              <button className="btn-copy-action" onClick={() => copyToClipboard(project.secret_key, "시크릿 키가 클립보드에 복사되었습니다.")}>복사</button>
             </div>
           </div>
         </section>
