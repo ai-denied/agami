@@ -294,8 +294,8 @@ export default function Dashboard() {
 
                       return (
                         <div key={idx} className={`log-item ${logClass}`}>
-                          {/* 💡 IP 대신 시간(Time) 출력 */}
-                          <span className="log-time" style={{ fontFamily: 'monospace', fontWeight: 700, width: '80px', flexShrink: 0 }}>
+                          {/* 💡 IP 대신 시간(Time) 출력 및 레이아웃 유지용 스타일 고정 */}
+                          <span className="log-time" style={{ fontFamily: 'monospace', fontWeight: 700, width: '75px', flexShrink: 0 }}>
                             {log.time}
                           </span>
                           <span className="log-reason">{ATTACK_TYPE_MAP[log.reason] || log.reason}</span>
