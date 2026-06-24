@@ -25,12 +25,15 @@ logger = logging.getLogger(__name__)
 def normalize_domain(domain: str) -> str:
     domain = domain.strip()
     
+    # 1. 이미 http:// 또는 https:// 가 명시되어 있다면 그대로 반환합니다.
     if domain.startswith("http://") or domain.startswith("https://"):
         return domain
     
+    # 2. 로컬 테스트 환경(localhost, 127.0.0.1)인 경우 http:// 를 기본으로 적용합니다.
     if "localhost" in domain or "127.0.0.1" in domain:
         return f"http://{domain}"
     
+    # 3. 그 외의 상용 도메인은 https:// 를 기본으로 적용합니다.
     return f"https://{domain}"
 
 class ProjectCreate(BaseModel):
@@ -233,6 +236,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
 
+    # [정석 수정] 현재 회원의 tenant_id를 먼저 찾습니다.
     tenant_id_record = captcha_db.execute(
         text("SELECT id FROM tenants WHERE owner_user_id = :uid"), 
         {"uid": user_id}
@@ -241,6 +245,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     if tenant_id_record:
         tenant_id_str = str(tenant_id_record)
         for domain in domain_list:
+            # 글로벌(전체) 검사가 아닌, '내 계정(tenant)'에 이 도메인이 있는지 검사
             existing_origin = captcha_db.execute(
                 text("""
                     SELECT ao.id, ak.revoked_at 
@@ -254,10 +259,12 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
             if existing_origin:
                 ao_id, revoked_at = existing_origin
                 if revoked_at is None:
+                    # 내 계정의 다른 '활성화된' 프로젝트에서 이미 사용 중인 도메인
                     raise HTTPException(status_code=400, detail=f"회원님의 다른 활성 프로젝트에 이미 등록된 도메인입니다: {domain}")
                 else:
+                    # 내 계정의 예전 '삭제된' 프로젝트에 남아있는 찌꺼기 도메인 -> 하드 삭제 후 새 등록 허용
                     captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
-                    captcha_db.commit()
+                    captcha_db.commit() # Unique 제약 조건 회피를 위해 즉시 커밋
 
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
@@ -274,6 +281,7 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         current_user = db.query(models.User).filter(models.User.id == user_id).first()
         current_plan = "pro" if current_user and current_user.plan == "Pro" else "free"
         
+        # 위에서 조회한 tenant_id_record 재사용
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
             captcha_db.execute(text("""INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())"""), {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id})
@@ -287,16 +295,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
 
         for domain in domain_list:
             origin_id = str(uuid.uuid4())
-            
-            # 💡 [트러블슈팅] 기본 도메인 중복 삽입으로 인한 500(Unique Constraint) 에러 방지
-            if domain == default_domain:
-                existing_default = captcha_db.execute(
-                    text("SELECT id FROM allowed_origins WHERE origin = :o AND tenant_id = :t"),
-                    {"o": domain, "t": tenant_id}
-                ).scalar()
-                if existing_default:
-                    continue # 이미 등록되어 있으면 INSERT 생략하고 무사히 넘어감
-                    
             captcha_db.execute(text("""INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at) VALUES (:id, :t, :ak, :o, NOW())"""), {"id": origin_id, "t": tenant_id, "ak": api_key_id, "o": domain})
 
         db.commit()
@@ -395,7 +393,7 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
         if tenant_id_record:
             tenant_id_str = str(tenant_id_record)
             for domain in domain_list:
-                
+                # [정석 수정] 업데이트 시에도 '내 계정'의 도메인만 중복 검사
                 existing_origin = captcha_db.execute(
                     text("""
                         SELECT ao.id, ao.api_key_id, ak.revoked_at 
@@ -408,6 +406,7 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
                 
                 if existing_origin:
                     ao_id, ak_id, revoked_at = existing_origin
+                    # 수정 중인 자기 자신의 기존 도메인은 패스
                     if ak_id == api_key_id_record:
                         continue
                         
@@ -429,16 +428,6 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
             
             for domain in domain_list:
                 origin_id = str(uuid.uuid4())
-                
-                # 💡 [트러블슈팅] 500 에러(Unique Constraint) 방지 
-                if domain == default_domain:
-                    existing_default = captcha_db.execute(
-                        text("SELECT id FROM allowed_origins WHERE origin = :o AND tenant_id = :t"),
-                        {"o": domain, "t": tenant_id}
-                    ).scalar()
-                    if existing_default:
-                        continue
-                        
                 captcha_db.execute(text("""INSERT INTO allowed_origins (id, tenant_id, api_key_id, origin, created_at) VALUES (:id, :t, :ak, :o, NOW())"""), {"id": origin_id, "t": tenant_id, "ak": api_key_id_record, "o": domain})
         
         db.commit()
@@ -492,7 +481,7 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
     return {"status": "success", "message": "결제가 완료되었습니다."}
 
 # -----------------------------------------------------------------------------
-# 대시보드 API - PostgreSQL 실 데이터 기반 집계
+# 대시보드 API - PostgreSQL 실 데이터 기반 집계 (프로젝트별 격리 적용 완료)
 # -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
 async def get_combined_dashboard_data(
@@ -513,15 +502,19 @@ async def get_combined_dashboard_data(
     if not target_date:
         target_date = datetime.utcnow().strftime("%Y-%m-%d")
 
+    # 프로젝트 ID 필수 체크
     if not project_id:
         raise HTTPException(status_code=400, detail="project_id is required")
 
+    # 1. 웹 DB (agamidb)에서 해당 프로젝트의 site_key 조회 및 권한 확인
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found or unauthorized")
 
+    # 2. 엔진 DB (captcha_db)에서 해당 site_key(client_key)의 api_key_id 조회
     api_key_id = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": project.site_key}).scalar()
     
+    # 생성 직후 등 아직 엔진에 동기화가 안 됐을 경우의 빈 데이터 처리
     def _empty_dashboard():
         return {
             "status": "success",
@@ -538,6 +531,7 @@ async def get_combined_dashboard_data(
     if not api_key_id:
         return _empty_dashboard()
 
+    # 3. 쿼리 필터 세팅 (owner_user_id가 아닌 api_key_id 기반으로 완벽 분리)
     kind_filter_c = "" if kind == "all" else " AND c.kind = :kind"
     kind_filter_v = "" if kind == "all" else " AND v.kind = :kind"
     
@@ -546,8 +540,10 @@ async def get_combined_dashboard_data(
     
     params = {"api_key_id": api_key_id, "kind": kind, "target_date": target_date}
 
+    # [1] 지표 조회: 해당 api_key_id로 발급된 챌린지 세션 수 파악
     total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges c WHERE c.api_key_id = :api_key_id {kind_filter_c} {date_filter_c}"), params).scalar() or 0
     
+    # [1-2] 지표 조회: verifications 테이블은 challenges와 JOIN하여 해당 프로젝트인지 확인
     stats_query = f"""
         SELECT v.success, COUNT(*) as cnt 
         FROM verifications v 
@@ -563,6 +559,7 @@ async def get_combined_dashboard_data(
     
     abandoned_today = max(0, total_sessions - total_verified)
     
+    # [2] 차단 유형 한글 맵핑 (JOIN)
     attacks_query = f"""
         SELECT v.attack_type, COUNT(*) as cnt 
         FROM verifications v 
@@ -587,26 +584,26 @@ async def get_combined_dashboard_data(
         disp_name = attack_map.get(raw_type, "비정상적 우회 시도" if not raw_type else raw_type)
         attacks_list.append({"name": disp_name, "value": row[1]})
 
-    # 💡 [추가] IP 대신 발생 시간(time)을 가져오도록 쿼리 수정 완료
+    # [3] 세션 로그 (JOIN)
     logs_query = f"""
-        SELECT TO_CHAR(v.created_at, 'HH24:MI:SS'), v.attack_type, v.verdict, v.confidence 
-        FROM verifications v 
-        JOIN challenges c ON v.challenge_id = c.id 
-        WHERE c.api_key_id = :api_key_id {kind_filter_v} {date_filter_v} 
+        SELECT TO_CHAR(v.created_at, 'HH24:MI:SS'), v.attack_type, v.verdict, v.confidence
+        FROM verifications v
+        JOIN challenges c ON v.challenge_id = c.id
+        WHERE c.api_key_id = :api_key_id {kind_filter_v} {date_filter_v}
         ORDER BY v.created_at DESC LIMIT 10
     """
     logs = captcha_db.execute(text(logs_query), params).fetchall()
     
     logs_list = []
     for row in logs:
-        log_time = row[0] or "00:00:00" # IP 자리를 시간으로 대체
+        log_time = row[0] or "00:00:00"
         a_type = row[1]
         verdict = row[2]
         conf = row[3] or 0.0
-        
+
         reason = attack_map.get(a_type, a_type) if a_type else ("봇으로 판단됨" if verdict == "bot" else "정상 요청")
         risk_band = "high_risk" if verdict == "bot" else "low_risk"
-        
+
         logs_list.append({
             "time": log_time,
             "reason": reason,
@@ -614,6 +611,7 @@ async def get_combined_dashboard_data(
             "risk_band": risk_band
         })
 
+    # [4] 트래픽 데이터 (JOIN)
     ch_traffic_query = f"""
         SELECT TO_CHAR(c.issued_at, 'HH24:00') as time, COUNT(*) as cnt 
         FROM challenges c 
@@ -659,6 +657,7 @@ async def get_combined_dashboard_data(
             "abandoned": abandoned_cnt
         })
 
+    # [5] 파이 차트 보정
     if total_sessions > 0:
         pass_rate = (human_passed / total_sessions * 100)
         pie_human = round(pass_rate, 1)
