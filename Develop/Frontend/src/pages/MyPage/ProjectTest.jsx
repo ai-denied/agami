@@ -97,25 +97,22 @@ const ProjectTest = () => {
 
     if (platform === "linux") {
       return `curl -X POST ${endpoint} \\
-      -H "Content-Type: application/json" \\
-      -d '{
-        "secret": "${secret}",
-        "token": "${currentToken}"
-      }'`;
-    }
-    else if (platform === "windows") {
+      -H "Content-Type: application/x-www-form-urlencoded" \\
+      -d "secret=${secret}" \\
+      -d "token=${currentToken}"`;
+    } else if (platform === "windows") {
       return `curl -X POST ${endpoint} ^
-      -H "Content-Type: application/json" ^
-      -d "{\\"secret\\": \\"${secret}\\", \\"token\\": \\"${currentToken}\\"}"`;
-    }
-    else {
+      -H "Content-Type: application/x-www-form-urlencoded" ^
+      -d "secret=${secret}" ^
+      -d "token=${currentToken}"`;
+    } else {
       return `Invoke-RestMethod -Uri "${endpoint}" \`
       -Method Post \`
-      -Headers @{"Content-Type"="application/json"} \`
-      -Body '{
-        "secret": "${secret}",
-        "token": "${currentToken}"
-      }'`;
+      -ContentType "application/x-www-form-urlencoded" \`
+      -Body @{
+        secret="${secret}"
+        token="${currentToken}"
+      }`;
     }
   };
 
