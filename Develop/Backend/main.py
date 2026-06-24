@@ -251,6 +251,11 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         current_user = db.query(models.User).filter(models.User.id == user_id).first()
         current_plan = "pro" if current_user and current_user.plan == "Pro" else "free"
         
+        tenant_id_record = captcha_db.excute(
+            text("SELECT id FROM tenants WHERE owner_user_id = :uid"),
+            {"uid": user_id}
+        ).sclar()
+        
         # 위에서 조회한 tenant_id_record 재사용
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
