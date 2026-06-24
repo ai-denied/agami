@@ -236,36 +236,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
 
-    # [정석 수정] 현재 회원의 tenant_id를 먼저 찾습니다.
-    tenant_id_record = captcha_db.execute(
-        text("SELECT id FROM tenants WHERE owner_user_id = :uid"), 
-        {"uid": user_id}
-    ).scalar()
-
-    if tenant_id_record:
-        tenant_id_str = str(tenant_id_record)
-        for domain in domain_list:
-            # 글로벌(전체) 검사가 아닌, '내 계정(tenant)'에 이 도메인이 있는지 검사
-            existing_origin = captcha_db.execute(
-                text("""
-                    SELECT ao.id, ak.revoked_at 
-                    FROM allowed_origins ao
-                    JOIN api_keys ak ON ao.api_key_id = ak.id
-                    WHERE ao.origin = :o AND ao.tenant_id = :tid
-                """), 
-                {"o": domain, "tid": tenant_id_str}
-            ).fetchone()
-
-            if existing_origin:
-                ao_id, revoked_at = existing_origin
-                if revoked_at is None:
-                    # 내 계정의 다른 '활성화된' 프로젝트에서 이미 사용 중인 도메인
-                    raise HTTPException(status_code=400, detail=f"회원님의 다른 활성 프로젝트에 이미 등록된 도메인입니다: {domain}")
-                else:
-                    # 내 계정의 예전 '삭제된' 프로젝트에 남아있는 찌꺼기 도메인 -> 하드 삭제 후 새 등록 허용
-                    captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
-                    captcha_db.commit() # Unique 제약 조건 회피를 위해 즉시 커밋
-
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
