@@ -18,6 +18,7 @@
   transition: background 0.3s ease;
   overflow-x: hidden; 
   position: relative;
+  justify-content: center;
 }
 
 body.dark-mode .layout-container {
@@ -94,7 +95,13 @@ body.dark-mode .sidebar li:hover {
 }
 
 .intro-sections-wrapper {
-  padding-bottom: 80px; 
+  padding-bottom: 80px;
+  /* 💡 모바일에서는 꽉 차게, PC에서는 적절한 최대폭 유지 */
+  width: 100%;
+  max-width: 1000px; /* 기존 800px에서 조금 더 여유 있게 조정 */
+  padding-left: 20px;
+  padding-right: 20px;
+  box-sizing: border-box;
 }
 
 .captcha-description {
