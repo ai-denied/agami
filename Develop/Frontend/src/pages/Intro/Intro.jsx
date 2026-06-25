@@ -109,6 +109,15 @@ const Intro = () => {
               ref={(el) => (sectionRefs.current['intro'] = el)}
               className="captcha-description"
             >
+              {/* 💡 agami 로고 이미지 추가 */}
+              <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+                <img 
+                  src="/agami.jpg" 
+                  alt="agami logo" 
+                  style={{ width: '180px', height: '180px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 10px 25px rgba(0,0,0,0.06)' }} 
+                />
+              </div>
+
               <h2 className="content-title">서비스 소개</h2>
               <p className="content-desc">
                 <strong>agami(아가미)</strong>는 악성 봇(Bot)의 접근은 완벽하게 차단하고, 실제 사용자에겐 끊김 없는 경험을 제공하는 차세대 지능형 캡챠(CAPTCHA) 서비스입니다. 기존의 번거로운 이미지 찾기나 텍스트 입력 방식을 탈피하여, 마우스 움직임, 표정, 상황 인지 등 사용자의 자연스러운 행동 패턴을 AI가 실시간으로 분석해 인증을 수행합니다.
@@ -135,8 +144,14 @@ const Intro = () => {
                 <p className="content-desc">
                   평가를 마친 신규 모델은 곧바로 운영에 반영되지 않고, 현재 서비스 중인 모델과 성능을 비교하여 더 나은 경우에만 정식 모델로 승격됩니다. 승격이 확정되면 모델은 가볍고 빠른 추론에 적합한 형태로 변환되어 자동으로 빌드되고, 쿠버네티스 클러스터에 배포되어 실시간 API 서버를 통해 서비스에 적용됩니다. 이처럼 데이터 검증부터 전처리, 학습, 평가, 모델 승격, 빌드·배포까지 모든 과정이 자동화된 파이프라인으로 연결되어 있어, 사람의 개입을 최소화하면서도 안정적이고 신뢰할 수 있는 AI 서비스 운영이 가능합니다.
                 </p>
-                <div className="intro-image-placeholder">
-                  <span>[MLOps 파이프라인 아키텍처 다이어그램]</span>
+                
+                {/* 💡 MLOps 파이프라인 이미지 추가 */}
+                <div style={{ marginTop: '24px', width: '100%' }}>
+                  <img 
+                    src="/ML-Architecture.png" 
+                    alt="MLOps 파이프라인 아키텍처 다이어그램" 
+                    style={{ width: '100%', height: 'auto', borderRadius: '16px', border: '1px solid #e0e7f3', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }} 
+                  />
                 </div>
               </div>
             </section>
