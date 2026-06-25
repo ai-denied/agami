@@ -103,25 +103,48 @@ body.dark-mode .sidebar li:hover {
   box-sizing: border-box;
 }
 
-/* 💡 여백 및 구분선 추가 */
+/* 💡 로고 이미지 스타일 (반응형 & 강제 1:1 원형 유지) */
+.intro-logo-wrapper {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.intro-logo-img {
+  width: 100%;
+  max-width: 180px; /* PC에서는 최대 180px, 화면이 좁아지면 유연하게 축소됨 */
+  aspect-ratio: 1 / 1; /* 강제로 1:1 비율 유지 */
+  object-fit: cover;
+  border-radius: 50%; /* 완벽한 원형 생성 */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  border: 1px solid #e0e7f3;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark-mode .intro-logo-img {
+  border-color: #28282a;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* 💡 각 주제별 간격 대폭 확장 및 눈에 보이는 구분선 적용 */
 .captcha-description {
   width: 100%;
   max-width: 800px;
-  margin-bottom: 120px; /* 기존 대비 간격 확대 */
-  padding-bottom: 80px; /* 💡 구분선과 텍스트 사이 여백 */
-  border-bottom: 1px solid #e0e7f3; /* 💡 항목 간 가로 구분선 */
+  margin-bottom: 100px; /* 섹션 하단 바깥 여백 */
+  padding-bottom: 100px; /* 구분선과 섹션 콘텐츠 사이의 안쪽 여백 */
+  border-bottom: 1px solid #e0e7f3; /* 💡 눈에 보이는 구분선 */
   scroll-margin-top: 50px; 
+  transition: border-color 0.3s ease;
 }
 
 body.dark-mode .captcha-description {
   border-bottom-color: #28282a;
 }
 
-/* 마지막 섹션은 footer 영역 구분선과 겹치므로 선 제거 */
+/* 💡 마지막 섹션은 구분선과 불필요한 하단 여백 제거 */
 .captcha-description:last-of-type {
-  margin-bottom: 0; 
+  border-bottom: none;
+  margin-bottom: 0;
   padding-bottom: 0;
-  border-bottom: none; 
 }
 
 .content-title { 
@@ -191,7 +214,7 @@ body.dark-mode .intro-image-placeholder {
 .intro-footer-action {
   width: 100%;
   max-width: 800px;
-  margin-top: 80px;
+  margin-top: 60px;
   padding-top: 60px;
   border-top: 1px dashed #e0e7f3;
   display: flex;
@@ -219,7 +242,7 @@ body.dark-mode .intro-footer-action {
 }
 
 /* =============================================================================
-   [5] 반응형 모바일 (900px 이하)
+   [5] 반응형 모바일 (900px 이하) - 햄버거 토글 슬라이드 로직 및 렌더링 최적화
    ============================================================================= */
 @media (max-width: 900px) {
   
@@ -352,11 +375,15 @@ body.dark-mode .intro-footer-action {
     padding: 100px 20px 40px 20px; 
   }
   
-  /* 💡 모바일에서의 간격도 비례해서 늘려줍니다. */
+  /* 💡 모바일에서의 여백 밸런스 조정 */
   .captcha-description {
     scroll-margin-top: 110px; 
-    margin-bottom: 100px;
+    margin-bottom: 60px;
     padding-bottom: 60px;
+  }
+
+  .intro-logo-img {
+    max-width: 140px; /* 모바일에서는 최대 크기 제한을 더 작게 조정 */
   }
 
   .content-title {
@@ -377,7 +404,7 @@ body.dark-mode .intro-footer-action {
   }
 
   .intro-footer-action {
-    margin-top: 60px;
+    margin-top: 40px;
     padding-top: 40px;
   }
 
