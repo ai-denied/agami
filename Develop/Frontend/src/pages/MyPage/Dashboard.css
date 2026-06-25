@@ -138,9 +138,13 @@ body.dark-mode, .dark-mode {
   pointer-events: none; /* 클릭해도 뒤의 input이 동작하도록 허용 */
 }
 
+.dashboard-date-picker {
+  color-scheme: light;
+}
+
 body.dark-mode .dashboard-date-picker,
 .dark-mode .dashboard-date-picker {
-  color-scheme: dark; 
+  color-scheme: dark;
 }
 
 .dashboard-date-picker:focus { 
