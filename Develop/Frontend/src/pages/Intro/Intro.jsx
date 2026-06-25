@@ -112,7 +112,7 @@ const Intro = () => {
               {/* 💡 agami 로고 이미지 추가 */}
               <div style={{ textAlign: 'center', marginBottom: '36px' }}>
                 <img 
-                  src="/agami.jpg" 
+                  src="/agami.png" 
                   alt="agami logo" 
                   style={{ width: '180px', height: '180px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 10px 25px rgba(0,0,0,0.06)' }} 
                 />
