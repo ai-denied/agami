@@ -96,22 +96,32 @@ body.dark-mode .sidebar li:hover {
 .intro-sections-wrapper {
   padding-bottom: 80px;
   width: 100%;
-  max-width: 900px;  /* PC에서 콘텐츠가 너무 넓어지지 않게 최대폭 설정 */
-  margin: 0 auto;    /* 💡 여기가 핵심: 화면 중앙에 배치 */
+  max-width: 900px;
+  margin: 0 auto;
   padding-left: 20px;
   padding-right: 20px;
   box-sizing: border-box;
 }
 
+/* 💡 여백 및 구분선 추가 */
 .captcha-description {
   width: 100%;
   max-width: 800px;
-  margin-bottom: 100px; 
+  margin-bottom: 120px; /* 기존 대비 간격 확대 */
+  padding-bottom: 80px; /* 💡 구분선과 텍스트 사이 여백 */
+  border-bottom: 1px solid #e0e7f3; /* 💡 항목 간 가로 구분선 */
   scroll-margin-top: 50px; 
 }
 
-.captcha-description:last-child {
+body.dark-mode .captcha-description {
+  border-bottom-color: #28282a;
+}
+
+/* 마지막 섹션은 footer 영역 구분선과 겹치므로 선 제거 */
+.captcha-description:last-of-type {
   margin-bottom: 0; 
+  padding-bottom: 0;
+  border-bottom: none; 
 }
 
 .content-title { 
@@ -125,7 +135,6 @@ body.dark-mode .content-title {
   color: #e2e8f0;
 }
 
-/* 💡 추가된 서브 타이틀 및 섹션 여백 */
 .sub-section {
   margin-top: 40px;
 }
@@ -210,7 +219,7 @@ body.dark-mode .intro-footer-action {
 }
 
 /* =============================================================================
-   [5] 반응형 모바일 (900px 이하) - 햄버거 토글 슬라이드 로직 및 렌더링 최적화
+   [5] 반응형 모바일 (900px 이하)
    ============================================================================= */
 @media (max-width: 900px) {
   
@@ -343,9 +352,11 @@ body.dark-mode .intro-footer-action {
     padding: 100px 20px 40px 20px; 
   }
   
+  /* 💡 모바일에서의 간격도 비례해서 늘려줍니다. */
   .captcha-description {
     scroll-margin-top: 110px; 
-    margin-bottom: 80px;
+    margin-bottom: 100px;
+    padding-bottom: 60px;
   }
 
   .content-title {

@@ -109,8 +109,8 @@ const Intro = () => {
               ref={(el) => (sectionRefs.current['intro'] = el)}
               className="captcha-description"
             >
-              {/* 💡 agami 로고 이미지 추가 */}
-              <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+              {/* 💡 agami 로고 이미지 추가 (둥근 네모 형태 및 반응형) */}
+              <div style={{ marginBottom: '60px', width: '100%' }}>
                 <img 
                   src="/agami.png" 
                   alt="agami logo" 
