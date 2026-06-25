@@ -44,7 +44,6 @@ const ScaredFish = memo(({
   mousePos,
   allFishRefs,
   isFirstVisit,
-  windowSize,
 }) => {
   const fishProps = useMemo(() => {
     const totalFish = 25;
@@ -81,8 +80,8 @@ const ScaredFish = memo(({
   }, [index]);
 
   const initialPositions = useMemo(() => {
-    const currentW = Math.max(windowSize.width, 1200);
-    const currentH = Math.max(windowSize.height, 720);
+    const currentW = Math.max(window.innerWidth, 1200);
+    const currentH = Math.max(window.innerHeight, 720);
 
     const initialX = (fishProps.centerRatioX + Math.cos(fishProps.angle) * fishProps.radius * 0.6) * currentW;
     const initialY = (fishProps.centerRatioY + Math.sin(fishProps.angle) * fishProps.radius) * currentH;
@@ -103,21 +102,11 @@ const ScaredFish = memo(({
     }
 
     return { startX, startY, initialX, initialY };
-  }, [fishProps, windowSize]);
+  }, [fishProps]);
 
-  // (mX, mY 선언 유지)
   const mX = useMotionValue(isFirstVisit ? initialPositions.startX : initialPositions.initialX);
   const mY = useMotionValue(isFirstVisit ? initialPositions.startY : initialPositions.initialY);
   const mRotate = useMotionValue(0);
-
-  const hasStartedRef = useRef(false);
-
-  useEffect(() => {
-    if (!hasStartedRef.current && isFirstVisit) {
-      mX.set(initialPositions.startX);
-      mY.set(initialPositions.startY);
-    }
-  }, [initialPositions, isFirstVisit, mX, mY]);
 
   const springX = useSpring(mX, { stiffness: fishProps.stiffness, damping: fishProps.damping });
   const springY = useSpring(mY, { stiffness: fishProps.stiffness, damping: fishProps.damping });
@@ -133,8 +122,6 @@ const ScaredFish = memo(({
     let frameCount = 0;
 
     const animate = (time) => {
-      hasStartedRef.current = true;
-      
       const currentW = Math.max(window.innerWidth, 1200);
       const currentH = Math.max(window.innerHeight, 720);
 
@@ -727,7 +714,6 @@ const Home = () => {
           {!isMobile && foods.map((f) => (
             <FoodBot key={f.id} x={f.x} y={f.y} color={f.color} />
           ))}
-          {/* Home.jsx - Home 컴포넌트 내부 렌더링 부 */}
           {!isMobile && Array.from({ length: 18 }).map((_, i) => (
             <ScaredFish
               key={i}
@@ -736,7 +722,6 @@ const Home = () => {
               mousePos={mousePos}
               allFishRefs={allFishRefs}
               isFirstVisit={isFirstVisit}
-              windowSize={windowSize} /* 💡 화면 사이즈 상태 전달 추가 */
             />
           ))}
         </div>
