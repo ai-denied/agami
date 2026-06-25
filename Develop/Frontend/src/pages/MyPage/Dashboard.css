@@ -118,6 +118,18 @@ body.dark-mode, .dark-mode {
   outline: none;
   cursor: pointer;
   color-scheme: light; 
+  min-width: 160px;
+}
+
+.dashboard-date-picker::-webkit-datetime-edit {
+  display: flex;
+  align-items: center;
+  min-width: 100%;
+}
+
+.dashboard-date-picker::-webkit-datetime-edit-fields-wrapper {
+  display: flex;
+  width: 100%;
 }
 
 body.dark-mode .dashboard-date-picker,
