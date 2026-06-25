@@ -70,7 +70,7 @@ body.dark-mode, .dark-mode {
   gap: 12px;
 }
 
-.date-control-wrapper, .date-control-group, .dashboard-date-picker {
+.date-control-wrapper, .date-control-group, .custom-date-picker-wrapper {
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
   -ms-user-select: none !important;
@@ -107,64 +107,66 @@ body.dark-mode, .dark-mode {
   cursor: not-allowed;
 }
 
-/* 💡 크롬 윈도우의 요일 깨짐 버그 해결을 위한 Date Picker 스타일 완전 교체 */
-.dashboard-date-picker {
+/* 💡 날짜 픽커 커스텀 래퍼 스타일 (크롬 렌더링 버그 원천 차단) */
+.custom-date-picker-wrapper {
   position: relative;
-  border: none; 
-  background: transparent; 
-  /* 핵심: 브라우저가 강제로 그리는 기본 텍스트를 숨김 */
-  color: transparent !important; 
-  font-family: 'Pretendard', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 140px; /* 텍스트와 아이콘이 예쁘게 중앙에 정렬되도록 고정폭 부여 */
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+/* 💡 화면에 노출될 진짜 텍스트 (모드에 따라 색상 완벽 호환) */
+.custom-date-text {
+  color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 700;
-  outline: none;
-  cursor: pointer;
-  color-scheme: light; 
-  /* 💡 인풋 박스의 너비를 고정하고 내부 요소들을 가운데 정렬하기 위한 패딩 설정 */
-  width: 140px; 
-  padding: 4px 8px;
-  box-sizing: border-box;
+  font-family: 'Pretendard', sans-serif;
+  pointer-events: none; /* 클릭을 아래에 있는 input으로 넘겨줌 */
+  transition: color 0.3s ease;
 }
 
-/* 핵심: 숨겨진 글자 자리에 data-date 속성값을 이용해 예쁘게 덮어씌움 */
-.dashboard-date-picker::before {
-  content: attr(data-date);
+/* 💡 SVG 달력 아이콘 */
+.custom-calendar-icon {
+  color: var(--text-secondary);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+/* 💡 눈에 보이지 않게 투명도 0으로 덮혀 있는 진짜 input 요소 */
+.hidden-date-input {
   position: absolute;
-  /* 💡 텍스트가 시작되는 위치 지정 (가운데 정렬을 위해 왼쪽 여백 조정) */
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-primary);
-  pointer-events: none; /* 클릭해도 뒤의 input이 동작하도록 허용 */
-}
-
-.dashboard-date-picker {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0; /* 완벽하게 숨김 */
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin: 0;
   color-scheme: light;
 }
 
-body.dark-mode .dashboard-date-picker,
-.dark-mode .dashboard-date-picker {
-  color-scheme: dark;
+body.dark-mode .hidden-date-input,
+.dark-mode .hidden-date-input {
+  color-scheme: dark; 
 }
 
-.dashboard-date-picker:focus { 
-  border-color: var(--brand-color); 
-  outline: none; 
-}
-
-/* 💡 브라우저 기본 달력 아이콘 복구 및 위치 조정 */
-.dashboard-date-picker::-webkit-calendar-picker-indicator { 
+/* 💡 달력 호출 트리거가 전체 영역을 덮도록 확장 */
+.hidden-date-input::-webkit-calendar-picker-indicator {
   position: absolute;
-  /* 💡 아이콘을 우측으로 배치하여 텍스트와 나란히 놓기 */
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   cursor: pointer;
-  opacity: 0.8;
-  padding: 4px;
-}
-.dashboard-date-picker::-webkit-calendar-picker-indicator:hover { 
-  opacity: 1;
 }
 
 .refresh-btn {
@@ -400,7 +402,6 @@ body.dark-mode .empty-chart-box {
 .tooltip-label { color: var(--text-secondary); }
 .tooltip-value { color: var(--text-primary); margin-left: auto; }
 
-/* 💡 PC, 모바일 디스플레이 분기 클래스 사전 정의 */
 .mobile-break { display: none; }
 .mobile-select-container { display: none; }
 
@@ -506,12 +507,10 @@ body.dark-mode .empty-chart-box {
     padding: 24px 16px;
   }
 
-  /* 💡 라인 차트(트래픽 추이) 영역만 3개가 들어가도록 650px 유지 */
   .chart-card.line-chart-card {
     height: 650px; 
   }
 
-  /* 💡 로그 카드 박스 팽창 현상을 막고 자연스러운 높이(min 320px)로 변경 */
   .log-card.line-chart-card {
     height: auto;
     min-height: 320px;
@@ -529,7 +528,6 @@ body.dark-mode .empty-chart-box {
     min-height: 320px;
   }
 
-  /* 💡 로그 리스트 내부 컨테이너의 빈 공간 여백 밸런스 조정 */
   .log-list-container {
     max-height: 350px;
     min-height: 180px; 

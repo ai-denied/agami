@@ -119,15 +119,27 @@ export default function Dashboard() {
               <div className="date-control-wrapper">
                 <div className="date-control-group">
                   <button className="date-arrow-btn" onClick={handlePrevDay}>◀</button>
-                  <input 
-                    type="date" 
-                    value={targetDate} 
-                    max={todayStr}
-                    onChange={(e) => setTargetDate(e.target.value)} 
-                    onClick={(e) => e.target.showPicker && e.target.showPicker()} 
-                    onKeyDown={(e) => e.preventDefault()} 
-                    className="dashboard-date-picker"
-                  />
+                  
+                  {/* 💡 날짜 텍스트 색상 버그와 윈도우 크롬 () 렌더링 붕괴를 해결한 커스텀 래퍼 */}
+                  <div className="custom-date-picker-wrapper">
+                    <span className="custom-date-text">{targetDate}</span>
+                    <svg className="custom-calendar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <input 
+                      type="date" 
+                      value={targetDate} 
+                      max={todayStr}
+                      onChange={(e) => setTargetDate(e.target.value)} 
+                      onClick={(e) => e.target.showPicker && e.target.showPicker()} 
+                      onKeyDown={(e) => e.preventDefault()} 
+                      className="hidden-date-input"
+                    />
+                  </div>
+
                   <button 
                     className="date-arrow-btn" 
                     onClick={handleNextDay} 
@@ -294,7 +306,6 @@ export default function Dashboard() {
 
                       return (
                         <div key={idx} className={`log-item ${logClass}`}>
-                          {/* 💡 IP 대신 시간(Time) 출력 및 레이아웃 유지용 스타일 고정 */}
                           <span className="log-time" style={{ fontFamily: 'monospace', fontWeight: 700, width: '75px', flexShrink: 0 }}>
                             {log.time}
                           </span>
