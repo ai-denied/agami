@@ -107,29 +107,35 @@ body.dark-mode, .dark-mode {
   cursor: not-allowed;
 }
 
+/* 💡 크롬 윈도우의 요일 깨짐 버그 해결을 위한 Date Picker 스타일 완전 교체 */
 .dashboard-date-picker {
+  position: relative;
   border: none; 
   background: transparent; 
-  padding: 4px 8px;
-  color: var(--text-primary);
+  /* 핵심: 브라우저가 강제로 그리는 기본 텍스트를 숨김 */
+  color: transparent !important; 
   font-family: 'Pretendard', sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   outline: none;
   cursor: pointer;
   color-scheme: light; 
-  min-width: 160px;
+  /* 💡 인풋 박스의 너비를 고정하고 내부 요소들을 가운데 정렬하기 위한 패딩 설정 */
+  width: 140px; 
+  padding: 4px 8px;
+  box-sizing: border-box;
 }
 
-.dashboard-date-picker::-webkit-datetime-edit {
-  display: flex;
-  align-items: center;
-  min-width: 100%;
-}
-
-.dashboard-date-picker::-webkit-datetime-edit-fields-wrapper {
-  display: flex;
-  width: 100%;
+/* 핵심: 숨겨진 글자 자리에 data-date 속성값을 이용해 예쁘게 덮어씌움 */
+.dashboard-date-picker::before {
+  content: attr(data-date);
+  position: absolute;
+  /* 💡 텍스트가 시작되는 위치 지정 (가운데 정렬을 위해 왼쪽 여백 조정) */
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-primary);
+  pointer-events: none; /* 클릭해도 뒤의 input이 동작하도록 허용 */
 }
 
 body.dark-mode .dashboard-date-picker,
@@ -137,9 +143,18 @@ body.dark-mode .dashboard-date-picker,
   color-scheme: dark; 
 }
 
-.dashboard-date-picker:focus { border-color: var(--brand-color); outline: none; }
+.dashboard-date-picker:focus { 
+  border-color: var(--brand-color); 
+  outline: none; 
+}
 
+/* 💡 브라우저 기본 달력 아이콘 복구 및 위치 조정 */
 .dashboard-date-picker::-webkit-calendar-picker-indicator { 
+  position: absolute;
+  /* 💡 아이콘을 우측으로 배치하여 텍스트와 나란히 놓기 */
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
   opacity: 0.8;
   padding: 4px;
