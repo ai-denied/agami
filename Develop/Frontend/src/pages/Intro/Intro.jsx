@@ -114,7 +114,7 @@ const Intro = () => {
                 <img 
                   src="/agami.png" 
                   alt="agami logo" 
-                  style={{ width: '180px', height: '180px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 10px 25px rgba(0,0,0,0.06)' }} 
+                  style={{ width: '100%', height: 'auto', borderRadius: '16px', border: '1px solid #e0e7f3', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}
                 />
               </div>
 
