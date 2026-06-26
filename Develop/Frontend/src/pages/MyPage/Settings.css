@@ -494,80 +494,37 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
 }
 .btn-sys-danger:hover { background: #dc2626; }
 
-/* ---------------------------------------------------
-   💡 ProjectDetail 휴지통 아이콘 교체 스타일 추가
---------------------------------------------------- */
-.btn-delete-project.icon-delete {
-  background: transparent;
-  color: #9ca3af; 
-  border: none;
-  width: 38px !important;  
-  height: 38px !important;
-  padding: 0 !important;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-body.dark-mode .btn-delete-project.icon-delete { 
-  color: #6b7280; 
-  background: transparent;
-}
-
-.btn-delete-project.icon-delete:hover { 
-  background: #fee2e2; 
-  color: #ef4444; 
-}
-
-body.dark-mode .btn-delete-project.icon-delete:hover { 
-  background: rgba(239, 68, 68, 0.2); 
-  color: #ef4444; 
-}
-
 /* =============================================================================
    [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
    ============================================================================= */
 @media (max-width: 900px) {
   .settings-page-wrapper {
-    padding: 16px;
-    align-items: flex-start;
+    padding: 16px; /* 💡 외부 여백을 줄여 공간 확보 */
   }
 
   .settings-container {
-    padding: 24px 16px; /* 💡 컨테이너 내부 패딩을 줄여 공간 효율화 */
+    padding: 24px 16px; /* 💡 컨테이너 내부 여백 축소 */
     border-radius: 12px;
-    width: 100%; /* 너비를 100%로 고정 */
+    width: 100%;
     margin: 0;
   }
 
-  /* 💡 1. 세로 배치(column)를 가로 배치(row)로 원복하고 상단에 맞춤 */
+  /* 💡 헤더 타이틀이 길 때 잘리지 않도록 세로로 배치하고 정렬 */
   .settings-header {
-    flex-direction: row; 
+    flex-direction: column; 
     align-items: flex-start; 
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  /* 💡 2. 텍스트 영역이 남은 공간을 알맞게 차지하도록 설정 */
-  .settings-header > div {
-    flex: 1;
-    min-width: 0; /* 💡 긴 제목이 있어도 잘리지 않게 설정 */
+    gap: 8px;
+    margin-bottom: 32px;
   }
 
   .settings-title {
-    font-size: 1.25rem; /* 모바일용 폰트 사이즈 조정 */
+    font-size: 1.35rem; /* 타이틀 크기 조정 */
+    word-break: break-word; /* 💡 긴 단어 자동 줄바꿈 */
   }
 
-  /* 💡 3. 아이콘 형태가 아닌 일반 텍스트 버튼일 경우에만 가로 100% 적용 */
-  .btn-delete-project:not(.icon-delete) {
-    width: 100%;
-    text-align: center;
-    padding: 14px 0;
+  .settings-description {
+    font-size: 0.9rem;
+    word-break: keep-all;
   }
 
   .form-actions {
@@ -610,11 +567,6 @@ body.dark-mode .btn-delete-project.icon-delete:hover {
     margin-top: 4px;
   }
 
-  .form-group, .form-input, .key-display-row {
-    width: 100%;
-    box-sizing: border-box; /* 💡 중요: 패딩이 너비에 포함되도록 설정 */
-  }
-  
   .key-display-row {
     flex-direction: column;
     align-items: flex-start;
@@ -631,6 +583,7 @@ body.dark-mode .btn-delete-project.icon-delete:hover {
     width: 100%;
     font-size: 0.85rem;
     white-space: pre-wrap; 
+    word-break: break-all;
   }
 
   .btn-copy-action {
@@ -638,24 +591,5 @@ body.dark-mode .btn-delete-project.icon-delete:hover {
     text-align: center;
     padding: 12px 0 !important;
     margin-top: 4px;
-  }
-
-  /* 💡 모바일 코드 스니펫 보정 */
-  .code-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 16px;
-  }
-
-  .btn-copy-code {
-    width: 100%;
-    text-align: center;
-    padding: 12px 0;
-  }
-
-  .code-content {
-    padding: 16px;
-    font-size: 0.85rem;
   }
 }
