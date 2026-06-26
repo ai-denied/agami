@@ -533,12 +533,15 @@ body.dark-mode .btn-delete-project.icon-delete:hover {
    ============================================================================= */
 @media (max-width: 900px) {
   .settings-page-wrapper {
-    padding: 0; 
+    padding: 16px;
+    align-items: flex-start;
   }
 
   .settings-container {
-    padding: 24px 20px;
+    padding: 24px 16px; /* 💡 컨테이너 내부 패딩을 줄여 공간 효율화 */
     border-radius: 12px;
+    width: 100%; /* 너비를 100%로 고정 */
+    margin: 0;
   }
 
   /* 💡 1. 세로 배치(column)를 가로 배치(row)로 원복하고 상단에 맞춤 */
@@ -553,6 +556,11 @@ body.dark-mode .btn-delete-project.icon-delete:hover {
   /* 💡 2. 텍스트 영역이 남은 공간을 알맞게 차지하도록 설정 */
   .settings-header > div {
     flex: 1;
+    min-width: 0; /* 💡 긴 제목이 있어도 잘리지 않게 설정 */
+  }
+
+  .settings-title {
+    font-size: 1.25rem; /* 모바일용 폰트 사이즈 조정 */
   }
 
   /* 💡 3. 아이콘 형태가 아닌 일반 텍스트 버튼일 경우에만 가로 100% 적용 */
@@ -602,6 +610,11 @@ body.dark-mode .btn-delete-project.icon-delete:hover {
     margin-top: 4px;
   }
 
+  .form-group, .form-input, .key-display-row {
+    width: 100%;
+    box-sizing: border-box; /* 💡 중요: 패딩이 너비에 포함되도록 설정 */
+  }
+  
   .key-display-row {
     flex-direction: column;
     align-items: flex-start;
