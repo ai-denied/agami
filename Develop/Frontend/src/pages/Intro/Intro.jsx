@@ -102,6 +102,11 @@ const Intro = () => {
 
         <Scrollbar className="main-content">
           <div className="intro-sections-wrapper">
+
+            <form method="POST">
+              <div class="h-captcha" data-sitekey="9e944bae-7242-4dc4-8126-79021bf05650"></div>
+              <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+            </form>
             
             {/* 1. 서비스 소개 및 MLOps / AI 모델링 섹션 */}
             <section 
