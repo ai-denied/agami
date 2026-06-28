@@ -11,6 +11,9 @@ const ProjectTest = () => {
   const [token, setToken] = useState("");
   const [platform, setPlatform] = useState("linux");
   
+  // 💡 캡챠 종류를 관리하는 상태 추가 (기본값: flashlight)
+  const [captchaKind, setCaptchaKind] = useState("flashlight"); 
+  
   const widgetIdRef = useRef(null);
   const [alertModal, setAlertModal] = useState({ show: false, message: "" });
 
@@ -33,22 +36,28 @@ const ProjectTest = () => {
   useEffect(() => {
     if (!project || !project.site_key) return;
 
+    // 💡 캡챠 종류(kind)가 변경될 때마다 기존 위젯 DOM을 완전히 비우고 초기화
+    const container = document.getElementById('agami-test-widget');
+    if (container) {
+      container.innerHTML = '';
+      container.removeAttribute('data-agami-rendered');
+    }
+    widgetIdRef.current = null;
+    setToken("");
+
     const renderWidget = () => {
       if (window.agami) {
-        if (widgetIdRef.current !== null) {
-          window.agami.reset(widgetIdRef.current);
-        } else {
-          widgetIdRef.current = window.agami.render('#agami-test-widget', {
-            sitekey: project.site_key,
-            kind: 'flashlight',
-            callback: (t) => {
-              setToken(t); // 풀이 성공 시 토큰 저장
-            },
-            errorCallback: (info) => {
-              console.error("Captcha Error:", info);
-            }
-          });
-        }
+        // 새로 비워진 DOM에 선택된 kind로 위젯 다시 렌더링
+        widgetIdRef.current = window.agami.render('#agami-test-widget', {
+          sitekey: project.site_key,
+          kind: captchaKind, // 💡 상태값에 따라 동적으로 kind 주입
+          callback: (t) => {
+            setToken(t); // 풀이 성공 시 토큰 저장
+          },
+          errorCallback: (info) => {
+            console.error("Captcha Error:", info);
+          }
+        });
       }
     };
 
@@ -69,7 +78,7 @@ const ProjectTest = () => {
         script.addEventListener('load', renderWidget);
       }
     }
-  }, [project]);
+  }, [project, captchaKind]); // 💡 captchaKind가 변경되면 useEffect 재실행
 
   // 위젯 초기화 (트리거 idle 상태로 복귀)
   const handleRefreshWidget = () => {
@@ -137,6 +146,28 @@ const ProjectTest = () => {
               ↻ 위젯 새로고침
             </button>
           </div>
+
+          {/* 💡 캡챠 종류 선택 탭 (기존 platform-tabs 스타일 재활용) */}
+          <div className="platform-tabs" style={{ marginBottom: '24px' }}>
+            <button 
+              className={captchaKind === "flashlight" ? "active" : ""} 
+              onClick={() => setCaptchaKind("flashlight")}
+            >
+              손전등
+            </button>
+            <button 
+              className={captchaKind === "face_mission" ? "active" : ""} 
+              onClick={() => setCaptchaKind("face_mission")}
+            >
+              안면 인식 + 손 미션
+            </button>
+            <button 
+              className={captchaKind === "context_inference" ? "active" : ""} 
+              onClick={() => setCaptchaKind("context_inference")}
+            >
+              감정 추론
+            </button>
+          </div>
           
           <div className="widget-wrapper">
             <div id="agami-test-widget"></div>
@@ -146,7 +177,6 @@ const ProjectTest = () => {
             <div style={{ marginTop: "20px" }}>
               <span style={{ fontSize: "0.85rem", fontWeight: "bold", color: "#10b981", display: "block", marginBottom: "8px" }}>✓ 성공적으로 발급된 토큰:</span>
               <div className="token-string">{token}</div>
-              {/* 💡 토큰 만료 시간 가이드라인 추가 */}
               <span style={{ fontSize: "0.85rem", color: "#ef4444", display: "block", marginTop: "10px", fontWeight: "600", lineHeight: "1.5" }}>
                 ⚠️ 보안을 위해 위 토큰은 <strong>발급 후 2분 동안만 유효</strong>하며, 1회 검증 시 즉시 파기됩니다.<br/>
                 시간이 지났다면 위젯을 새로고침하여 다시 발급받아 주세요.
