@@ -329,7 +329,6 @@ export default function Dashboard() {
                           ? 'safe-log'
                           : 'warning-log');
 
-                      // 💡 핵심 수정: risk_band(위험도) 및 명칭에 따라 설명을 동적으로 정확히 분기
                       let defaultDetail = '비정상적인 스크립트 기반 요청으로 분류되어 보안 정책에 의해 차단되었습니다.';
                       
                       if (log.risk_band === 'low_risk' || log.reason === '정상 요청') {
@@ -350,8 +349,17 @@ export default function Dashboard() {
                                 {log.time}
                               </span>
                               
+                              {/* 💡 전체 대시보드 탭일 때 캡챠 종류(kind)를 렌더링하는 영역 */}
                               {activeModel === 'all' && log.kind && CAPTCHA_KIND_MAP[log.kind] && (
-                                <span style={{ fontSize: '11px', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border-color)', fontWeight: 600 }}>
+                                <span style={{ 
+                                  fontSize: '11px', 
+                                  backgroundColor: 'rgba(93, 162, 255, 0.08)', 
+                                  color: 'var(--brand-color)', 
+                                  padding: '3px 8px', 
+                                  borderRadius: '12px', 
+                                  border: '1px solid rgba(93, 162, 255, 0.2)', 
+                                  fontWeight: 700 
+                                }}>
                                   {CAPTCHA_KIND_MAP[log.kind].icon} {CAPTCHA_KIND_MAP[log.kind].label}
                                 </span>
                               )}

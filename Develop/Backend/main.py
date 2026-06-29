@@ -25,15 +25,12 @@ logger = logging.getLogger(__name__)
 def normalize_domain(domain: str) -> str:
     domain = domain.strip()
     
-    # 1. 이미 http:// 또는 https:// 가 명시되어 있다면 그대로 반환합니다.
     if domain.startswith("http://") or domain.startswith("https://"):
         return domain
     
-    # 2. 로컬 테스트 환경(localhost, 127.0.0.1)인 경우 http:// 를 기본으로 적용합니다.
     if "localhost" in domain or "127.0.0.1" in domain:
         return f"http://{domain}"
     
-    # 3. 그 외의 상용 도메인은 https:// 를 기본으로 적용합니다.
     return f"https://{domain}"
 
 class ProjectCreate(BaseModel):
@@ -256,7 +253,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
             {"uid": user_id}
         ).scalar()
 
-        # 위에서 조회한 tenant_id_record 재사용
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
             captcha_db.execute(text("""INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())"""), {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id})
@@ -368,7 +364,6 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
         if tenant_id_record:
             tenant_id_str = str(tenant_id_record)
             for domain in domain_list:
-                # [정석 수정] 업데이트 시에도 '내 계정'의 도메인만 중복 검사
                 existing_origin = captcha_db.execute(
                     text("""
                         SELECT ao.id, ao.api_key_id, ak.revoked_at 
@@ -381,7 +376,6 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
                 
                 if existing_origin:
                     ao_id, ak_id, revoked_at = existing_origin
-                    # 수정 중인 자기 자신의 기존 도메인은 패스
                     if ak_id == api_key_id_record:
                         continue
                         
@@ -477,19 +471,15 @@ async def get_combined_dashboard_data(
     if not target_date:
         target_date = datetime.utcnow().strftime("%Y-%m-%d")
 
-    # 프로젝트 ID 필수 체크
     if not project_id:
         raise HTTPException(status_code=400, detail="project_id is required")
 
-    # 1. 웹 DB (agamidb)에서 해당 프로젝트의 site_key 조회 및 권한 확인
     project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found or unauthorized")
 
-    # 2. 엔진 DB (captcha_db)에서 해당 site_key(client_key)의 api_key_id 조회
     api_key_id = captcha_db.execute(text("SELECT id FROM api_keys WHERE client_key = :ck"), {"ck": project.site_key}).scalar()
     
-    # 생성 직후 등 아직 엔진에 동기화가 안 됐을 경우의 빈 데이터 처리
     def _empty_dashboard():
         return {
             "status": "success",
@@ -506,7 +496,6 @@ async def get_combined_dashboard_data(
     if not api_key_id:
         return _empty_dashboard()
 
-    # 3. 쿼리 필터 세팅 (owner_user_id가 아닌 api_key_id 기반으로 완벽 분리)
     kind_filter_c = "" if kind == "all" else " AND c.kind = :kind"
     kind_filter_v = "" if kind == "all" else " AND v.kind = :kind"
     
@@ -515,10 +504,9 @@ async def get_combined_dashboard_data(
     
     params = {"api_key_id": api_key_id, "kind": kind, "target_date": target_date}
 
-    # [1] 지표 조회: 해당 api_key_id로 발급된 챌린지 세션 수 파악
+    # [1] 지표 조회
     total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges c WHERE c.api_key_id = :api_key_id {kind_filter_c} {date_filter_c}"), params).scalar() or 0
     
-    # [1-2] 지표 조회: verifications 테이블은 challenges와 JOIN하여 해당 프로젝트인지 확인
     stats_query = f"""
         SELECT v.success, COUNT(*) as cnt 
         FROM verifications v 
@@ -534,7 +522,7 @@ async def get_combined_dashboard_data(
     
     abandoned_today = max(0, total_sessions - total_verified)
     
-    # [2] 차단 유형 한글 맵핑 (JOIN)
+    # [2] 차단 유형
     attacks_query = f"""
         SELECT v.attack_type, COUNT(*) as cnt 
         FROM verifications v 
@@ -546,14 +534,13 @@ async def get_combined_dashboard_data(
     attacks = captcha_db.execute(text(attacks_query), params).fetchall()
     
     attacks_list = []
-
     for row in attacks:
         attacks_list.append({
             "name": row[0] or "bot_detected",
             "value": row[1]
         })
 
-    # [3] 세션 로그 (JOIN)
+    # [3] 세션 로그 (JOIN 최적화 및 WHERE 절, kind 필드 복구)
     logs_query = f"""
         SELECT
             TO_CHAR(v.created_at,'HH24:MI:SS'),
@@ -562,8 +549,9 @@ async def get_combined_dashboard_data(
             v.confidence,
             c.kind
         FROM verifications v
-        JOIN challenges c
-        ON v.challenge_id = c.id
+        JOIN challenges c ON v.challenge_id = c.id
+        WHERE c.api_key_id = :api_key_id {kind_filter_v} {date_filter_v}
+        ORDER BY v.created_at DESC LIMIT 10
     """
     logs = captcha_db.execute(text(logs_query), params).fetchall()
     
@@ -573,6 +561,7 @@ async def get_combined_dashboard_data(
         a_type = row[1]
         verdict = row[2]
         conf = row[3] or 0.0
+        c_kind = row[4] # 💡 프론트엔드로 넘겨줄 캡챠 종류(kind) 추출
 
         if a_type:
             reason = a_type
@@ -586,10 +575,11 @@ async def get_combined_dashboard_data(
             "time": log_time,
             "reason": reason,
             "score": round(conf, 2),
-            "risk_band": risk_band
+            "risk_band": risk_band,
+            "kind": c_kind # 💡 JSON 응답에 포함시켜 프론트엔드에서 뱃지로 렌더링되게 함
         })
 
-    # [4] 트래픽 데이터 (JOIN)
+    # [4] 트래픽 데이터
     ch_traffic_query = f"""
         SELECT TO_CHAR(c.issued_at, 'HH24:00') as time, COUNT(*) as cnt 
         FROM challenges c 
