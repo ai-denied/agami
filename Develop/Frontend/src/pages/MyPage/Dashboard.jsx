@@ -79,6 +79,8 @@ export default function Dashboard() {
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
   const ATTACK_TYPE_MAP = {
+    'bot_detected': "봇으로 판단됨",
+    'normal': "정상 요청",
     'model_high_risk': 'AI 궤적 모델 위험군',
     'no_trajectory': '궤적 데이터 누락',
     'coordinate_brute': '좌표 무작위 대입', 

@@ -4,19 +4,34 @@ import Scrollbar from "@/components/Scrollbar/Scrollbar";
 import BubbleBtn from "@/components/BubbleBtn/BubbleBtn";
 import './Intro.css';
 
-// 💡 전체 사이드바 메뉴 목차
+// 💡 실제 서비스 UI 타이틀에 맞게 메뉴 이름 수정
 const MENU_ITEMS = [
   { id: 'intro', title: '서비스 소개' },
-  { id: 'handlight', title: '손전등 캡챠' },
-  { id: 'face', title: '안면 인식 캡챠' },
-  { id: 'emotion', title: '감정 추론 캡챠' },
+  { id: 'handlight', title: '손전등 탐색 캡챠' },
+  { id: 'face', title: '안면 미션 캡챠' },
+  { id: 'emotion', title: '감정 맥락 추론 캡챠' },
 ];
 
-// 캡챠 상세 데이터
+// 💡 캡챠 설명 전면 수정 및 이미지 경로 매핑
 const CAPTCHA_TYPES = [
-  { id: 'handlight', title: '손전등 캡챠', desc: '어둠 속에 숨겨진 물건을 손전등 불빛으로 찾아내는 방식입니다. 마우스의 이동 궤적, 클릭 패턴 등을 분석하여 사람의 자연스러운 움직임인지 판별합니다.' },
-  { id: 'face', title: '안면 인식 캡챠', desc: '사용자의 얼굴 형태를 인식하여 실사용자인지 확인합니다. 단순한 이미지가 아닌 3D 라이브니스(Liveness)를 분석하여 우회 공격을 방어합니다.' },
-  { id: 'emotion', title: '감정 추론 캡챠', desc: '주어진 상황(Context)에 맞는 적절한 표정을 지어 인증을 완료하는 고도화된 방식입니다. 감정 분석 AI가 사용자의 표정 변화를 실시간으로 추론합니다.' },
+  { 
+    id: 'handlight', 
+    title: '손전등 탐색 캡챠', 
+    desc: '어둠 속에 숨겨진 물건을 손전등 불빛으로 찾아내는 방식입니다. 사용자가 물건을 찾는 동안 발생하는 마우스의 이동 궤적, 클릭 패턴, 속도 등의 시계열 데이터를 GRU 모델로 분석하여, 자동화된 봇이 아닌 실제 사람의 자연스러운 움직임인지 정밀하게 판별합니다.',
+    imgSrc: '/Handlight.png'
+  },
+  { 
+    id: 'face', 
+    title: '안면 미션 캡챠', 
+    desc: '단순한 얼굴 형태 인식을 넘어, 실시간으로 카메라를 통해 주어지는 특정 동작 미션(예: 고개 끄덕이기, 손가락 동작 등)을 수행하여 실사용자인지 확인합니다. 3D 라이브니스(Liveness) 기술을 통해 사진이나 영상을 활용한 우회 공격을 완벽하게 방어합니다.',
+    imgSrc: '/FaceMission.png'
+  },
+  { 
+    id: 'emotion', 
+    title: '감정 맥락 추론 캡챠', 
+    desc: '제시된 이미지 속 인물의 표정뿐만 아니라 주변 배경과 상황(Context)을 종합적으로 이해하여 올바른 감정을 추론하는 고도화된 방식입니다. 자체 구축한 비전 언어 AI(Qwen2.5-VL) 기반 공격 시뮬레이션을 통해, AI가 쉽게 맞히는 문제는 폐기하고 사람에게만 명확한 문제로만 선별하여 극강의 보안성을 자랑합니다.',
+    imgSrc: '/ImageGrid.png' // 💡 파일명 맞춰서 넣어주세요!
+  },
 ];
 
 const Intro = () => {
@@ -109,7 +124,6 @@ const Intro = () => {
               ref={(el) => (sectionRefs.current['intro'] = el)}
               className="captcha-description"
             >
-              {/* 💡 agami 로고 이미지 추가 (반응형 & 원형 유지 CSS 클래스 적용) */}
               <div className="intro-logo-wrapper">
                 <img 
                   src="/agami.png" 
@@ -145,7 +159,6 @@ const Intro = () => {
                   평가를 마친 신규 모델은 곧바로 운영에 반영되지 않고, 현재 서비스 중인 모델과 성능을 비교하여 더 나은 경우에만 정식 모델로 승격됩니다. 승격이 확정되면 모델은 가볍고 빠른 추론에 적합한 형태로 변환되어 자동으로 빌드되고, 쿠버네티스 클러스터에 배포되어 실시간 API 서버를 통해 서비스에 적용됩니다. 이처럼 데이터 검증부터 전처리, 학습, 평가, 모델 승격, 빌드·배포까지 모든 과정이 자동화된 파이프라인으로 연결되어 있어, 사람의 개입을 최소화하면서도 안정적이고 신뢰할 수 있는 AI 서비스 운영이 가능합니다.
                 </p>
                 
-                {/* 💡 MLOps 파이프라인 이미지 추가 */}
                 <div style={{ marginTop: '24px', width: '100%' }}>
                   <img 
                     src="/ML-Architecture.png" 
@@ -156,7 +169,7 @@ const Intro = () => {
               </div>
             </section>
 
-            {/* 2. 캡챠 종류 설명 섹션 */}
+            {/* 2. 캡챠 종류 설명 섹션 (회색 박스 제거 및 실제 이미지 연동) */}
             {CAPTCHA_TYPES.map((type) => (
               <section 
                 key={type.id} 
@@ -171,10 +184,19 @@ const Intro = () => {
                   {type.desc}
                 </p>
                 
-                <div className="intro-image-placeholder">
-                  {type.id === 'handlight' && <span>[손전등 캡챠 데모 소개 사진 / 영상]</span>}
-                  {type.id === 'face' && <span>[안면 인식 캡챠 데모 소개 사진 / 영상]</span>}
-                  {type.id === 'emotion' && <span>[감정 추론 캡챠 데모 소개 사진 / 영상]</span>}
+                <div style={{ marginTop: '32px', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                  <img 
+                    src={type.imgSrc} 
+                    alt={type.title} 
+                    style={{ 
+                      width: '100%', 
+                      maxWidth: '600px', /* 모바일 세로형 UI 캡처이므로 최대폭을 살짝 제한하여 예쁘게 배치 */
+                      height: 'auto', 
+                      borderRadius: '24px', 
+                      border: '1px solid #e0e7f3', 
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.08)' 
+                    }} 
+                  />
                 </div>
               </section>
             ))}

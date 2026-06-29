@@ -545,27 +545,25 @@ async def get_combined_dashboard_data(
     """
     attacks = captcha_db.execute(text(attacks_query), params).fetchall()
     
-    attack_map = {
-        "coordinate_brute": "좌표 무차별 대입",
-        "empty_trajectory": "마우스 궤적 없음",
-        "known_target": "알려진 타겟 집중",
-        "random_search": "무작위 탐색",
-        "grid_search": "그리드 패턴 탐색",
-    }
-    
     attacks_list = []
+
     for row in attacks:
-        raw_type = row[0]
-        disp_name = attack_map.get(raw_type, "비정상적 우회 시도" if not raw_type else raw_type)
-        attacks_list.append({"name": disp_name, "value": row[1]})
+        attacks_list.append({
+            "name": row[0] or "bot_detected",
+            "value": row[1]
+        })
 
     # [3] 세션 로그 (JOIN)
     logs_query = f"""
-        SELECT TO_CHAR(v.created_at, 'HH24:MI:SS'), v.attack_type, v.verdict, v.confidence
+        SELECT
+            TO_CHAR(v.created_at,'HH24:MI:SS'),
+            v.attack_type,
+            v.verdict,
+            v.confidence,
+            c.kind
         FROM verifications v
-        JOIN challenges c ON v.challenge_id = c.id
-        WHERE c.api_key_id = :api_key_id {kind_filter_v} {date_filter_v}
-        ORDER BY v.created_at DESC LIMIT 10
+        JOIN challenges c
+        ON v.challenge_id = c.id
     """
     logs = captcha_db.execute(text(logs_query), params).fetchall()
     
@@ -576,13 +574,18 @@ async def get_combined_dashboard_data(
         verdict = row[2]
         conf = row[3] or 0.0
 
-        reason = attack_map.get(a_type, a_type) if a_type else ("봇으로 판단됨" if verdict == "bot" else "정상 요청")
+        if a_type:
+            reason = a_type
+        elif verdict == "bot":
+            reason = "bot_detected"
+        else:
+            reason = "normal"
         risk_band = "high_risk" if verdict == "bot" else "low_risk"
 
         logs_list.append({
             "time": log_time,
             "reason": reason,
-            "score": f"{conf:.2f}",
+            "score": round(conf, 2),
             "risk_band": risk_band
         })
 
