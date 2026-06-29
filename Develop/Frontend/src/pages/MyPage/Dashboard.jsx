@@ -29,6 +29,8 @@ const CustomTooltip = ({ active, payload }) => {
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const { id: projectId } = useParams();
+  
+  // 💡 수정됨: 백엔드와 통신하는 초기 상태값을 'all'로 유지
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
@@ -42,6 +44,7 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      // activeModel 상태값이 백엔드의 kind 파라미터로 그대로 전달됩니다.
       const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}&target_date=${targetDate}&project_id=${projectId}`, {
         withCredentials: true
       });
@@ -77,28 +80,36 @@ export default function Dashboard() {
 
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
+  // 💡 수정됨: 3가지 캡챠 모델에서 발생할 수 있는 주요 예외 및 공격 상황을 맵핑 테이블에 추가 확충
   const ATTACK_TYPE_MAP = {
+    // 공통 및 손전등 (flashlight)
     'model_high_risk': 'AI 탐지 (위험 점수)',
     'no_trajectory': '궤적 자체 누락',
     'coordinate_brute': '좌표 단순 실패', 
     'empty_trajectory': '빈 궤적 (Fail-closed)',
     'missing_canvas_dims': '캔버스 규격 누락',
-    'inference_unavailable': '추론 API 연결 실패'
+    'inference_unavailable': '추론 API 연결 실패',
+    
+    // 안면 인식 + 손 미션 (face_mission)
+    'camera_bypass': '카메라 우회 시도',
+    'face_spoofing': '얼굴 위변조 의심',
+    'gesture_mismatch': '제스처 불일치',
+    'liveness_fail': '라이브니스 검증 실패',
+    'abnormal_fps': '비정상 프레임 레이트',
+    
+    // 감정 맥락 추론 (context_inference)
+    'random_guessing': '무작위 대입 시도',
+    'solve_speed_anomaly': '비정상적인 풀이 속도',
+    'pattern_abuse': '패턴 남용 시도'
   };
 
-  const validAttackKeys = Object.keys(ATTACK_TYPE_MAP);
-
+  // 💡 수정됨: 알 수 없는 공격 유형이 들어오더라도 차트에서 누락되지 않도록 강제 필터링 제거
   const processedAttacks = (attacks || [])
-    .filter(attack => {
-      if (attack.value === 0) return false;
-      if (typeof attack.name === 'string' && /^[a-z_]+$/.test(attack.name) && !validAttackKeys.includes(attack.name)) {
-        return false;
-      }
-      return true;
-    })
+    .filter(attack => attack.value > 0) // 값 0인 항목만 필터링
     .map(attack => ({
       ...attack,
-      name: ATTACK_TYPE_MAP[attack.name] || attack.name
+      // 맵에 없는 새로운 키워드가 백엔드에서 오더라도 원본 이름으로라도 렌더링되게 방어 처리
+      name: ATTACK_TYPE_MAP[attack.name] || attack.name 
     }))
     .sort((a, b) => b.value - a.value);
 
@@ -120,7 +131,6 @@ export default function Dashboard() {
                 <div className="date-control-group">
                   <button className="date-arrow-btn" onClick={handlePrevDay}>◀</button>
                   
-                  {/* 💡 날짜 텍스트 색상 버그와 윈도우 크롬 () 렌더링 붕괴를 해결한 커스텀 래퍼 */}
                   <div className="custom-date-picker-wrapper">
                     <span className="custom-date-text">{targetDate}</span>
                     <svg className="custom-calendar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -154,11 +164,12 @@ export default function Dashboard() {
                 </button>
               </div>
 
+              {/* 💡 수정됨: 백엔드 명세서에 맞춰 모델 선택자의 value를 올바른 kind 값으로 변경 (facial -> face_mission / emotion -> context_inference) */}
               <div className="model-tab-container pc-tabs">
                 <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
                 <button className={`tab-btn ${activeModel === 'flashlight' ? 'active' : ''}`} onClick={() => setActiveModel('flashlight')}>손전등</button>
-                <button className={`tab-btn ${activeModel === 'facial' ? 'active' : ''}`} onClick={() => setActiveModel('facial')}>안면 인식</button>
-                <button className={`tab-btn ${activeModel === 'emotion' ? 'active' : ''}`} onClick={() => setActiveModel('emotion')}>감정 기반</button>
+                <button className={`tab-btn ${activeModel === 'face_mission' ? 'active' : ''}`} onClick={() => setActiveModel('face_mission')}>안면 인식</button>
+                <button className={`tab-btn ${activeModel === 'context_inference' ? 'active' : ''}`} onClick={() => setActiveModel('context_inference')}>감정 기반</button>
               </div>
 
               <div className="model-tab-container mobile-select-container">
@@ -169,8 +180,8 @@ export default function Dashboard() {
                 >
                   <option value="all">전체 모델 현황</option>
                   <option value="flashlight">손전등 캡챠</option>
-                  <option value="facial">안면 인식 캡챠</option>
-                  <option value="emotion">감정 추론 캡챠</option>
+                  <option value="face_mission">안면 인식 캡챠</option>
+                  <option value="context_inference">감정 추론 캡챠</option>
                 </select>
               </div>
             </div>
