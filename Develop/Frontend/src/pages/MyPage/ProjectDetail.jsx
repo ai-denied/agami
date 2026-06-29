@@ -13,6 +13,9 @@ const ProjectDetail = () => {
   const [domainList, setDomainList] = useState([""]); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // 💡 선택된 캡챠 연동 코드 종류 상태 관리
+  const [selectedKind, setSelectedKind] = useState("flashlight");
+
   const [alertModal, setAlertModal] = useState({ show: false, message: "" });
   const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
 
@@ -91,16 +94,17 @@ const ProjectDetail = () => {
 
   if (!project) return <div style={{padding: '40px'}}>로딩 중...</div>;
 
-  // 💡 Secret Key 마스킹 헬퍼 함수
   const renderMaskedSecret = (key) => {
     return key ? `agami_secret_${"•".repeat(32)}` : "";
   };
 
-  const integrationCode = `<script src="https://agami-captcha.cloud/widget/loader.js" async></script>
+  // 💡 선택된 타입에 따라 동적으로 연동 코드를 생성하는 함수
+  const getIntegrationCode = (kind) => {
+    return `<script src="https://agami-captcha.cloud/widget/loader.js" async></script>
 
 <div class="agami-captcha"
      data-sitekey="${project.site_key}"
-     data-kind="flashlight"
+     data-kind="${kind}"
      data-callback="onCaptchaToken"
      data-error-callback="onCaptchaError"></div>
 
@@ -116,6 +120,9 @@ const ProjectDetail = () => {
     console.error("Captcha Error:", info);
   }
 </script>`;
+  };
+
+  const currentIntegrationCode = getIntegrationCode(selectedKind);
 
   return (
     <div className="settings-page-wrapper">
@@ -181,7 +188,6 @@ const ProjectDetail = () => {
             
             <div className="key-display-row">
               <span className="key-display-label">Secret Key</span>
-              {/* 💡 화면에는 마스킹된 텍스트를 출력하지만, 복사 버튼에는 실제 secret_key(원본)를 넘깁니다. */}
               <span className="key-display-value" style={{ letterSpacing: "1px" }}>{renderMaskedSecret(project.secret_key)}</span>
               <button className="btn-copy-action" onClick={() => copyToClipboard(project.secret_key)}>복사</button>
             </div>
@@ -194,13 +200,38 @@ const ProjectDetail = () => {
           <h2 className="section-label">프론트엔드 연동 가이드</h2>
           <p className="settings-description">아래 코드를 복사하여 웹사이트의 HTML에 붙여넣기만 하면 캡챠 위젯이 즉시 활성화됩니다.</p>
           
+          {/* 💡 캡챠 종류 선택 탭 추가 */}
+          <div className="integration-tabs">
+            <button 
+              type="button" 
+              className={`integration-tab-btn ${selectedKind === 'flashlight' ? 'active' : ''}`} 
+              onClick={() => setSelectedKind('flashlight')}
+            >
+              🔦 손전등 탐색 캡챠
+            </button>
+            <button 
+              type="button" 
+              className={`integration-tab-btn ${selectedKind === 'facial' ? 'active' : ''}`} 
+              onClick={() => setSelectedKind('facial')}
+            >
+              😐 안면 미션 캡챠
+            </button>
+            <button 
+              type="button" 
+              className={`integration-tab-btn ${selectedKind === 'emotion' ? 'active' : ''}`} 
+              onClick={() => setSelectedKind('emotion')}
+            >
+              🧠 감정 맥락 추론 캡챠
+            </button>
+          </div>
+
           <div className="code-snippet-box">
             <div className="code-header">
               <span>HTML 연동 예시 (Implicit 방식)</span>
-              <button className="btn-copy-code" onClick={() => copyToClipboard(integrationCode, "연동 코드가 클립보드에 복사되었습니다.")}>코드 복사</button>
+              <button className="btn-copy-code" onClick={() => copyToClipboard(currentIntegrationCode, "연동 코드가 클립보드에 복사되었습니다.")}>코드 복사</button>
             </div>
             <pre className="code-content">
-              <code>{integrationCode}</code>
+              <code>{currentIntegrationCode}</code>
             </pre>
           </div>
         </section>

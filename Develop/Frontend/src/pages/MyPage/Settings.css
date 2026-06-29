@@ -345,7 +345,55 @@ body.dark-mode .btn-copy-action {
 }
 
 /* ---------------------------------------------------
-   💡 코드 스니펫 박스 (ProjectTest & ProjectDetail 공용)
+   💡 연동 가이드 탭 버튼 스타일
+--------------------------------------------------- */
+.integration-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  overflow-x: auto; /* 내용이 길면 가로 스크롤 허용 */
+  padding-bottom: 4px;
+}
+
+.integration-tabs::-webkit-scrollbar { height: 4px; }
+.integration-tabs::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+
+.integration-tab-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+body.dark-mode .integration-tab-btn {
+  background: #28282a;
+  border-color: #334155;
+  color: #a0aec0;
+}
+
+.integration-tab-btn:hover { background: #e5e7eb; }
+body.dark-mode .integration-tab-btn:hover { background: #334155; }
+
+.integration-tab-btn.active {
+  background: #5da2ff;
+  color: #fff;
+  border-color: #5da2ff;
+}
+
+body.dark-mode .integration-tab-btn.active {
+  background: #5da2ff;
+  color: #fff;
+  border-color: #5da2ff;
+}
+
+/* ---------------------------------------------------
+   코드 스니펫 박스 (ProjectTest & ProjectDetail 공용)
 --------------------------------------------------- */
 .code-snippet-box {
   background: #1e293b;
@@ -494,6 +542,40 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
 }
 .btn-sys-danger:hover { background: #dc2626; }
 
+/* ---------------------------------------------------
+   💡 ProjectDetail 휴지통 아이콘 교체 스타일 추가
+--------------------------------------------------- */
+.btn-delete-project.icon-delete {
+  background: transparent;
+  color: #9ca3af; 
+  border: none;
+  width: 38px !important;  
+  height: 38px !important;
+  padding: 0 !important;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+body.dark-mode .btn-delete-project.icon-delete { 
+  color: #6b7280; 
+  background: transparent;
+}
+
+.btn-delete-project.icon-delete:hover { 
+  background: #fee2e2; 
+  color: #ef4444; 
+}
+
+body.dark-mode .btn-delete-project.icon-delete:hover { 
+  background: rgba(239, 68, 68, 0.2); 
+  color: #ef4444; 
+}
+
 /* =============================================================================
    [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
    ============================================================================= */
@@ -591,5 +673,18 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
     text-align: center;
     padding: 12px 0 !important;
     margin-top: 4px;
+  }
+
+  /* 💡 모바일 연동 탭 스크롤 보정 */
+  .integration-tabs {
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .integration-tab-btn {
+    font-size: 0.85rem;
+    padding: 8px 16px;
   }
 }
