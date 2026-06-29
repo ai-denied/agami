@@ -30,7 +30,6 @@ export default function Dashboard() {
   const { user, loading } = useAuth();
   const { id: projectId } = useParams();
   
-  // 💡 수정됨: 백엔드와 통신하는 초기 상태값을 'all'로 유지
   const [activeModel, setActiveModel] = useState('all');
   const [dashboardData, setDashboardData] = useState(null);
   
@@ -44,7 +43,6 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // activeModel 상태값이 백엔드의 kind 파라미터로 그대로 전달됩니다.
       const response = await axios.get(`https://agami-captcha.cloud/api/dashboard/all?kind=${activeModel}&target_date=${targetDate}&project_id=${projectId}`, {
         withCredentials: true
       });
@@ -80,35 +78,57 @@ export default function Dashboard() {
 
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
-  // 💡 수정됨: 3가지 캡챠 모델에서 발생할 수 있는 주요 예외 및 공격 상황을 맵핑 테이블에 추가 확충
   const ATTACK_TYPE_MAP = {
-    // 공통 및 손전등 (flashlight)
-    'model_high_risk': 'AI 탐지 (위험 점수)',
-    'no_trajectory': '궤적 자체 누락',
-    'coordinate_brute': '좌표 단순 실패', 
+    // 손전등 (flashlight)
+    'model_high_risk': 'AI 궤적 모델 위험군',
+    'no_trajectory': '궤적 데이터 누락',
+    'coordinate_brute': '좌표 무작위 대입', 
     'empty_trajectory': '빈 궤적 (Fail-closed)',
-    'missing_canvas_dims': '캔버스 규격 누락',
-    'inference_unavailable': '추론 API 연결 실패',
+    'missing_canvas_dims': '캔버스 규격 조작',
+    'inference_unavailable': '추론 API 타임아웃',
     
     // 안면 인식 + 손 미션 (face_mission)
-    'camera_bypass': '카메라 우회 시도',
-    'face_spoofing': '얼굴 위변조 의심',
-    'gesture_mismatch': '제스처 불일치',
-    'liveness_fail': '라이브니스 검증 실패',
+    'camera_bypass': '카메라 스트림 우회',
+    'face_spoofing': '얼굴 위변조 (Spoofing)',
+    'gesture_mismatch': '제스처 벡터 불일치',
+    'liveness_fail': '생동감 검증(Liveness) 실패',
     'abnormal_fps': '비정상 프레임 레이트',
     
     // 감정 맥락 추론 (context_inference)
-    'random_guessing': '무작위 대입 시도',
-    'solve_speed_anomaly': '비정상적인 풀이 속도',
-    'pattern_abuse': '패턴 남용 시도'
+    'random_guessing': '비정상 초고속 응답',
+    'solve_speed_anomaly': '인간 인지 속도 이탈',
+    'pattern_abuse': '문항 수집 및 패턴 남용'
   };
 
-  // 💡 수정됨: 알 수 없는 공격 유형이 들어오더라도 차트에서 누락되지 않도록 강제 필터링 제거
+  // 💡 추가됨: 관리자가 문제의 원인을 명확히 파악할 수 있도록 각 공격 유형별 상세 분석 설명을 매핑합니다.
+  const ATTACK_DETAIL_MAP = {
+    'model_high_risk': '머신러닝 모델이 사용자의 마우스/터치 궤적을 봇(Bot)으로 분류했습니다.',
+    'no_trajectory': '사용자 입력 이벤트(MouseMove/Touch)가 전혀 수집되지 않은 자동화 스크립트 의심 요청입니다.',
+    'coordinate_brute': '타겟 영역에 대한 좌표 클릭이 정상적인 탐색 과정 없이 비정상적으로 연속 발생했습니다.',
+    'empty_trajectory': '수집된 궤적 데이터 배열이 비어있어 정상적인 사용자 상호작용을 증명할 수 없습니다.',
+    'missing_canvas_dims': '클라이언트의 렌더링 캔버스 환경 변수가 고의로 조작되었거나 누락되었습니다.',
+    'inference_unavailable': '비정상적인 페이로드 크기로 인해 분석 모델 서버와의 통신이 Fail-closed 정책에 의해 차단되었습니다.',
+    'camera_bypass': '가상 카메라(OBS 등) 환경 또는 미리 녹화된 영상 스트림의 강제 주입이 의심됩니다.',
+    'face_spoofing': '2D 사진, 디스플레이 화면 또는 3D 마스크를 이용한 얼굴 위변조 공격이 탐지되었습니다.',
+    'gesture_mismatch': '요청된 행동 지시와 실제 수행된 제스처의 타이밍 및 공간 벡터가 일치하지 않습니다.',
+    'liveness_fail': '동적 생동감(Liveness) 지표가 기준치에 미달하는 딥페이크 의심 트래픽입니다.',
+    'abnormal_fps': '프레임 레이트(FPS)가 비정상적으로 조작되어 실시간 스트림 속도 검증에 실패했습니다.',
+    'random_guessing': '이미지 렌더링 직후 0.5초 이내에 답변을 제출하는 등 무작위 클릭 매크로 패턴이 발견되었습니다.',
+    'solve_speed_anomaly': '일반적인 인간의 인지 및 반응 속도 한계선을 완전히 벗어난 비정상적인 초고속 풀이입니다.',
+    'pattern_abuse': '동일 세션에서 반복적으로 오답을 생성하며 데이터셋 문항을 수집하려는 크롤링 시도입니다.'
+  };
+
+  // 💡 추가됨: 전체 탭에서 어떤 캡챠에서 발생한 로그인지 표시하기 위한 배지 설정
+  const CAPTCHA_KIND_MAP = {
+    'flashlight': { label: '손전등', icon: '🔦' },
+    'face_mission': { label: '안면 인식', icon: '😶' },
+    'context_inference': { label: '감정 추론', icon: '🧠' }
+  };
+
   const processedAttacks = (attacks || [])
-    .filter(attack => attack.value > 0) // 값 0인 항목만 필터링
+    .filter(attack => attack.value > 0)
     .map(attack => ({
       ...attack,
-      // 맵에 없는 새로운 키워드가 백엔드에서 오더라도 원본 이름으로라도 렌더링되게 방어 처리
       name: ATTACK_TYPE_MAP[attack.name] || attack.name 
     }))
     .sort((a, b) => b.value - a.value);
@@ -164,7 +184,6 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* 💡 수정됨: 백엔드 명세서에 맞춰 모델 선택자의 value를 올바른 kind 값으로 변경 (facial -> face_mission / emotion -> context_inference) */}
               <div className="model-tab-container pc-tabs">
                 <button className={`tab-btn ${activeModel === 'all' ? 'active' : ''}`} onClick={() => setActiveModel('all')}>전체 모델 현황</button>
                 <button className={`tab-btn ${activeModel === 'flashlight' ? 'active' : ''}`} onClick={() => setActiveModel('flashlight')}>손전등</button>
@@ -315,13 +334,33 @@ export default function Dashboard() {
                           ? 'safe-log'
                           : 'warning-log');
 
+                      // 💡 추가됨: 기존 1줄짜리 레이아웃을 2줄 형태의 정밀 로그 디자인으로 인라인 오버라이딩 적용
                       return (
-                        <div key={idx} className={`log-item ${logClass}`}>
-                          <span className="log-time" style={{ fontFamily: 'monospace', fontWeight: 700, width: '75px', flexShrink: 0 }}>
-                            {log.time}
-                          </span>
-                          <span className="log-reason">{ATTACK_TYPE_MAP[log.reason] || log.reason}</span>
-                          <span className="risk-score">{log.score}</span>
+                        <div key={idx} className={`log-item ${logClass}`} style={{ display: 'flex', flexDirection: 'column', padding: '12px 14px', gap: '8px', alignItems: 'flex-start', borderBottom: '1px solid var(--border-color)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span className="log-time" style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                {log.time}
+                              </span>
+                              
+                              {/* 💡 추가됨: 전체(all) 화면일 경우 해당 로그를 유발한 캡챠 종류를 표시하는 배지 컴포넌트 */}
+                              {activeModel === 'all' && log.kind && CAPTCHA_KIND_MAP[log.kind] && (
+                                <span style={{ fontSize: '11px', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border-color)', fontWeight: 600 }}>
+                                  {CAPTCHA_KIND_MAP[log.kind].icon} {CAPTCHA_KIND_MAP[log.kind].label}
+                                </span>
+                              )}
+                            </div>
+                            <span className="risk-score" style={{ fontWeight: 'bold' }}>점수: {log.score}</span>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span className="log-reason" style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '13px' }}>
+                              {ATTACK_TYPE_MAP[log.reason] || log.reason}
+                            </span>
+                            {/* 💡 추가됨: 백엔드에서 세부 정보(details)가 오지 않더라도 프론트에서 원인(reason) 기반의 전문적인 상세 분석 내역 제공 */}
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                              {log.details || ATTACK_DETAIL_MAP[log.reason] || '비정상적인 스크립트 기반 요청으로 분류되어 보안 정책에 의해 차단되었습니다.'}
+                            </span>
+                          </div>
                         </div>
                       );
                     }) : (
