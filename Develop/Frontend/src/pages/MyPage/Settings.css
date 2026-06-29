@@ -39,19 +39,6 @@ body.dark-mode .settings-container {
   margin-bottom: 40px; 
 }
 
-.btn-delete-project {
-  background: #fee2e2;
-  color: #ef4444;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-body.dark-mode .btn-delete-project { background: rgba(239, 68, 68, 0.1); }
-.btn-delete-project:hover, body.dark-mode .btn-delete-project:hover { background: #ef4444; color: #fff; }
-
 .settings-title { 
   font-size: 1.5rem; 
   font-weight: 800; 
@@ -147,46 +134,6 @@ body.dark-mode .form-input:disabled {
 }
 
 /* ---------------------------------------------------
-   도메인 관리 버튼
---------------------------------------------------- */
-.domain-input-row { display: flex; gap: 12px; width: 100%; align-items: center; }
-.flex-fill { flex: 1; }
-
-.btn-remove-domain {
-  width: 48px;
-  height: 48px;
-  background: #ffffff;
-  color: #ef4444;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-body.dark-mode .btn-remove-domain {
-  background: transparent;
-  color: #f87171;
-  border-color: #7f1d1d;
-}
-
-.btn-remove-domain:hover { background: #fef2f2; }
-body.dark-mode .btn-remove-domain:hover { background: #7f1d1d; color: #ffffff; }
-
-.btn-add-domain {
-  align-self: flex-start;
-  background: transparent;
-  color: #5da2ff;
-  border: none;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  padding: 4px 0;
-}
-
-/* ---------------------------------------------------
    저장 버튼 및 알림 메시지
 --------------------------------------------------- */
 .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 16px; }
@@ -275,176 +222,65 @@ body.dark-mode .btn-outline-primary { background: transparent; }
 }
 
 /* ---------------------------------------------------
-   캡챠 연동 키 디스플레이 영역 
+   💡 회원 탈퇴 (위험 구역) 스타일
 --------------------------------------------------- */
-.key-display-group { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 16px; 
-  width: 100%; 
-}
-
-.key-display-row {
+.danger-zone-box {
   display: flex;
   align-items: center;
-  gap: 16px;
-  background-color: #fcfcfc !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  padding: 16px 20px !important;
-  width: 100%;
-  box-sizing: border-box;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 20px;
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-body.dark-mode .key-display-row {
-  background-color: #1a1a1b !important;
-  border-color: #334155 !important;
+body.dark-mode .danger-zone-box {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
-.key-display-label { 
-  width: 90px; 
-  font-weight: 700; 
-  font-size: 0.9rem; 
-  color: #6b7280; 
-  flex-shrink: 0; 
-  transition: color 0.3s ease;
-}
-body.dark-mode .key-display-label { color: #9ca3af; }
-
-.key-display-value { 
-  flex: 1; 
-  font-family: 'JetBrains Mono', monospace, Consolas, sans-serif; 
-  font-size: 0.95rem; 
-  color: #111827; 
-  word-break: break-all; 
-  transition: color 0.3s ease;
-}
-body.dark-mode .key-display-value { color: #e5e7eb; }
-
-.btn-copy-action {
-  background-color: #eef2ff !important;
-  color: #5da2ff !important;
-  border: 1px solid #5da2ff !important;
-  border-radius: 6px !important;
-  padding: 8px 16px !important;
-  font-size: 0.9rem !important;
-  font-weight: 700 !important;
-  cursor: pointer !important;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-body.dark-mode .btn-copy-action {
-  background-color: rgba(93, 162, 255, 0.1) !important;
-}
-
-.btn-copy-action:hover, body.dark-mode .btn-copy-action:hover { 
-  background-color: #5da2ff !important; 
-  color: #ffffff !important; 
-}
-
-/* ---------------------------------------------------
-   💡 연동 가이드 탭 버튼 스타일
---------------------------------------------------- */
-.integration-tabs {
+.danger-info {
+  flex: 1;
   display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-  overflow-x: auto; /* 내용이 길면 가로 스크롤 허용 */
-  padding-bottom: 4px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.integration-tabs::-webkit-scrollbar { height: 4px; }
-.integration-tabs::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-
-.integration-tab-btn {
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  color: #4b5563;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.95rem;
-  white-space: nowrap;
-  transition: all 0.2s ease;
+.danger-label {
+  font-weight: 800;
+  color: #ef4444;
+  font-size: 1.05rem;
 }
 
-body.dark-mode .integration-tab-btn {
-  background: #28282a;
-  border-color: #334155;
-  color: #a0aec0;
-}
-
-.integration-tab-btn:hover { background: #e5e7eb; }
-body.dark-mode .integration-tab-btn:hover { background: #334155; }
-
-.integration-tab-btn.active {
-  background: #5da2ff;
-  color: #fff;
-  border-color: #5da2ff;
-}
-
-body.dark-mode .integration-tab-btn.active {
-  background: #5da2ff;
-  color: #fff;
-  border-color: #5da2ff;
-}
-
-/* ---------------------------------------------------
-   코드 스니펫 박스 (ProjectTest & ProjectDetail 공용)
---------------------------------------------------- */
-.code-snippet-box {
-  background: #1e293b;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  margin-top: 8px;
-}
-
-.code-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #0f172a;
-  padding: 12px 20px;
-  color: #94a3b8;
+.danger-desc {
   font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.btn-copy-code {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border: none;
-  padding: 6px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s ease;
-}
-
-.btn-copy-code:hover { 
-  background: rgba(255, 255, 255, 0.2); 
-}
-
-.code-content {
+  color: #991b1b;
   margin: 0;
-  padding: 20px;
-  color: #e2e8f0;
-  font-family: 'JetBrains Mono', monospace, Consolas;
-  font-size: 0.95rem;
-  overflow-x: auto; 
 }
 
-.code-content code { 
-  white-space: pre-wrap; 
-  word-break: break-all; 
+body.dark-mode .danger-desc { color: #fca5a5; }
+
+.btn-danger-outline {
+  background: #ffffff;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+body.dark-mode .btn-danger-outline { background: transparent; }
+
+.btn-danger-outline:hover {
+  background: #ef4444;
+  color: #ffffff;
 }
 
 /* ---------------------------------------------------
-   자체 알림창 (Alert & Confirm 커스텀 모달) 다크모드 대응
+   모달 공통 스타일
 --------------------------------------------------- */
 .custom-sys-modal-overlay {
   position: fixed; 
@@ -497,194 +333,51 @@ body.dark-mode .custom-sys-modal-text { color: #ffffff; }
   gap: 12px;
 }
 
-.btn-sys-ok {
-  background: #5da2ff; 
-  color: #ffffff; 
-  border: none; 
-  padding: 12px 32px; 
-  border-radius: 8px; 
-  font-weight: 700; 
-  font-size: 1rem; 
-  cursor: pointer; 
-  transition: all 0.2s ease;
-  flex: 1;
-}
+.btn-sys-ok { background: #5da2ff; color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; flex: 1; }
 .btn-sys-ok:hover { background: #4a8deb; }
 
-.btn-sys-cancel {
-  background: #f3f4f6; 
-  color: #4b5563; 
-  border: none; 
-  padding: 12px 24px; 
-  border-radius: 8px; 
-  font-weight: 700; 
-  font-size: 1rem; 
-  cursor: pointer; 
-  transition: all 0.2s ease;
-  flex: 1;
-}
-
+.btn-sys-cancel { background: #f3f4f6; color: #4b5563; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; flex: 1; }
 body.dark-mode .btn-sys-cancel { background: #28282a; color: #a0aec0; }
 .btn-sys-cancel:hover { background: #e5e7eb; }
 body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
 
-.btn-sys-danger {
-  background: #ef4444; 
-  color: #ffffff; 
-  border: none; 
-  padding: 12px 24px; 
-  border-radius: 8px; 
-  font-weight: 700; 
-  font-size: 1rem; 
-  cursor: pointer; 
-  transition: all 0.2s ease;
-  flex: 1;
-}
+.btn-sys-danger { background: #ef4444; color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; flex: 1; }
 .btn-sys-danger:hover { background: #dc2626; }
-
-/* ---------------------------------------------------
-   💡 ProjectDetail 휴지통 아이콘 교체 스타일 추가
---------------------------------------------------- */
-.btn-delete-project.icon-delete {
-  background: transparent;
-  color: #9ca3af; 
-  border: none;
-  width: 38px !important;  
-  height: 38px !important;
-  padding: 0 !important;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-body.dark-mode .btn-delete-project.icon-delete { 
-  color: #6b7280; 
-  background: transparent;
-}
-
-.btn-delete-project.icon-delete:hover { 
-  background: #fee2e2; 
-  color: #ef4444; 
-}
-
-body.dark-mode .btn-delete-project.icon-delete:hover { 
-  background: rgba(239, 68, 68, 0.2); 
-  color: #ef4444; 
-}
 
 /* =============================================================================
    [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
    ============================================================================= */
 @media (max-width: 900px) {
-  .settings-page-wrapper {
-    padding: 16px; /* 💡 외부 여백을 줄여 공간 확보 */
-  }
+  .settings-page-wrapper { padding: 16px; align-items: flex-start; }
+  .settings-container { padding: 24px 16px; border-radius: 12px; width: 100%; margin: 0; }
+  .form-group, .form-input, .key-display-row { width: 100%; box-sizing: border-box; }
 
-  .settings-container {
-    padding: 24px 16px; /* 💡 컨테이너 내부 여백 축소 */
-    border-radius: 12px;
-    width: 100%;
-    margin: 0;
-  }
+  .settings-header { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+  .settings-header > div { flex: 1; min-width: 0; }
+  .settings-title { font-size: 1.25rem; word-break: break-word; }
+  .settings-description { font-size: 0.9rem; word-break: keep-all; }
 
-  /* 💡 헤더 타이틀이 길 때 잘리지 않도록 세로로 배치하고 정렬 */
-  .settings-header {
-    flex-direction: column; 
-    align-items: flex-start; 
-    gap: 8px;
-    margin-bottom: 32px;
-  }
+  .form-actions { flex-direction: column-reverse; width: 100%; gap: 12px; margin-top: 24px; }
+  .btn-submit { width: 100%; padding: 14px 0; }
+  .notification-msg { text-align: center; width: 100%; }
+  
+  .plan-info-box { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; }
+  .plan-label, .plan-value { width: 100%; }
+  .btn-outline-primary { width: 100%; text-align: center; padding: 12px 0; margin-top: 4px; }
 
-  .settings-title {
-    font-size: 1.35rem; /* 타이틀 크기 조정 */
-    word-break: break-word; /* 💡 긴 단어 자동 줄바꿈 */
-  }
-
-  .settings-description {
-    font-size: 0.9rem;
-    word-break: keep-all;
-  }
-
-  .form-actions {
-    flex-direction: column-reverse;
-    width: 100%;
-    gap: 12px;
-    margin-top: 24px;
-  }
-
-  .btn-submit {
-    width: 100%;
-    padding: 14px 0;
-  }
-
-  .notification-msg {
-    text-align: center;
-    width: 100%;
-  }
-
-  .btn-remove-domain {
-    width: 44px;
-    height: 44px;
-  }
-
-  .plan-info-box {
+  /* 💡 모바일 위험 구역(회원 탈퇴) 세로 정렬 보정 */
+  .danger-zone-box {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 16px;
     padding: 16px;
   }
-
-  .plan-label, .plan-value {
-    width: 100%;
-  }
-
-  .btn-outline-primary {
+  .danger-info { width: 100%; }
+  .danger-desc { word-break: keep-all; }
+  .btn-danger-outline {
     width: 100%;
     text-align: center;
     padding: 12px 0;
     margin-top: 4px;
-  }
-
-  .key-display-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 16px !important;
-  }
-
-  .key-display-label {
-    width: 100%;
-    font-size: 0.95rem;
-  }
-
-  .key-display-value {
-    width: 100%;
-    font-size: 0.85rem;
-    white-space: pre-wrap; 
-    word-break: break-all;
-  }
-
-  .btn-copy-action {
-    width: 100%;
-    text-align: center;
-    padding: 12px 0 !important;
-    margin-top: 4px;
-  }
-
-  /* 💡 모바일 연동 탭 스크롤 보정 */
-  .integration-tabs {
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
-  }
-  
-  .integration-tab-btn {
-    font-size: 0.85rem;
-    padding: 8px 16px;
   }
 }

@@ -10,7 +10,11 @@ const Settings = () => {
   const { user, setUser } = useAuth();
   const [nickname, setNickname] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [notification, setNotification] = useState({ show: false, message: "", type: "" });
+  
+  // 💡 회원탈퇴 확인용 모달 상태 추가
+  const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
 
   useEffect(() => {
     if (user) {
@@ -22,6 +26,8 @@ const Settings = () => {
     setNotification({ show: true, message, type });
     setTimeout(() => setNotification({ show: false, message: "", type: "" }), 3000);
   };
+
+  const closeConfirm = () => setConfirmModal({ show: false, message: "", onConfirm: null });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,6 +53,27 @@ const Settings = () => {
     }
   };
 
+  // 💡 회원 탈퇴 처리 핸들러
+  const handleDeleteAccount = () => {
+    setConfirmModal({
+      show: true,
+      message: "정말로 회원 탈퇴를 진행하시겠습니까?\n모든 프로젝트와 로그 데이터가 영구적으로 삭제되며, 복구할 수 없습니다.",
+      onConfirm: async () => {
+        closeConfirm();
+        try {
+          const response = await api.delete("/api/auth/me");
+          if (response.data.status === "success") {
+            setUser(null); // 클라이언트 유저 정보 초기화
+            window.location.href = "/"; // 메인 홈으로 리다이렉트
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("회원 탈퇴 처리 중 오류가 발생했습니다.", "error");
+        }
+      }
+    });
+  };
+
   // 플랜별 설명 매핑
   const planNames = {
     Basic: "Basic (월 1,000회 무료)",
@@ -68,7 +95,6 @@ const Settings = () => {
             <div className="form-group profile-readonly-group">
               <label className="form-label">프로필 사진</label>
               <div className="image-preview-wrapper">
-                {/* 잃어버렸던 동그라미 프로필 사진 복구 */}
                 <img 
                   src={user?.profile || "/agami-profile.png"} 
                   alt="Profile" 
@@ -120,7 +146,36 @@ const Settings = () => {
             </button>
           </div>
         </section>
+
+        <hr className="divider" />
+
+        {/* 💡 회원 탈퇴 (위험 구역) 섹션 추가 */}
+        <section className="settings-section">
+          <h2 className="section-label" style={{ color: "var(--danger-color, #ef4444)" }}>위험 구역</h2>
+          <div className="danger-zone-box">
+            <div className="danger-info">
+              <span className="danger-label">회원 탈퇴</span>
+              <p className="danger-desc">계정을 삭제하면 등록된 모든 프로젝트와 데이터가 영구적으로 파기됩니다.</p>
+            </div>
+            <button type="button" className="btn-danger-outline" onClick={handleDeleteAccount}>
+              회원 탈퇴
+            </button>
+          </div>
+        </section>
       </div>
+
+      {/* 💡 재확인 커스텀 모달 (ProjectDetail과 스타일 공유) */}
+      {confirmModal.show && (
+        <div className="custom-sys-modal-overlay" onClick={closeConfirm}>
+          <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="custom-sys-modal-text">{confirmModal.message}</div>
+            <div className="custom-sys-modal-actions">
+              <button className="btn-sys-cancel" onClick={closeConfirm}>취소</button>
+              <button className="btn-sys-danger" onClick={confirmModal.onConfirm}>탈퇴</button>
+            </div>
+          </div>
+        </div>
+      )}
     </Scrollbar>
   );
 };

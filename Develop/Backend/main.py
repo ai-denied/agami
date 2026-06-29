@@ -217,6 +217,47 @@ async def logout(response: Response):
     response.delete_cookie(key="accessToken", path="/", httponly=True, secure=True, samesite="lax", domain=".agami-captcha.cloud")
     return {"status": "success"}
 
+# 💡 회원 탈퇴 (Danger Zone) 전용 라우터 추가
+@app.delete("/api/auth/me")
+async def delete_user(request: Request, response: Response, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
+    token = request.cookies.get("accessToken")
+    if not token: raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except Exception: raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user: raise HTTPException(status_code=404, detail="User not found")
+
+    try:
+        # 1. 사용자의 모든 프로젝트 정리 연쇄 작업 (Web DB)
+        projects = db.query(models.Project).filter(models.Project.user_id == user_id).all()
+        for p in projects:
+            db.delete(p)
+            # 캡챠 엔진 DB API Key 파기 및 도메인 제거
+            api_key_record = captcha_db.execute(text("UPDATE api_keys SET revoked_at = NOW() WHERE client_key = :client_key RETURNING id"), {"client_key": p.site_key}).scalar()
+            if api_key_record:
+                captcha_db.execute(text("DELETE FROM allowed_origins WHERE api_key_id = :ak"), {"ak": api_key_record})
+        
+        # 2. 캡챠 엔진 DB에서 사용자(Tenant) 자체를 비활성화 (물리적 삭제 대신 기록 남김)
+        captcha_db.execute(text("UPDATE tenants SET is_active = false, updated_at = NOW() WHERE owner_user_id = :uid"), {"uid": int(user_id)})
+
+        # 3. 유저 계정 삭제
+        db.delete(user)
+        
+        db.commit()
+        captcha_db.commit()
+        
+        # 4. 쿠키 초기화 (로그아웃 처리와 동일)
+        response.delete_cookie(key="accessToken", path="/", httponly=True, secure=True, samesite="lax", domain=".agami-captcha.cloud")
+        return {"status": "success"}
+
+    except Exception as e:
+        db.rollback()
+        captcha_db.rollback()
+        raise HTTPException(status_code=500, detail=f"회원 탈퇴 실패: {str(e)}")
+
 # -----------------------------------------------------------------------------
 # 프로젝트 API
 # -----------------------------------------------------------------------------
@@ -540,7 +581,7 @@ async def get_combined_dashboard_data(
             "value": row[1]
         })
 
-    # [3] 세션 로그 (JOIN 최적화 및 WHERE 절, kind 필드 복구)
+    # [3] 세션 로그
     logs_query = f"""
         SELECT
             TO_CHAR(v.created_at,'HH24:MI:SS'),
@@ -561,7 +602,7 @@ async def get_combined_dashboard_data(
         a_type = row[1]
         verdict = row[2]
         conf = row[3] or 0.0
-        c_kind = row[4] # 💡 프론트엔드로 넘겨줄 캡챠 종류(kind) 추출
+        c_kind = row[4] 
 
         if a_type:
             reason = a_type
@@ -576,7 +617,7 @@ async def get_combined_dashboard_data(
             "reason": reason,
             "score": round(conf, 2),
             "risk_band": risk_band,
-            "kind": c_kind # 💡 JSON 응답에 포함시켜 프론트엔드에서 뱃지로 렌더링되게 함
+            "kind": c_kind 
         })
 
     # [4] 트래픽 데이터
