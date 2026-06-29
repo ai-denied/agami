@@ -79,28 +79,22 @@ export default function Dashboard() {
   const { display, traffic, pieData, behavior, attacks, logs } = dashboardData;
 
   const ATTACK_TYPE_MAP = {
-    // 손전등 (flashlight)
     'model_high_risk': 'AI 궤적 모델 위험군',
     'no_trajectory': '궤적 데이터 누락',
     'coordinate_brute': '좌표 무작위 대입', 
     'empty_trajectory': '빈 궤적 (Fail-closed)',
     'missing_canvas_dims': '캔버스 규격 조작',
     'inference_unavailable': '추론 API 타임아웃',
-    
-    // 안면 인식 + 손 미션 (face_mission)
     'camera_bypass': '카메라 스트림 우회',
     'face_spoofing': '얼굴 위변조 (Spoofing)',
     'gesture_mismatch': '제스처 벡터 불일치',
     'liveness_fail': '생동감 검증(Liveness) 실패',
     'abnormal_fps': '비정상 프레임 레이트',
-    
-    // 감정 맥락 추론 (context_inference)
     'random_guessing': '비정상 초고속 응답',
     'solve_speed_anomaly': '인간 인지 속도 이탈',
     'pattern_abuse': '문항 수집 및 패턴 남용'
   };
 
-  // 💡 추가됨: 관리자가 문제의 원인을 명확히 파악할 수 있도록 각 공격 유형별 상세 분석 설명을 매핑합니다.
   const ATTACK_DETAIL_MAP = {
     'model_high_risk': '머신러닝 모델이 사용자의 마우스/터치 궤적을 봇(Bot)으로 분류했습니다.',
     'no_trajectory': '사용자 입력 이벤트(MouseMove/Touch)가 전혀 수집되지 않은 자동화 스크립트 의심 요청입니다.',
@@ -118,7 +112,6 @@ export default function Dashboard() {
     'pattern_abuse': '동일 세션에서 반복적으로 오답을 생성하며 데이터셋 문항을 수집하려는 크롤링 시도입니다.'
   };
 
-  // 💡 추가됨: 전체 탭에서 어떤 캡챠에서 발생한 로그인지 표시하기 위한 배지 설정
   const CAPTCHA_KIND_MAP = {
     'flashlight': { label: '손전등', icon: '🔦' },
     'face_mission': { label: '안면 인식', icon: '😶' },
@@ -334,7 +327,19 @@ export default function Dashboard() {
                           ? 'safe-log'
                           : 'warning-log');
 
-                      // 💡 추가됨: 기존 1줄짜리 레이아웃을 2줄 형태의 정밀 로그 디자인으로 인라인 오버라이딩 적용
+                      // 💡 핵심 수정: risk_band(위험도) 및 명칭에 따라 설명을 동적으로 정확히 분기
+                      let defaultDetail = '비정상적인 스크립트 기반 요청으로 분류되어 보안 정책에 의해 차단되었습니다.';
+                      
+                      if (log.risk_band === 'low_risk' || log.reason === '정상 요청') {
+                        defaultDetail = '안전한 기기 및 브라우저 환경에서 발생한 정상적인 사용자 요청입니다.';
+                      } else if (log.risk_band === 'warning') {
+                        defaultDetail = '일부 의심스러운 패턴이 감지되었으나, 차단 임계치에 도달하지 않아 허용되었습니다.';
+                      } else if (log.reason === '봇으로 판단됨') {
+                        defaultDetail = '종합적인 행동 신뢰도 분석 결과, 자동화된 봇(Bot)으로 판단되어 차단되었습니다.';
+                      }
+
+                      const detailText = log.details || ATTACK_DETAIL_MAP[log.reason] || defaultDetail;
+
                       return (
                         <div key={idx} className={`log-item ${logClass}`} style={{ display: 'flex', flexDirection: 'column', padding: '12px 14px', gap: '8px', alignItems: 'flex-start', borderBottom: '1px solid var(--border-color)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -343,7 +348,6 @@ export default function Dashboard() {
                                 {log.time}
                               </span>
                               
-                              {/* 💡 추가됨: 전체(all) 화면일 경우 해당 로그를 유발한 캡챠 종류를 표시하는 배지 컴포넌트 */}
                               {activeModel === 'all' && log.kind && CAPTCHA_KIND_MAP[log.kind] && (
                                 <span style={{ fontSize: '11px', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border-color)', fontWeight: 600 }}>
                                   {CAPTCHA_KIND_MAP[log.kind].icon} {CAPTCHA_KIND_MAP[log.kind].label}
@@ -356,9 +360,8 @@ export default function Dashboard() {
                             <span className="log-reason" style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '13px' }}>
                               {ATTACK_TYPE_MAP[log.reason] || log.reason}
                             </span>
-                            {/* 💡 추가됨: 백엔드에서 세부 정보(details)가 오지 않더라도 프론트에서 원인(reason) 기반의 전문적인 상세 분석 내역 제공 */}
                             <span style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                              {log.details || ATTACK_DETAIL_MAP[log.reason] || '비정상적인 스크립트 기반 요청으로 분류되어 보안 정책에 의해 차단되었습니다.'}
+                              {detailText}
                             </span>
                           </div>
                         </div>
