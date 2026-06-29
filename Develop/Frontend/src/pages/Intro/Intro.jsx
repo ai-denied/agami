@@ -192,7 +192,7 @@ const Intro = () => {
                       width: '100%', 
                       maxWidth: '600px', /* 모바일 세로형 UI 캡처이므로 최대폭을 살짝 제한하여 예쁘게 배치 */
                       height: 'auto', 
-                      borderRadius: '24px', 
+                      borderRadius: '35px', 
                       border: '1px solid #e0e7f3', 
                       boxShadow: '0 10px 30px rgba(0,0,0,0.08)' 
                     }} 
