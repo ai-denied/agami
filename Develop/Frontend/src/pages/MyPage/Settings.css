@@ -345,12 +345,12 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
 .btn-sys-danger:hover { background: #dc2626; }
 
 /* =============================================================================
-   [핵심] 모바일 전용 반응형 레이아웃 교정 (900px 이하)
+   모바일 전용 반응형 레이아웃 교정 (900px 이하)
    ============================================================================= */
 @media (max-width: 900px) {
   .settings-page-wrapper { padding: 16px; align-items: flex-start; }
   .settings-container { padding: 24px 16px; border-radius: 12px; width: 100%; margin: 0; }
-  .form-group, .form-input, .key-display-row { width: 100%; box-sizing: border-box; }
+  .form-group, .form-input { width: 100%; box-sizing: border-box; }
 
   .settings-header { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
   .settings-header > div { flex: 1; min-width: 0; }
@@ -365,7 +365,6 @@ body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
   .plan-label, .plan-value { width: 100%; }
   .btn-outline-primary { width: 100%; text-align: center; padding: 12px 0; margin-top: 4px; }
 
-  /* 💡 모바일 위험 구역(회원 탈퇴) 세로 정렬 보정 */
   .danger-zone-box {
     flex-direction: column;
     align-items: flex-start;

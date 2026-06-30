@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom"; 
-import "./Settings.css"; 
+import "./ProjectDetail.css"; // 💡 독립된 CSS 파일로 수정됨
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
@@ -13,7 +13,6 @@ const ProjectDetail = () => {
   const [domainList, setDomainList] = useState([""]); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // 💡 선택된 캡챠 연동 코드 종류 상태 관리
   const [selectedKind, setSelectedKind] = useState("flashlight");
 
   const [alertModal, setAlertModal] = useState({ show: false, message: "" });
@@ -98,7 +97,6 @@ const ProjectDetail = () => {
     return key ? `agami_secret_${"•".repeat(32)}` : "";
   };
 
-  // 선택된 타입에 따라 동적으로 연동 코드를 생성하는 함수
   const getIntegrationCode = (kind) => {
     return `<script src="https://agami-captcha.cloud/widget/loader.js" async></script>
 
@@ -125,12 +123,12 @@ const ProjectDetail = () => {
   const currentIntegrationCode = getIntegrationCode(selectedKind);
 
   return (
-    <div className="settings-page-wrapper">
-      <div className="settings-container">
-        <header className="settings-header">
+    <div className="project-detail-wrapper">
+      <div className="project-detail-container">
+        <header className="project-detail-header">
           <div>
-            <h1 className="settings-title">프로젝트 기본 정보</h1>
-            <p className="settings-description">프로젝트 이름과 허용 도메인을 수정하고 연동 키를 확인합니다.</p>
+            <h1 className="project-detail-title">프로젝트 기본 정보</h1>
+            <p className="project-detail-description">프로젝트 이름과 허용 도메인을 수정하고 연동 키를 확인합니다.</p>
           </div>
           
           <button 
@@ -147,7 +145,7 @@ const ProjectDetail = () => {
           </button>
         </header>
 
-        <section className="settings-section">
+        <section className="project-detail-section">
           <form className="nickname-form" onSubmit={handleUpdate}>
             <div className="form-group">
               <label className="form-label">프로젝트 이름</label>
@@ -175,11 +173,10 @@ const ProjectDetail = () => {
 
         <hr className="divider" />
 
-        <section className="settings-section">
+        <section className="project-detail-section">
           <h2 className="section-label">발급 정보</h2>
-          <p className="settings-description" style={{marginBottom: '16px'}}>이 키를 사용하여 웹사이트에 캡챠를 연동하세요.</p>
+          <p className="project-detail-description" style={{marginBottom: '16px'}}>이 키를 사용하여 웹사이트에 캡챠를 연동하세요.</p>
           
-          {/* 💡 정밀 교정: 붕괴되었던 발급 정보 블록 구조 복구 */}
           <div className="key-display-group">
             <div className="key-display-row">
               <span className="key-display-label">Site Key</span>
@@ -197,9 +194,9 @@ const ProjectDetail = () => {
 
         <hr className="divider" />
 
-        <section className="settings-section">
+        <section className="project-detail-section">
           <h2 className="section-label">프론트엔드 연동 가이드</h2>
-          <p className="settings-description">아래 코드를 복사하여 웹사이트의 HTML에 붙여넣기만 하면 캡챠 위젯이 즉시 활성화됩니다.</p>
+          <p className="project-detail-description">아래 코드를 복사하여 웹사이트의 HTML에 붙여넣기만 하면 캡챠 위젯이 즉시 활성화됩니다.</p>
           
           <div className="integration-tabs">
             <button 

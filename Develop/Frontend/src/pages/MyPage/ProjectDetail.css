@@ -1,0 +1,384 @@
+/* ---------------------------------------------------
+   메인 컨테이너 및 공통 구조
+--------------------------------------------------- */
+.project-detail-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.project-detail-container {
+  width: 100%;
+  max-width: 800px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 48px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark-mode .project-detail-container {
+  background-color: #141415;
+  border-color: #28282a;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------------------------------------------------
+   헤더 및 텍스트
+--------------------------------------------------- */
+.project-detail-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  margin-bottom: 40px; 
+}
+
+.project-detail-title { 
+  font-size: 1.5rem; 
+  font-weight: 800; 
+  color: #111827; 
+  margin-bottom: 8px; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .project-detail-title { color: #ffffff; }
+
+.project-detail-description { 
+  font-size: 0.95rem; 
+  color: #6b7280; 
+  margin: 0;
+  transition: color 0.3s ease;
+}
+body.dark-mode .project-detail-description { color: #a0aec0; }
+
+.project-detail-section { display: flex; flex-direction: column; gap: 24px; }
+
+.section-label { 
+  font-size: 1.1rem; 
+  font-weight: 800; 
+  color: #111827; 
+  margin-bottom: 8px; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .section-label { color: #ffffff; }
+
+/* ---------------------------------------------------
+   프로젝트 삭제 버튼
+--------------------------------------------------- */
+.btn-delete-project {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #9ca3af;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.btn-delete-project:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #ef4444;
+}
+body.dark-mode .btn-delete-project { border-color: #334155; color: #6b7280; }
+body.dark-mode .btn-delete-project:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #ef4444; }
+
+/* ---------------------------------------------------
+   폼 입력창 및 도메인 입력부
+--------------------------------------------------- */
+.form-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+.form-label { 
+  font-size: 0.95rem; 
+  font-weight: 700; 
+  color: #374151; 
+  transition: color 0.3s ease;
+}
+body.dark-mode .form-label { color: #e2e8f0; }
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  background-color: #ffffff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-mode .form-input {
+  background-color: #1a1a1b;
+  color: #ffffff;
+  border-color: #334155;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #5da2ff;
+  box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.15);
+}
+body.dark-mode .form-input:focus { box-shadow: 0 0 0 3px rgba(93, 162, 255, 0.3); }
+
+/* 도메인 동적 입력 스타일 */
+.domain-input-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.flex-fill { flex: 1; }
+
+.btn-remove-domain {
+  background: #f3f4f6;
+  border: none;
+  color: #6b7280;
+  font-size: 1.1rem;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.btn-remove-domain:hover {
+  background: #fef2f2;
+  color: #ef4444;
+}
+body.dark-mode .btn-remove-domain { background: #28282a; color: #a0aec0; }
+body.dark-mode .btn-remove-domain:hover { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+.btn-add-domain {
+  background: none;
+  border: none;
+  color: #5da2ff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 6px 0;
+  text-align: left;
+  width: fit-content;
+  transition: color 0.2s ease;
+}
+.btn-add-domain:hover { color: #4a8deb; }
+
+/* ---------------------------------------------------
+   발급 정보 (Key Display) 레이아웃 복구
+--------------------------------------------------- */
+.key-display-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.key-display-row {
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 14px 16px;
+  border-radius: 8px;
+  gap: 16px;
+}
+body.dark-mode .key-display-row { background: #1a1a1b; border-color: #334155; }
+
+.key-display-label {
+  font-weight: 700;
+  color: #6b7280;
+  font-size: 0.95rem;
+  width: 90px;
+  flex-shrink: 0;
+}
+body.dark-mode .key-display-label { color: #9ca3af; }
+
+.key-display-value {
+  flex: 1;
+  font-family: monospace;
+  color: #111827;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.dark-mode .key-display-value { color: #e2e8f0; }
+
+.btn-copy-action {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.btn-copy-action:hover { background: #f3f4f6; }
+body.dark-mode .btn-copy-action { background: #28282a; border-color: #4b5563; color: #e2e8f0; }
+body.dark-mode .btn-copy-action:hover { background: #334155; }
+
+/* ---------------------------------------------------
+   프론트엔드 연동 가이드 탭 및 코드 블록
+--------------------------------------------------- */
+.integration-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.integration-tab-btn {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.integration-tab-btn:hover { background: #f9fafb; }
+.integration-tab-btn.active {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
+}
+body.dark-mode .integration-tab-btn { background: #141415; border-color: #334155; color: #a0aec0; }
+body.dark-mode .integration-tab-btn:hover { background: #1a1a1b; }
+body.dark-mode .integration-tab-btn.active { background: #28282a; border-color: #4b5563; color: #ffffff; }
+
+.code-snippet-box {
+  background: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f172a;
+  padding: 12px 20px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.btn-copy-code {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-copy-code:hover { background: rgba(255, 255, 255, 0.2); }
+
+.code-content {
+  padding: 20px;
+  margin: 0;
+  color: #e2e8f0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+/* ---------------------------------------------------
+   저장 버튼 및 모달 (Settings와 독립 작동 보장)
+--------------------------------------------------- */
+.form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 16px; }
+
+.btn-submit {
+  background-color: #5da2ff;
+  color: #ffffff;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.btn-submit:hover { background-color: #4a8deb; }
+.btn-submit:disabled { background-color: #9ca3af; cursor: not-allowed; }
+body.dark-mode .btn-submit:disabled { background-color: #4b5563; color: #9ca3af; }
+
+.divider { border: 0; height: 1px; background-color: #f3f4f6; margin: 40px 0; }
+body.dark-mode .divider { background-color: #28282a; }
+
+.custom-sys-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px); 
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+
+.custom-sys-modal-box {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  animation: modalPop 0.2s ease-out;
+}
+body.dark-mode .custom-sys-modal-box { background: #141415; border: 1px solid #28282a; }
+
+@keyframes modalPop {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.custom-sys-modal-text {
+  font-size: 1.05rem; font-weight: 800; color: #111827; margin-bottom: 32px; white-space: pre-wrap; line-height: 1.5;
+}
+body.dark-mode .custom-sys-modal-text { color: #ffffff; }
+
+.custom-sys-modal-actions { display: flex; justify-content: center; gap: 12px; }
+
+.btn-sys-ok { background: #5da2ff; color: #ffffff; border: none; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; flex: 1; }
+.btn-sys-ok:hover { background: #4a8deb; }
+
+.btn-sys-cancel { background: #f3f4f6; color: #4b5563; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; flex: 1; transition: all 0.2s ease; }
+.btn-sys-cancel:hover { background: #e5e7eb; }
+body.dark-mode .btn-sys-cancel { background: #28282a; color: #a0aec0; }
+body.dark-mode .btn-sys-cancel:hover { background: #334155; color: #ffffff; }
+
+.btn-sys-danger { background: #ef4444; color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; flex: 1; }
+.btn-sys-danger:hover { background: #dc2626; }
+
+/* =============================================================================
+   모바일 전용 반응형 레이아웃 교정 (900px 이하)
+   ============================================================================= */
+@media (max-width: 900px) {
+  .project-detail-wrapper { padding: 16px; }
+  .project-detail-container { padding: 24px 16px; border-radius: 12px; }
+  .project-detail-header { flex-direction: row; gap: 16px; }
+  .key-display-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .key-display-label { width: 100%; }
+  .key-display-value { width: 100%; }
+  .btn-copy-action { width: 100%; text-align: center; }
+  .integration-tabs { flex-direction: column; gap: 8px; }
+  .integration-tab-btn { width: 100%; text-align: center; }
+  .form-actions { flex-direction: column-reverse; width: 100%; gap: 12px; margin-top: 24px; }
+  .btn-submit { width: 100%; padding: 14px 0; }
+}
