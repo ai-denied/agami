@@ -540,10 +540,18 @@ async def get_combined_dashboard_data(
     kind_filter_c = "" if kind == "all" else " AND c.kind = :kind"
     kind_filter_v = "" if kind == "all" else " AND v.kind = :kind"
     
-    date_filter_c = " AND CAST(c.issued_at AS DATE) = CAST(:target_date AS DATE)"
-    date_filter_v = " AND CAST(v.created_at AS DATE) = CAST(:target_date AS DATE)"
-    
-    params = {"api_key_id": api_key_id, "kind": kind, "target_date": target_date}
+    start_dt = datetime.strptime(target_date, "%Y-%m-%d")
+    end_dt = start_dt + timedelta(days=1)
+
+    date_filter_c = " AND c.issued_at >= :start_dt AND c.issued_at < :end_dt"
+    date_filter_v = " AND v.created_at >= :start_dt AND v.created_at < :end_dt"
+
+    params = {
+        "api_key_id": api_key_id, 
+        "kind": kind, 
+        "start_dt": start_dt, 
+        "end_dt": end_dt
+    }
 
     # [1] 지표 조회
     total_sessions = captcha_db.execute(text(f"SELECT COUNT(*) FROM challenges c WHERE c.api_key_id = :api_key_id {kind_filter_c} {date_filter_c}"), params).scalar() or 0
