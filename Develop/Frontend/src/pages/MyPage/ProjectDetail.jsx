@@ -98,7 +98,7 @@ const ProjectDetail = () => {
     return key ? `agami_secret_${"•".repeat(32)}` : "";
   };
 
-  // 💡 선택된 타입에 따라 동적으로 연동 코드를 생성하는 함수
+  // 선택된 타입에 따라 동적으로 연동 코드를 생성하는 함수
   const getIntegrationCode = (kind) => {
     return `<script src="https://agami-captcha.cloud/widget/loader.js" async></script>
 
@@ -179,6 +179,7 @@ const ProjectDetail = () => {
           <h2 className="section-label">발급 정보</h2>
           <p className="settings-description" style={{marginBottom: '16px'}}>이 키를 사용하여 웹사이트에 캡챠를 연동하세요.</p>
           
+          {/* 💡 정밀 교정: 붕괴되었던 발급 정보 블록 구조 복구 */}
           <div className="key-display-group">
             <div className="key-display-row">
               <span className="key-display-label">Site Key</span>
@@ -200,7 +201,6 @@ const ProjectDetail = () => {
           <h2 className="section-label">프론트엔드 연동 가이드</h2>
           <p className="settings-description">아래 코드를 복사하여 웹사이트의 HTML에 붙여넣기만 하면 캡챠 위젯이 즉시 활성화됩니다.</p>
           
-          {/* 💡 캡챠 종류 선택 탭 추가 */}
           <div className="integration-tabs">
             <button 
               type="button" 
