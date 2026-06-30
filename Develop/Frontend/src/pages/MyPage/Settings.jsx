@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import "./Settings.css";
-import Scrollbar from "@/components/Scrollbar/Scrollbar";
+// 💡 스크롤바 컴포넌트 임포트 제거
 
 const api = axios.create({ baseURL: "https://agami-captcha.cloud", withCredentials: true });
 
@@ -13,7 +13,6 @@ const Settings = () => {
   
   const [notification, setNotification] = useState({ show: false, message: "", type: "" });
   
-  // 💡 회원탈퇴 확인용 모달 상태 추가
   const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
 
   useEffect(() => {
@@ -53,7 +52,6 @@ const Settings = () => {
     }
   };
 
-  // 💡 회원 탈퇴 처리 핸들러
   const handleDeleteAccount = () => {
     setConfirmModal({
       show: true,
@@ -63,8 +61,8 @@ const Settings = () => {
         try {
           const response = await api.delete("/api/auth/me");
           if (response.data.status === "success") {
-            setUser(null); // 클라이언트 유저 정보 초기화
-            window.location.href = "/"; // 메인 홈으로 리다이렉트
+            setUser(null); 
+            window.location.href = "/"; 
           }
         } catch (error) {
           console.error(error);
@@ -74,7 +72,6 @@ const Settings = () => {
     });
   };
 
-  // 플랜별 설명 매핑
   const planNames = {
     Basic: "Basic (월 1,000회 무료)",
     Pro: "Pro (월 100,000회)",
@@ -82,7 +79,8 @@ const Settings = () => {
   };
 
   return (
-    <Scrollbar className="settings-page-wrapper">
+    /* 💡 Scrollbar 컴포넌트 대신 기본 div 태그로 변경하여 자연스러운 레이아웃 팽창 허용 */
+    <div className="settings-page-wrapper">
       <div className="settings-container">
         <header className="settings-header">
           <h1 className="settings-title">계정 설정</h1>
@@ -149,7 +147,6 @@ const Settings = () => {
 
         <hr className="divider" />
 
-        {/* 💡 회원 탈퇴 (위험 구역) 섹션 추가 */}
         <section className="settings-section">
           <h2 className="section-label" style={{ color: "var(--danger-color, #ef4444)" }}>위험 구역</h2>
           <div className="danger-zone-box">
@@ -164,7 +161,6 @@ const Settings = () => {
         </section>
       </div>
 
-      {/* 💡 재확인 커스텀 모달 (ProjectDetail과 스타일 공유) */}
       {confirmModal.show && (
         <div className="custom-sys-modal-overlay" onClick={closeConfirm}>
           <div className="custom-sys-modal-box" onClick={e => e.stopPropagation()}>
@@ -176,7 +172,7 @@ const Settings = () => {
           </div>
         </div>
       )}
-    </Scrollbar>
+    </div>
   );
 };
 
