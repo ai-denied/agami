@@ -5,6 +5,11 @@ import hmac
 import hashlib
 import uuid
 import logging
+import time
+
+# 대시보드 데이터를 임시로 담아둘 딕셔너리와 유지 시간(15초) 설정
+DASHBOARD_CACHE = {}
+CACHE_TTL = 15  
 
 from fastapi import FastAPI, Depends, HTTPException, Response, Request, Form
 from sqlalchemy import create_engine, text
@@ -494,7 +499,7 @@ async def payment_approve(data: PaymentApprove, request: Request, db: Session = 
 # 대시보드 API - PostgreSQL 실 데이터 기반 집계 (프로젝트별 격리 적용 완료)
 # -----------------------------------------------------------------------------
 @app.get("/api/dashboard/all")
-async def get_combined_dashboard_data(
+def get_combined_dashboard_data(
     request: Request, 
     kind: str = "all", 
     target_date: str = None, 
@@ -536,6 +541,16 @@ async def get_combined_dashboard_data(
         
     if not api_key_id:
         return _empty_dashboard()
+        
+    # ----------------------------------------------------
+    # [여기서부터 새로 추가] 캐시 키 생성 및 확인
+    cache_key = f"{api_key_id}_{kind}_{target_date}"
+    cached = DASHBOARD_CACHE.get(cache_key)
+    
+    # 저장된 데이터가 있고 15초가 지나지 않았다면, DB를 찌르지 않고 즉시 반환!
+    if cached and (time.time() - cached['time']) < CACHE_TTL:
+        return cached['data']
+    # ----------------------------------------------------
 
     kind_filter_c = "" if kind == "all" else " AND c.kind = :kind"
     kind_filter_v = "" if kind == "all" else " AND v.kind = :kind"
@@ -689,7 +704,7 @@ async def get_combined_dashboard_data(
         pie_bot = 0
         pie_abandoned = 0
 
-    return {
+    final_result = {
         "status": "success",
         "data": {
             "display": {
@@ -714,3 +729,11 @@ async def get_combined_dashboard_data(
             "logs": logs_list
         }
     }
+    
+    # 딕셔너리에 현재 시간과 함께 결과값 저장
+    DASHBOARD_CACHE[cache_key] = {
+        'time': time.time(),
+        'data': final_result
+    }
+
+    return final_result
