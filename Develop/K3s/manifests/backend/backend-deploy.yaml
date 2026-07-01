@@ -17,7 +17,7 @@ spec:
         zone: backend
       containers:
       - name: backend
-        image: agami-captcha.cloud:8443/agami/backend:2607011137
+        image: agami-captcha.cloud:8443/agami/backend:2607011906
         resources:
           requests:
             cpu: "2000m"     # 2코어 전체를 항상 보장
