@@ -20,10 +20,10 @@ spec:
         image: agami-captcha.cloud:8443/agami/frontend:2607011906
         resources:
           requests:
-            cpu: "2000m"     # 2코어 전체를 항상 보장
-            memory: "1Gi"
+            cpu: "500m"      # 스케줄러는 0.5코어만 비어있으면 파드를 배치함 (Pending 해결!)
+            memory: "512Mi"
           limits:
-            cpu: "2000m"     # 최대 2코어까지 제한 해제
+            cpu: "2000m"     # 실제 동작 시 최대 2코어까지 풀로 사용 가능
             memory: "2Gi"
         imagePullPolicy: Always
         ports:
