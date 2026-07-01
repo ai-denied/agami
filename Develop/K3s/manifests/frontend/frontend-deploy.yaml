@@ -17,7 +17,14 @@ spec:
         zone: frontend
       containers:
       - name: frontend
-        image: agami-captcha.cloud:8443/agami/frontend:2606301944 
+        image: agami-captcha.cloud:8443/agami/frontend:2606301944
+        resources:
+          requests:
+            cpu: "2000m"     # 2코어 전체를 항상 보장
+            memory: "1Gi"
+          limits:
+            cpu: "2000m"     # 최대 2코어까지 제한 해제
+            memory: "2Gi"
         imagePullPolicy: Always
         ports:
         - containerPort: 80
