@@ -48,7 +48,7 @@ spec:
         - name: SMTP_EMAIL
           value: "agami.captcha@gmail.com"
         - name: SMTP_PASSWORD
-          value: "ruzp xqwz mjay pjjt" # 가급적 Secret으로 관리하는 것을 권장
+          value: "mpnm xbus jacd xnes" # 가급적 Secret으로 관리하는 것을 권장
 
         volumeMounts:
         - name: behavior-logs-volume
