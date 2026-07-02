@@ -17,7 +17,7 @@ spec:
         zone: backend
       containers:
       - name: backend
-        image: agami-captcha.cloud:8443/agami/backend:2607011906
+        image: agami-captcha.cloud:8443/agami/backend:2607021000
         resources:
           requests:
             cpu: "500m"      # 스케줄러는 0.5코어만 비어있으면 파드를 배치함 (Pending 해결!)
