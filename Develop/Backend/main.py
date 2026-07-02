@@ -428,14 +428,13 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
                 
                 if existing_origin:
                     ao_id, ak_id, revoked_at = existing_origin
-                    if ak_id == api_key_id_record:
+                    
+                    # 두 값을 모두 문자열로 변환하여 안전하게 비교합니다.
+                    if str(ak_id) == str(api_key_id_record):
                         continue
-                        
+
                     if revoked_at is None:
                         raise HTTPException(status_code=400, detail=f"회원님의 다른 활성 프로젝트에 이미 등록된 도메인입니다: {domain}")
-                    else:
-                        captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
-                        captcha_db.commit()
 
     project.name = data.name
     project.domains = data.domains
