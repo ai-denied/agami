@@ -8,4 +8,4 @@ ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 RUN pip install --no-cache-dir uvicorn fastapi requests certifi sqlalchemy python-dotenv psycopg2-binary "python-jose[cryptography]" python-multipart
 
 COPY . .
-CMD ["python3", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["gunicorn", "main:app", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "--bind", "0.0.0.0:8000"]

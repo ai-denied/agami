@@ -193,21 +193,29 @@ async def google_callback(code: str, response: Response, db: Session = Depends(g
 async def get_me(request: Request, db: Session = Depends(get_db), captcha_db: Session = Depends(get_captcha_db)):
     token = request.cookies.get("accessToken")
     if not token: raise HTTPException(status_code=401, detail="Unauthorized")
+
     try:
+        # 1. 필수 로직: 토큰 해독 및 유저 조회 (반드시 남겨두어야 함)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if not user: raise HTTPException(status_code=401, detail="User not found")
 
-        try:
-            current_plan = "pro" if user.plan == "Pro" else "free"
-            captcha_db.execute(text("UPDATE tenants SET billing_plan = :plan, updated_at = NOW() WHERE owner_user_id = :uid"), {"plan": current_plan, "uid": int(user_id)})
-            captcha_db.commit()
-        except Exception as e:
-            captcha_db.rollback()
-            logger.error(f"Background Sync Error: {str(e)}")
+        # ----------------------------------------------------
+        # 2. 병목 원인 제거: DB 쓰기(UPDATE) 락을 유발하는 코드만 주석 처리
+        # ----------------------------------------------------
+        # try:
+        #     current_plan = "pro" if user.plan == "Pro" else "free"
+        #     captcha_db.execute(text("UPDATE tenants SET billing_plan = :plan, updated_at = NOW() WHERE owner_user_id = :uid"), {"plan": current_plan, "uid": int(user_id)})
+        #     captcha_db.commit()
+        # except Exception as e:
+        #     captcha_db.rollback()
+        #     logger.error(f"Background Sync Error: {str(e)}")
+        # ----------------------------------------------------
 
+        # 3. 정상 반환
         return {"status": "success", "user": {"id": user.id, "nickname": user.nickname, "profile": user.profile_image, "plan": user.plan}}
+    
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
