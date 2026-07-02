@@ -6,10 +6,12 @@ import hashlib
 import uuid
 import logging
 import time
+import json
+import redis
 
-# 대시보드 데이터를 임시로 담아둘 딕셔너리와 유지 시간(15초) 설정
-DASHBOARD_CACHE = {}
-CACHE_TTL = 15  
+# 대시보드 데이터를 임시로 담아둘 딕셔너리와 유지 시간(15초) 설정 (Redis로 교체)
+# DASHBOARD_CACHE = {}
+# CACHE_TTL = 15  
 
 from fastapi import FastAPI, Depends, HTTPException, Response, Request, Form
 from sqlalchemy import create_engine, text
@@ -25,6 +27,19 @@ from pydantic import BaseModel
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# --- Redis 연결 설정 ---
+REDIS_HOST = os.getenv("REDIS_HOST", "redis.agami.svc.cluster.local")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
+
+try:
+    redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
+    redis_client.ping()
+    logger.info("Redis 연결 성공!")
+except redis.ConnectionError as e:
+    logger.error(f"Redis 연결 실패: {e}")
+    redis_client = None
 
 # --- 유틸리티 함수 ---
 def normalize_domain(domain: str) -> str:
@@ -585,10 +600,15 @@ def get_combined_dashboard_data(
         return _empty_dashboard()
         
     cache_key = f"{api_key_id}_{kind}_{target_date}"
-    cached = DASHBOARD_CACHE.get(cache_key)
     
-    if cached and (time.time() - cached['time']) < CACHE_TTL:
-        return cached['data']
+    # --- Redis에서 캐시 확인 ---
+    if redis_client:
+        try:
+            cached_data = redis_client.get(cache_key)
+            if cached_data:
+                return json.loads(cached_data)
+        except Exception as e:
+            logger.warning(f"Redis 읽기 에러: {e}")
 
     kind_filter_c = "" if kind == "all" else " AND c.kind = :kind"
     kind_filter_v = "" if kind == "all" else " AND v.kind = :kind"
@@ -765,9 +785,11 @@ def get_combined_dashboard_data(
         }
     }
     
-    DASHBOARD_CACHE[cache_key] = {
-        'time': time.time(),
-        'data': final_result
-    }
+    # --- Redis에 결과 캐싱 (TTL 15초) ---
+    if redis_client:
+        try:
+            redis_client.set(cache_key, json.dumps(final_result), ex=15)
+        except Exception as e:
+            logger.warning(f"Redis 쓰기 에러: {e}")
 
     return final_result
