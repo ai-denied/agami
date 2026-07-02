@@ -30,7 +30,14 @@ logger = logging.getLogger(__name__)
 
 # --- Redis 연결 설정 ---
 REDIS_HOST = os.getenv("REDIS_HOST", "redis.agami.svc.cluster.local")
-REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
+# 쿠버네티스 환경변수 충돌 방지 로직 추가
+raw_redis_port = os.getenv("REDIS_PORT", "6379")
+if "tcp://" in raw_redis_port:
+    REDIS_PORT = 6379
+else:
+    REDIS_PORT = int(raw_redis_port)
+
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
 
 try:
