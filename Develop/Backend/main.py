@@ -77,11 +77,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", 60))
 # --- 캡차 DB 세션 설정 ---
 CAPTCHA_DB_URL = os.getenv("CAPTCHA_DB_URL")
 if CAPTCHA_DB_URL:
-    # [수정 1] captcha_db 전용 커넥션 풀 확장 (병목 원인 해결)
     captcha_engine = create_engine(
         CAPTCHA_DB_URL,
-        pool_size=100,
-        max_overflow=50,
+        pool_size=20,       # 기본 20개
+        max_overflow=20,    # 최대 40개까지 확장
         pool_pre_ping=True
     )
     CaptchaSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=captcha_engine)
