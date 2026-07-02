@@ -38,6 +38,11 @@ def normalize_domain(domain: str) -> str:
     
     return f"https://{domain}"
 
+# 💡 테스트 및 개발 목적의 도메인은 중복 검사에서 제외하기 위한 함수
+def is_bypass_domain(domain: str) -> bool:
+    test_keywords = ["localhost", "127.0.0.1", "agami-captcha.cloud"]
+    return any(keyword in domain for keyword in test_keywords)
+
 class ProjectCreate(BaseModel):
     name: str
     domains: str
@@ -285,6 +290,29 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
     if not domain_list:
         raise HTTPException(status_code=400, detail="유효한 도메인을 최소 1개 이상 입력해주세요.")
 
+    # 💡 [추가된 로직] 프로젝트 생성 시 도메인 중복 검사 (테스트 도메인 예외 처리 포함)
+    tenant_id_record = captcha_db.execute(text("SELECT id FROM tenants WHERE owner_user_id = :uid"), {"uid": user_id}).scalar()
+    if tenant_id_record:
+        tenant_id_str = str(tenant_id_record)
+        for domain in domain_list:
+            if is_bypass_domain(domain):
+                continue
+
+            existing_origin = captcha_db.execute(
+                text("""
+                    SELECT ao.id, ak.revoked_at 
+                    FROM allowed_origins ao
+                    JOIN api_keys ak ON ao.api_key_id = ak.id
+                    WHERE ao.origin = :o AND ao.tenant_id = :tid
+                """), 
+                {"o": domain, "tid": tenant_id_str}
+            ).fetchone()
+            
+            if existing_origin:
+                ao_id, revoked_at = existing_origin
+                if revoked_at is None:
+                    raise HTTPException(status_code=400, detail=f"회원님의 다른 활성 프로젝트에 이미 등록된 도메인입니다: {domain}")
+
     generated_site_key = f"agami_site_{secrets.token_hex(16)}"
     generated_secret_key = f"agami_secret_{secrets.token_hex(32)}"
 
@@ -300,11 +328,6 @@ async def create_project(data: ProjectCreate, request: Request, db: Session = De
         current_user = db.query(models.User).filter(models.User.id == user_id).first()
         current_plan = "pro" if current_user and current_user.plan == "Pro" else "free"
         
-        tenant_id_record = captcha_db.execute(
-            text("SELECT id FROM tenants WHERE owner_user_id = :uid"),
-            {"uid": user_id}
-        ).scalar()
-
         if not tenant_id_record:
             tenant_id = str(uuid.uuid4())
             captcha_db.execute(text("""INSERT INTO tenants (id, name, billing_plan, is_active, owner_user_id, created_at, updated_at) VALUES (:id, :n, :plan, true, :uid, NOW(), NOW())"""), {"id": tenant_id, "n": f"User_{user_id}_Tenant", "plan": current_plan, "uid": user_id})
@@ -416,6 +439,9 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
         if tenant_id_record:
             tenant_id_str = str(tenant_id_record)
             for domain in domain_list:
+                if is_bypass_domain(domain):
+                    continue
+
                 existing_origin = captcha_db.execute(
                     text("""
                         SELECT ao.id, ao.api_key_id, ak.revoked_at 
@@ -428,13 +454,14 @@ async def update_project(project_id: int, data: ProjectUpdate, request: Request,
                 
                 if existing_origin:
                     ao_id, ak_id, revoked_at = existing_origin
-                    
-                    # 두 값을 모두 문자열로 변환하여 안전하게 비교합니다.
                     if str(ak_id) == str(api_key_id_record):
                         continue
-
+                        
                     if revoked_at is None:
                         raise HTTPException(status_code=400, detail=f"회원님의 다른 활성 프로젝트에 이미 등록된 도메인입니다: {domain}")
+                    else:
+                        captcha_db.execute(text("DELETE FROM allowed_origins WHERE id = :id"), {"id": ao_id})
+                        captcha_db.commit()
 
     project.name = data.name
     project.domains = data.domains
