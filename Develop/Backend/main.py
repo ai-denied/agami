@@ -607,15 +607,34 @@ def get_combined_dashboard_data(
         return _empty_dashboard()
         
     cache_key = f"{api_key_id}_{kind}_{target_date}"
+    lock_key = f"lock:{cache_key}" # 분산 락을 위한 키 추가
     
-    # --- Redis에서 캐시 확인 ---
+    # ----------------------------------------------------
+    # [수정 1] Redis 캐시 확인 및 분산 락(Lock) 적용
+    # ----------------------------------------------------
     if redis_client:
         try:
             cached_data = redis_client.get(cache_key)
             if cached_data:
                 return json.loads(cached_data)
+            
+            # 캐시가 비어있다면 분산 락 획득 시도 (선착순 1명, 10초 후 자동 해제)
+            # nx=True: 키가 없을 때만 생성 성공 (True 반환)
+            lock_acquired = redis_client.set(lock_key, "locked", nx=True, ex=10)
+            
+            if not lock_acquired:
+                # 락 획득 실패 (누군가 이미 DB에서 작업 중). 무거운 DB 쿼리를 피하고 잠시 대기
+                for _ in range(15):  # 0.2초씩 최대 3초 대기
+                    time.sleep(0.2)
+                    cached_data = redis_client.get(cache_key)
+                    if cached_data:
+                        return json.loads(cached_data) # 앞선 1명이 캐시를 채워넣으면 즉시 반환
+                        
+                # 3초 대기 후에도 데이터가 안 오면 빈 데이터 반환 (DB 연쇄 장애 완벽 방어)
+                return _empty_dashboard()
+                
         except Exception as e:
-            logger.warning(f"Redis 읽기 에러: {e}")
+            logger.warning(f"Redis 읽기/락 에러: {e}")
 
     kind_filter_c = "" if kind == "all" else " AND c.kind = :kind"
     kind_filter_v = "" if kind == "all" else " AND v.kind = :kind"
@@ -796,6 +815,7 @@ def get_combined_dashboard_data(
     if redis_client:
         try:
             redis_client.set(cache_key, json.dumps(final_result), ex=15)
+            redis_client.delete(lock_key) # 다음 요청을 위해 락 해제
         except Exception as e:
             logger.warning(f"Redis 쓰기 에러: {e}")
 
