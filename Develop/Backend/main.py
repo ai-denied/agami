@@ -80,8 +80,8 @@ if CAPTCHA_DB_URL:
     # [수정 1] captcha_db 전용 커넥션 풀 확장 (병목 원인 해결)
     captcha_engine = create_engine(
         CAPTCHA_DB_URL,
-        pool_size=40,
-        max_overflow=20,
+        pool_size=100,
+        max_overflow=50,
         pool_pre_ping=True
     )
     CaptchaSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=captcha_engine)
